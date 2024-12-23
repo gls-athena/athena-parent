@@ -2,7 +2,7 @@ package com.gls.athena.common.bean.security;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.gls.athena.common.bean.base.BaseVo;
-import com.gls.athena.common.bean.jackson2.UserDeserializer;
+import com.gls.athena.common.bean.security.jackson2.UserDeserializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

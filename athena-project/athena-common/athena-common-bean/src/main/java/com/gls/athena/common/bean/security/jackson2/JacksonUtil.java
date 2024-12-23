@@ -1,4 +1,4 @@
-package com.gls.athena.common.bean.jackson2;
+package com.gls.athena.common.bean.security.jackson2;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
