@@ -4,24 +4,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.gls.athena.starter</groupId>
-        <artifactId>athena-starter</artifactId>
+        <groupId>com.gls.athena.sdk</groupId>
+        <artifactId>athena-sdk</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.gls.athena.starter.feishu</groupId>
-    <artifactId>athena-starter-feishu</artifactId>
+    <groupId>com.gls.athena.sdk.xxl.job</groupId>
+    <artifactId>athena-sdk-xxl-job</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>com.larksuite.oapi</groupId>
-            <artifactId>oapi-sdk</artifactId>
-            <version>2.3.6</version>
+            <groupId>com.xuxueli</groupId>
+            <artifactId>xxl-job-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.starter.data.redis</groupId>
-            <artifactId>athena-starter-data-redis</artifactId>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-commons</artifactId>
         </dependency>
     </dependencies>
-
 </project>

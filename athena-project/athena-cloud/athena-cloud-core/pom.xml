@@ -14,11 +14,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.gls.athena.cloud.sdk</groupId>
-            <artifactId>athena-cloud-sdk</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.gls.athena.starter.web</groupId>
             <artifactId>athena-starter-web</artifactId>
         </dependency>
@@ -31,8 +26,8 @@
             <artifactId>athena-starter-data-redis</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.starter.log</groupId>
-            <artifactId>athena-starter-log</artifactId>
+            <groupId>com.gls.athena.sdk.log</groupId>
+            <artifactId>athena-sdk-log</artifactId>
         </dependency>
 
         <dependency>

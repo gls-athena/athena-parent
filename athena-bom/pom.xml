@@ -25,11 +25,6 @@
                 <artifactId>athena-cloud-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.gls.athena.cloud.sdk</groupId>
-                <artifactId>athena-cloud-sdk</artifactId>
-                <version>${project.version}</version>
-            </dependency>
             <!-- Athena Common -->
             <dependency>
                 <groupId>com.gls.athena.common.bean</groupId>
@@ -39,6 +34,37 @@
             <dependency>
                 <groupId>com.gls.athena.common.core</groupId>
                 <artifactId>athena-common-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- Athena SDK -->
+            <dependency>
+                <groupId>com.gls.athena.sdk.amap</groupId>
+                <artifactId>athena-sdk-amap</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.gls.athena.sdk.core</groupId>
+                <artifactId>athena-sdk-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.gls.athena.sdk.feishu</groupId>
+                <artifactId>athena-sdk-feishu</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.gls.athena.sdk.log</groupId>
+                <artifactId>athena-sdk-log</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.gls.athena.sdk.message</groupId>
+                <artifactId>athena-sdk-message</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.gls.athena.sdk.xxl.job</groupId>
+                <artifactId>athena-sdk-xxl-job</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- Athena Starter -->
@@ -55,11 +81,6 @@
             <dependency>
                 <groupId>com.gls.athena.starter.aliyun.sms</groupId>
                 <artifactId>athena-starter-aliyun-sms</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.starter.amap</groupId>
-                <artifactId>athena-starter-amap</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -88,23 +109,8 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.feishu</groupId>
-                <artifactId>athena-starter-feishu</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.gls.athena.starter.json</groupId>
                 <artifactId>athena-starter-json</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.starter.log</groupId>
-                <artifactId>athena-starter-log</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.starter.message</groupId>
-                <artifactId>athena-starter-message</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -120,11 +126,6 @@
             <dependency>
                 <groupId>com.gls.athena.starter.web</groupId>
                 <artifactId>athena-starter-web</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.starter.xxl.job</groupId>
-                <artifactId>athena-starter-xxl-job</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- Athena Security -->

@@ -14,7 +14,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>athena-cloud-boot</module>
-        <module>athena-cloud-sdk</module>
         <module>athena-cloud-core</module>
     </modules>
 

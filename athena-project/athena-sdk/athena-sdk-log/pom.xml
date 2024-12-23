@@ -4,15 +4,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.gls.athena.starter</groupId>
-        <artifactId>athena-starter</artifactId>
+        <groupId>com.gls.athena.sdk</groupId>
+        <artifactId>athena-sdk</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.gls.athena.starter.message</groupId>
-    <artifactId>athena-starter-message</artifactId>
+    <groupId>com.gls.athena.sdk.log</groupId>
+    <artifactId>athena-sdk-log</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>

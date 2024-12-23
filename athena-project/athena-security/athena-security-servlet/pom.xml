@@ -22,8 +22,8 @@
             <artifactId>athena-starter-web</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.starter.message</groupId>
-            <artifactId>athena-starter-message</artifactId>
+            <groupId>com.gls.athena.sdk.message</groupId>
+            <artifactId>athena-sdk-message</artifactId>
         </dependency>
     </dependencies>
 </project>

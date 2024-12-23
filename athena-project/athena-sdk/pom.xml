@@ -9,22 +9,17 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.gls.athena.starter</groupId>
-    <artifactId>athena-starter</artifactId>
+    <groupId>com.gls.athena.sdk</groupId>
+    <artifactId>athena-sdk</artifactId>
     <packaging>pom</packaging>
+
     <modules>
-        <module>athena-starter-aliyun-core</module>
-        <module>athena-starter-aliyun-oss</module>
-        <module>athena-starter-aliyun-sms</module>
-        <module>athena-starter-core</module>
-        <module>athena-starter-data-jpa</module>
-        <module>athena-starter-data-redis</module>
-        <module>athena-starter-dynamic-datasource</module>
-        <module>athena-starter-excel</module>
-        <module>athena-starter-json</module>
-        <module>athena-starter-mybatis</module>
-        <module>athena-starter-swagger</module>
-        <module>athena-starter-web</module>
+        <module>athena-sdk-amap</module>
+        <module>athena-sdk-core</module>
+        <module>athena-sdk-feishu</module>
+        <module>athena-sdk-log</module>
+        <module>athena-sdk-message</module>
+        <module>athena-sdk-xxl-job</module>
     </modules>
 
     <dependencies>

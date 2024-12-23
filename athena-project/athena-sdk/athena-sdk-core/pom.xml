@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.gls.athena.cloud</groupId>
-        <artifactId>athena-cloud</artifactId>
+        <groupId>com.gls.athena.sdk</groupId>
+        <artifactId>athena-sdk</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.gls.athena.cloud.sdk</groupId>
-    <artifactId>athena-cloud-sdk</artifactId>
+    <groupId>com.gls.athena.sdk.core</groupId>
+    <artifactId>athena-sdk-core</artifactId>
 
     <dependencies>
         <dependency>
