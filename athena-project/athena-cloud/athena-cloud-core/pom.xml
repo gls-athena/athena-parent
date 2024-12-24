@@ -26,6 +26,18 @@
             <artifactId>athena-starter-data-redis</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.gls.athena.starter.json</groupId>
+            <artifactId>athena-starter-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.gls.athena.starter.swagger</groupId>
+            <artifactId>athena-starter-swagger</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.gls.athena.starter.excel</groupId>
+            <artifactId>athena-starter-excel</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.gls.athena.sdk.log</groupId>
             <artifactId>athena-sdk-log</artifactId>
         </dependency>
