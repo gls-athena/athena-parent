@@ -12,11 +12,11 @@
     <artifactId>athena-project</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>athena-common</module>
-        <module>athena-starter</module>
         <module>athena-cloud</module>
-        <module>athena-security</module>
+        <module>athena-common</module>
         <module>athena-sdk</module>
+        <module>athena-security</module>
+        <module>athena-starter</module>
     </modules>
 
     <dependencies>
