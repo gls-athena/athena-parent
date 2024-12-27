@@ -2,6 +2,7 @@ package com.gls.athena.sdk.amap.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 /**
  * 地理编码请求
@@ -9,6 +10,7 @@ import lombok.EqualsAndHashCode;
  * @author george
  */
 @Data
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 public class GeoRequest extends BaseRequest {
     /**

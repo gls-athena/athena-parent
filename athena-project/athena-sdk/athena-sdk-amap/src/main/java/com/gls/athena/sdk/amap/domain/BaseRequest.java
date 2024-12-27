@@ -1,6 +1,7 @@
 package com.gls.athena.sdk.amap.domain;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
@@ -10,6 +11,7 @@ import java.io.Serializable;
  * @author george
  */
 @Data
+@Accessors(chain = true)
 public abstract class BaseRequest implements Serializable {
     /**
      * 高德key
