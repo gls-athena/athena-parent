@@ -1,10 +1,17 @@
 package com.gls.athena.sdk.feishu.support;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.gls.athena.sdk.feishu.config.FeishuProperties;
+import com.gls.athena.sdk.feishu.domain.TextContent;
 import com.lark.oapi.Client;
 import com.lark.oapi.core.cache.ICache;
 import com.lark.oapi.core.enums.AppType;
+import com.lark.oapi.service.im.v1.enums.MsgTypeEnum;
+import com.lark.oapi.service.im.v1.model.CreateMessageReq;
+import com.lark.oapi.service.im.v1.model.CreateMessageReqBody;
+import com.lark.oapi.service.im.v1.model.CreateMessageResp;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.ObjectProvider;
 
@@ -53,5 +60,26 @@ public class FeishuClient {
         cache.ifAvailable(builder::tokenCache);
         // 创建
         this.client = builder.build();
+    }
+
+    /**
+     * 发送文本消息
+     *
+     * @param receiveId     接收者id
+     * @param receiveIdType 接收者id类型
+     * @param content       消息内容
+     */
+    public CreateMessageResp sendTextMsg(String receiveId, String receiveIdType, String content) throws Exception {
+        TextContent textContent = new TextContent();
+        textContent.setText(content);
+        return client.im().message().create(CreateMessageReq.newBuilder()
+                .receiveIdType(receiveIdType)
+                .createMessageReqBody(CreateMessageReqBody.newBuilder()
+                        .receiveId(receiveId)
+                        .msgType(MsgTypeEnum.MSG_TYPE_TEXT.getValue())
+                        .content(JSONUtil.toJsonStr(textContent))
+                        .uuid(IdUtil.randomUUID())
+                        .build())
+                .build());
     }
 }
