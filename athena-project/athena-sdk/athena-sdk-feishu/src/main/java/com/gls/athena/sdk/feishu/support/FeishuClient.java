@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.gls.athena.sdk.feishu.config.FeishuProperties;
+import com.gls.athena.sdk.feishu.domain.PostContent;
 import com.gls.athena.sdk.feishu.domain.TextContent;
 import com.lark.oapi.Client;
 import com.lark.oapi.core.cache.ICache;
@@ -13,6 +14,7 @@ import com.lark.oapi.service.im.v1.model.CreateMessageReq;
 import com.lark.oapi.service.im.v1.model.CreateMessageReqBody;
 import com.lark.oapi.service.im.v1.model.CreateMessageResp;
 import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 
 /**
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.ObjectProvider;
  *
  * @author george
  */
+@Slf4j
 public class FeishuClient {
     /**
      * 客户端
@@ -69,15 +72,36 @@ public class FeishuClient {
      * @param receiveIdType 接收者id类型
      * @param content       消息内容
      */
-    public CreateMessageResp sendTextMsg(String receiveId, String receiveIdType, String content) throws Exception {
-        TextContent textContent = new TextContent();
-        textContent.setText(content);
+    public CreateMessageResp sendTextMsg(String receiveId, String receiveIdType, TextContent content) throws Exception {
+        String contentStr = JSONUtil.toJsonStr(content);
+        log.info("发送文本消息:{}", contentStr);
         return client.im().message().create(CreateMessageReq.newBuilder()
                 .receiveIdType(receiveIdType)
                 .createMessageReqBody(CreateMessageReqBody.newBuilder()
                         .receiveId(receiveId)
                         .msgType(MsgTypeEnum.MSG_TYPE_TEXT.getValue())
-                        .content(JSONUtil.toJsonStr(textContent))
+                        .content(contentStr)
+                        .uuid(IdUtil.randomUUID())
+                        .build())
+                .build());
+    }
+
+    /**
+     * 发送富文本消息
+     *
+     * @param receiveId     接收者id
+     * @param receiveIdType 接收者id类型
+     * @param content       消息内容
+     */
+    public CreateMessageResp sendPostMsg(String receiveId, String receiveIdType, PostContent content) throws Exception {
+        String contentStr = JSONUtil.toJsonStr(content);
+        log.info("发送富文本消息:{}", contentStr);
+        return client.im().message().create(CreateMessageReq.newBuilder()
+                .receiveIdType(receiveIdType)
+                .createMessageReqBody(CreateMessageReqBody.newBuilder()
+                        .receiveId(receiveId)
+                        .msgType(MsgTypeEnum.MSG_TYPE_POST.getValue())
+                        .content(contentStr)
                         .uuid(IdUtil.randomUUID())
                         .build())
                 .build());
