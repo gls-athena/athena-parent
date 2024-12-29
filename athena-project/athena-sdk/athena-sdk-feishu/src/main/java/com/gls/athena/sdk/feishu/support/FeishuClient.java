@@ -2,7 +2,8 @@ package com.gls.athena.sdk.feishu.support;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gls.athena.sdk.feishu.config.FeishuProperties;
 import com.gls.athena.sdk.feishu.domain.PostContent;
 import com.gls.athena.sdk.feishu.domain.TextContent;
@@ -24,6 +25,18 @@ import org.springframework.beans.factory.ObjectProvider;
  */
 @Slf4j
 public class FeishuClient {
+    /**
+     * 对象映射
+     */
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    static {
+        // 配置
+
+        // 配置空值不序列化
+        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
+
     /**
      * 客户端
      */
@@ -73,7 +86,7 @@ public class FeishuClient {
      * @param content       消息内容
      */
     public CreateMessageResp sendTextMsg(String receiveId, String receiveIdType, TextContent content) throws Exception {
-        String contentStr = JSONUtil.toJsonStr(content);
+        String contentStr = OBJECT_MAPPER.writeValueAsString(content);
         log.info("发送文本消息:{}", contentStr);
         return client.im().message().create(CreateMessageReq.newBuilder()
                 .receiveIdType(receiveIdType)
@@ -94,7 +107,7 @@ public class FeishuClient {
      * @param content       消息内容
      */
     public CreateMessageResp sendPostMsg(String receiveId, String receiveIdType, PostContent content) throws Exception {
-        String contentStr = JSONUtil.toJsonStr(content);
+        String contentStr = OBJECT_MAPPER.writeValueAsString(content);
         log.info("发送富文本消息:{}", contentStr);
         return client.im().message().create(CreateMessageReq.newBuilder()
                 .receiveIdType(receiveIdType)

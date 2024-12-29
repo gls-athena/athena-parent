@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,11 +64,11 @@ public class PostContent implements Serializable {
          * 是否转义
          */
         @JsonProperty("un_escape")
-        private boolean unEscape = false;
+        private boolean unEscape;
         /**
          * 样式
          */
-        private List<String> style = new ArrayList<>();
+        private List<String> style;
 
         @Override
         public String getTag() {
@@ -93,7 +92,7 @@ public class PostContent implements Serializable {
         /**
          * 样式
          */
-        private List<String> style = new ArrayList<>();
+        private List<String> style;
 
         @Override
         public String getTag() {
@@ -114,7 +113,7 @@ public class PostContent implements Serializable {
         /**
          * 样式
          */
-        private List<String> style = new ArrayList<>();
+        private List<String> style;
 
         @Override
         public String getTag() {
@@ -194,7 +193,7 @@ public class PostContent implements Serializable {
 
         @Override
         public String getTag() {
-            return "code";
+            return "code_block";
         }
     }
 
