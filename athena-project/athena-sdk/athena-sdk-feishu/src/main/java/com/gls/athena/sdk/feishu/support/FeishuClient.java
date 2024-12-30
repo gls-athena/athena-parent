@@ -5,11 +5,14 @@ import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gls.athena.sdk.feishu.config.FeishuProperties;
+import com.gls.athena.sdk.feishu.domain.ImageContent;
+import com.gls.athena.sdk.feishu.domain.InteractiveContent;
 import com.gls.athena.sdk.feishu.domain.PostContent;
 import com.gls.athena.sdk.feishu.domain.TextContent;
 import com.lark.oapi.Client;
 import com.lark.oapi.core.cache.ICache;
 import com.lark.oapi.core.enums.AppType;
+import com.lark.oapi.service.im.v1.enums.CreateMessageReceiveIdTypeEnum;
 import com.lark.oapi.service.im.v1.enums.MsgTypeEnum;
 import com.lark.oapi.service.im.v1.model.CreateMessageReq;
 import com.lark.oapi.service.im.v1.model.CreateMessageReqBody;
@@ -85,18 +88,8 @@ public class FeishuClient {
      * @param receiveIdType 接收者id类型
      * @param content       消息内容
      */
-    public CreateMessageResp sendTextMsg(String receiveId, String receiveIdType, TextContent content) throws Exception {
-        String contentStr = OBJECT_MAPPER.writeValueAsString(content);
-        log.info("发送文本消息:{}", contentStr);
-        return client.im().message().create(CreateMessageReq.newBuilder()
-                .receiveIdType(receiveIdType)
-                .createMessageReqBody(CreateMessageReqBody.newBuilder()
-                        .receiveId(receiveId)
-                        .msgType(MsgTypeEnum.MSG_TYPE_TEXT.getValue())
-                        .content(contentStr)
-                        .uuid(IdUtil.randomUUID())
-                        .build())
-                .build());
+    public CreateMessageResp sendTextMsg(String receiveId, CreateMessageReceiveIdTypeEnum receiveIdType, TextContent content) throws Exception {
+        return sendMsg(receiveId, receiveIdType, MsgTypeEnum.MSG_TYPE_TEXT, content);
     }
 
     /**
@@ -106,14 +99,48 @@ public class FeishuClient {
      * @param receiveIdType 接收者id类型
      * @param content       消息内容
      */
-    public CreateMessageResp sendPostMsg(String receiveId, String receiveIdType, PostContent content) throws Exception {
+    public CreateMessageResp sendPostMsg(String receiveId, CreateMessageReceiveIdTypeEnum receiveIdType, PostContent content) throws Exception {
+        return sendMsg(receiveId, receiveIdType, MsgTypeEnum.MSG_TYPE_POST, content);
+    }
+
+    /**
+     * 发送图片消息
+     *
+     * @param receiveId     接收者id
+     * @param receiveIdType 接收者id类型
+     * @param content       消息内容
+     */
+    public CreateMessageResp sendImageMsg(String receiveId, CreateMessageReceiveIdTypeEnum receiveIdType, ImageContent content) throws Exception {
+        return sendMsg(receiveId, receiveIdType, MsgTypeEnum.MSG_TYPE_IMAGE, content);
+    }
+
+    /**
+     * 发送卡片消息
+     *
+     * @param receiveId     接收者id
+     * @param receiveIdType 接收者id类型
+     * @param content       消息内容
+     */
+    public CreateMessageResp sendInteractiveMsg(String receiveId, CreateMessageReceiveIdTypeEnum receiveIdType, InteractiveContent content) throws Exception {
+        return sendMsg(receiveId, receiveIdType, MsgTypeEnum.MSG_TYPE_INTERACTIVE, content);
+    }
+
+    /**
+     * 发送消息
+     *
+     * @param receiveId     接收者id
+     * @param receiveIdType 接收者id类型
+     * @param msgType       消息类型
+     * @param content       消息内容
+     */
+    private CreateMessageResp sendMsg(String receiveId, CreateMessageReceiveIdTypeEnum receiveIdType, MsgTypeEnum msgType, Object content) throws Exception {
         String contentStr = OBJECT_MAPPER.writeValueAsString(content);
-        log.info("发送富文本消息:{}", contentStr);
+        log.info("发送消息:{}", contentStr);
         return client.im().message().create(CreateMessageReq.newBuilder()
                 .receiveIdType(receiveIdType)
                 .createMessageReqBody(CreateMessageReqBody.newBuilder()
                         .receiveId(receiveId)
-                        .msgType(MsgTypeEnum.MSG_TYPE_POST.getValue())
+                        .msgType(msgType.getValue())
                         .content(contentStr)
                         .uuid(IdUtil.randomUUID())
                         .build())
