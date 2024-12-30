@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class RegeoRequest extends BaseRequest {
+public class ReGeoRequest extends BaseRequest {
     /**
      * 经纬度坐标
      * 传入内容规则：经度在前，纬度在后，经纬度间以“,”分割，经纬度小数点后不要超过 6 位。
