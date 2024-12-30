@@ -9,5 +9,5 @@ public interface IAmapConstants {
     /**
      * 高德地图服务地址
      */
-    String URL = "https://restapi.amap.com/v3";
+    String URL_V3 = "https://restapi.amap.com/v3";
 }

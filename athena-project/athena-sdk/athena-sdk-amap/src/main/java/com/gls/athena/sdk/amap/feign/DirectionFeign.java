@@ -1,6 +1,8 @@
 package com.gls.athena.sdk.amap.feign;
 
 import com.gls.athena.sdk.amap.config.IAmapConstants;
+import com.gls.athena.sdk.amap.domain.TransitIntegratedRequest;
+import com.gls.athena.sdk.amap.domain.TransitIntegratedResponse;
 import com.gls.athena.sdk.amap.domain.WalkingRequest;
 import com.gls.athena.sdk.amap.domain.WalkingResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -12,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "amap", contextId = "direction", path = "/direction", url = IAmapConstants.URL)
+@FeignClient(name = "amap", contextId = "direction", path = "/direction", url = IAmapConstants.URL_V3)
 public interface DirectionFeign {
 
     /**
@@ -23,4 +25,13 @@ public interface DirectionFeign {
      */
     @GetMapping("/walking")
     WalkingResponse walking(@SpringQueryMap WalkingRequest request);
+
+    /**
+     * 公交路径规划 API URL
+     *
+     * @param request 公交路径规划请求
+     * @return 公交路径规划响应
+     */
+    @GetMapping("/transit/integrated")
+    TransitIntegratedResponse transitIntegrated(@SpringQueryMap TransitIntegratedRequest request);
 }
