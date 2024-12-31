@@ -1,4 +1,4 @@
-package com.gls.athena.sdk.amap.v4.domain;
+package com.gls.athena.sdk.amap.domain;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -12,7 +12,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public class BicyclingRequest implements Serializable {
+public class BicyclingV4Request implements Serializable {
     /**
      * 高德key
      */

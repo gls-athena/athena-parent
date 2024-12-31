@@ -1,4 +1,4 @@
-package com.gls.athena.sdk.amap.v3.domain;
+package com.gls.athena.sdk.amap.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class WalkingRequest extends BaseRequest {
+public class WalkingV3Request extends BaseV3Request {
     /**
      * 出发点
      * 必填

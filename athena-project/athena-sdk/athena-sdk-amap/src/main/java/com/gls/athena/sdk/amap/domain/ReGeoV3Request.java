@@ -1,4 +1,4 @@
-package com.gls.athena.sdk.amap.v3.domain;
+package com.gls.athena.sdk.amap.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class ReGeoRequest extends BaseRequest {
+public class ReGeoV3Request extends BaseV3Request {
     /**
      * 经纬度坐标
      * 传入内容规则：经度在前，纬度在后，经纬度间以“,”分割，经纬度小数点后不要超过 6 位。

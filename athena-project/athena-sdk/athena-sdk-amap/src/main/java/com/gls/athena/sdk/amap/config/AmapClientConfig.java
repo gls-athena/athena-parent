@@ -1,6 +1,7 @@
 package com.gls.athena.sdk.amap.config;
 
 import com.gls.athena.sdk.amap.support.AmapJsonDecoder;
+import com.gls.athena.sdk.amap.support.AmapRequestInterceptor;
 import feign.RequestInterceptor;
 import feign.codec.Decoder;
 import org.springframework.context.annotation.Bean;
@@ -29,11 +30,6 @@ public class AmapClientConfig {
      */
     @Bean
     public RequestInterceptor requestInterceptor(AmapProperties amapProperties) {
-        return requestTemplate -> {
-            // 如果没有设置key，则使用默认key
-            if (amapProperties.getKey() != null) {
-                requestTemplate.query("key", amapProperties.getKey());
-            }
-        };
+        return new AmapRequestInterceptor(amapProperties);
     }
 }

@@ -19,4 +19,8 @@ public class AmapProperties extends BaseProperties {
      * 高德地图服务密钥
      */
     private String key;
+    /**
+     * 高德地图服务地址
+     */
+    private String host = "https://restapi.amap.com";
 }

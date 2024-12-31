@@ -1,4 +1,4 @@
-package com.gls.athena.sdk.amap.v3.domain;
+package com.gls.athena.sdk.amap.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class TransitIntegratedResponse extends BaseResponse {
+public class TransitIntegratedV3Response extends BaseV3Response {
     /**
      * 公交换乘方案数目
      */

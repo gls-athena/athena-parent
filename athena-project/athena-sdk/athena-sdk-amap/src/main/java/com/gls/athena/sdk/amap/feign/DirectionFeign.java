@@ -1,7 +1,7 @@
-package com.gls.athena.sdk.amap.v3.feign;
+package com.gls.athena.sdk.amap.feign;
 
-import com.gls.athena.sdk.amap.config.IAmapConstants;
-import com.gls.athena.sdk.amap.v3.domain.*;
+import com.gls.athena.sdk.amap.domain.*;
+import com.gls.athena.sdk.amap.support.AmapVersion;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "amap", contextId = "direction-v3", path = "/direction", url = IAmapConstants.URL_V3)
+@FeignClient(name = "amap", contextId = "direction", path = "/direction")
 public interface DirectionFeign {
 
     /**
@@ -21,7 +21,7 @@ public interface DirectionFeign {
      * @return 步行路径规划响应
      */
     @GetMapping("/walking")
-    WalkingResponse walking(@SpringQueryMap WalkingRequest request);
+    WalkingV3Response walking(@SpringQueryMap WalkingV3Request request);
 
     /**
      * 公交路径规划 API URL
@@ -30,7 +30,7 @@ public interface DirectionFeign {
      * @return 公交路径规划响应
      */
     @GetMapping("/transit/integrated")
-    TransitIntegratedResponse transitIntegrated(@SpringQueryMap TransitIntegratedRequest request);
+    TransitIntegratedV3Response transitIntegrated(@SpringQueryMap TransitIntegratedV3Request request);
 
     /**
      * 驾车路径规划 API URL
@@ -39,5 +39,15 @@ public interface DirectionFeign {
      * @return 驾车路径规划响应
      */
     @GetMapping("/driving")
-    DrivingResponse driving(@SpringQueryMap DrivingRequest request);
+    DrivingV3Response driving(@SpringQueryMap DrivingV3Request request);
+
+    /**
+     * 骑行路径规划 API URL
+     *
+     * @param request 骑行路径规划请求
+     * @return 骑行路径规划响应
+     */
+    @AmapVersion("v4")
+    @GetMapping("/bicycling")
+    BicyclingV4Response bicycling(@SpringQueryMap BicyclingV4Request request);
 }

@@ -1,8 +1,7 @@
-package com.gls.athena.sdk.amap.v3.feign;
+package com.gls.athena.sdk.amap.feign;
 
-import com.gls.athena.sdk.amap.config.IAmapConstants;
-import com.gls.athena.sdk.amap.v3.domain.DistanceRequest;
-import com.gls.athena.sdk.amap.v3.domain.DistanceResponse;
+import com.gls.athena.sdk.amap.domain.DistanceV3Request;
+import com.gls.athena.sdk.amap.domain.DistanceV3Response;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "amap", contextId = "distance-v3", path = "/distance", url = IAmapConstants.URL_V3)
+@FeignClient(name = "amap", contextId = "distance", path = "/distance")
 public interface DistanceFeign {
 
     /**
@@ -22,5 +21,5 @@ public interface DistanceFeign {
      * @return 距离测量响应
      */
     @GetMapping
-    DistanceResponse distance(@SpringQueryMap DistanceRequest request);
+    DistanceV3Response distance(@SpringQueryMap DistanceV3Request request);
 }

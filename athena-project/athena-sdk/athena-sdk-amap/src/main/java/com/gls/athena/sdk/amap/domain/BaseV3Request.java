@@ -1,4 +1,4 @@
-package com.gls.athena.sdk.amap.v3.domain;
+package com.gls.athena.sdk.amap.domain;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -12,7 +12,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public abstract class BaseRequest implements Serializable {
+public abstract class BaseV3Request implements Serializable {
     /**
      * 高德key
      * 用户在高德地图官网 申请 Web 服务 API 类型 Key

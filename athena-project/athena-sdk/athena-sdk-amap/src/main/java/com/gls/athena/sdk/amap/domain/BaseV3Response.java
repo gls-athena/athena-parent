@@ -1,4 +1,4 @@
-package com.gls.athena.sdk.amap.v3.domain;
+package com.gls.athena.sdk.amap.domain;
 
 import lombok.Data;
 
@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @author george
  */
 @Data
-public abstract class BaseResponse implements Serializable {
+public abstract class BaseV3Response implements Serializable {
     /**
      * 返回结果状态值
      */

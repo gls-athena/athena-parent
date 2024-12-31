@@ -1,34 +1,44 @@
-package com.gls.athena.sdk.amap.v3.domain;
+package com.gls.athena.sdk.amap.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.List;
 
 /**
- * 步行路径规划响应
+ * 骑行路径规划响应
  *
  * @author george
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class WalkingResponse extends BaseResponse {
+public class BicyclingV4Response implements Serializable {
     /**
-     * 返回结果数目
+     * 业务数据字段
      */
-    private String count;
+    private Bicycling data;
     /**
-     * 路径规划信息
+     * 返回结果码
      */
-    private Route route;
+    private Integer errcode;
+    /**
+     * 此字段会详细说明错误原因
+     */
+    private String errdetail;
+    /**
+     * OK代表成功
+     */
+    private String errmsg;
+    /**
+     *
+     */
+    private String ext;
 
     /**
-     * 路径规划信息
+     * 业务数据字段
      */
     @Data
-    public static class Route implements Serializable {
+    public static class Bicycling implements Serializable {
         /**
          * 起点坐标
          */
@@ -38,75 +48,74 @@ public class WalkingResponse extends BaseResponse {
          */
         private String destination;
         /**
-         * 路径规划方案
+         * 骑行方案列表信息
          */
         private List<Path> paths;
 
     }
 
     /**
-     * 路径规划方案
+     * 骑行方案信息
      */
     @Data
     public static class Path implements Serializable {
         /**
-         * 起点和终点的步行距离
+         * 起终点的骑行距离
          */
-        private String distance;
+        private Integer distance;
         /**
-         * 步行时间预计
+         * 起终点的骑行时间
          */
-        private String duration;
+        private Integer duration;
         /**
-         * 步行路段
+         * 具体骑行结果
          */
         private List<Step> steps;
 
     }
 
     /**
-     * 步行路段
+     * 骑行路段
      */
     @Data
     public static class Step implements Serializable {
         /**
-         * 路段步行指示
+         * 路段骑行指示
          */
         private String instruction;
         /**
-         * 道路名称
+         * 此段路道路名称
          */
         private String road;
         /**
-         * 此路段距离
+         * 此段路骑行距离
          */
-        private String distance;
+        private Integer distance;
         /**
-         * 步行方向
+         * 此段路骑行方向
          */
         private String orientation;
         /**
-         * 此路段预计步行时间
+         * 此段路骑行耗时
          */
-        private String duration;
+        private Integer duration;
         /**
-         * 此路段坐标点
+         * 此段路骑行的坐标点
          */
         private String polyline;
         /**
-         * 动作
+         * 此段路骑行主要动作
          */
         private String action;
         /**
-         * 辅助动作
+         * 此段路骑行辅助动作
          */
         @JsonProperty("assistant_action")
         private String assistantAction;
         /**
-         * 这段路是否存在特殊的方式
+         * 此段路骑行类型
          */
         @JsonProperty("walk_type")
-        private String walkType;
+        private Integer walkType;
     }
-
 }
