@@ -1,5 +1,6 @@
 package com.gls.athena.sdk.amap.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -32,11 +33,13 @@ public class WalkingV3Request extends BaseV3Request {
      * 可选
      * 当起点为POI时，建议填充此值
      */
-    private String origin_id;
+    @JsonProperty("origin_id")
+    private String originId;
     /**
      * 目的地 POI ID
      * 可选
      * 当终点为POI时，建议填充此值
      */
-    private String destination_id;
+    @JsonProperty("destination_id")
+    private String destinationId;
 }
