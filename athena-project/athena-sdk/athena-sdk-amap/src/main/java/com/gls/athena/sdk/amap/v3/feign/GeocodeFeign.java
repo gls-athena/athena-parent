@@ -1,10 +1,10 @@
-package com.gls.athena.sdk.amap.feign;
+package com.gls.athena.sdk.amap.v3.feign;
 
 import com.gls.athena.sdk.amap.config.IAmapConstants;
-import com.gls.athena.sdk.amap.domain.GeoRequest;
-import com.gls.athena.sdk.amap.domain.GeoResponse;
-import com.gls.athena.sdk.amap.domain.ReGeoRequest;
-import com.gls.athena.sdk.amap.domain.ReGeoResponse;
+import com.gls.athena.sdk.amap.v3.domain.GeoRequest;
+import com.gls.athena.sdk.amap.v3.domain.GeoResponse;
+import com.gls.athena.sdk.amap.v3.domain.ReGeoRequest;
+import com.gls.athena.sdk.amap.v3.domain.ReGeoResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "amap", contextId = "geocode", path = "/geocode", url = IAmapConstants.URL_V3)
+@FeignClient(name = "amap", contextId = "geocode-v3", path = "/geocode", url = IAmapConstants.URL_V3)
 public interface GeocodeFeign {
     /**
      * 地理编码

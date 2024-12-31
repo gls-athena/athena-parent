@@ -1,4 +1,4 @@
-package com.gls.athena.sdk.amap.domain;
+package com.gls.athena.sdk.amap.v3.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
