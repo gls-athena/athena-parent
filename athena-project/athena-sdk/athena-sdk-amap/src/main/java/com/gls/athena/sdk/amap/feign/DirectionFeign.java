@@ -50,4 +50,15 @@ public interface DirectionFeign {
     @AmapVersion("v4")
     @GetMapping("/bicycling")
     BicyclingV4Response bicycling(@SpringQueryMap BicyclingV4Request request);
+
+    /**
+     * 驾车路线规划 2.0 API URL
+     *
+     * @param request 驾车路线规划 2.0 请求
+     * @return 驾车路线规划 2.0 响应
+     */
+    @AmapVersion("v5")
+    @GetMapping("/driving")
+    DrivingV5Response driving(@SpringQueryMap DrivingV5Request request);
+
 }

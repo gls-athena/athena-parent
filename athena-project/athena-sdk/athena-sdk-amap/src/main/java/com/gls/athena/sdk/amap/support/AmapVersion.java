@@ -16,5 +16,5 @@ public @interface AmapVersion {
      *
      * @return 高德地图版本
      */
-    String value();
+    String value() default "v3";
 }
