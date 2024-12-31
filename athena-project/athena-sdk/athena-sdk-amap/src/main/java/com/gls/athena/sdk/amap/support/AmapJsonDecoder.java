@@ -19,9 +19,19 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class AmapJsonDecoder implements Decoder {
-
+    /**
+     * 对象映射器
+     */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * 解码响应
+     *
+     * @param response 响应
+     * @param type     类型
+     * @return 对象
+     * @throws IOException IO异常
+     */
     @Override
     public Object decode(Response response, Type type) throws IOException {
         // 将响应体读取为字符串
@@ -34,6 +44,13 @@ public class AmapJsonDecoder implements Decoder {
         return objectMapper.readValue(modifiedBody, objectMapper.constructType(type));
     }
 
+    /**
+     * 将输入流转换为字符串
+     *
+     * @param inputStream 输入流
+     * @return 字符串
+     * @throws IOException IO异常
+     */
     private String convertInputStreamToString(InputStream inputStream) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             return reader.lines().collect(Collectors.joining(System.lineSeparator()));
