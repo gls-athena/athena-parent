@@ -4,6 +4,7 @@ import com.gls.athena.sdk.amap.config.IAmapConstants;
 import com.gls.athena.sdk.amap.v3.domain.DistanceRequest;
 import com.gls.athena.sdk.amap.v3.domain.DistanceResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
@@ -20,6 +21,6 @@ public interface DistanceFeign {
      * @param request 距离测量请求
      * @return 距离测量响应
      */
-    @GetMapping("/")
-    DistanceResponse distance(DistanceRequest request);
+    @GetMapping
+    DistanceResponse distance(@SpringQueryMap DistanceRequest request);
 }
