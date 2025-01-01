@@ -90,4 +90,14 @@ public interface DirectionFeign {
     @AmapVersion("v5")
     @GetMapping("/electrobike")
     ElectrobikeV5Response electrobike(@SpringQueryMap ElectrobikeV5Request request);
+
+    /**
+     * 公交路线规划 2.0
+     *
+     * @param request 公交路线规划 2.0 请求
+     * @return 公交路线规划 2.0 响应
+     */
+    @AmapVersion("v5")
+    @GetMapping("/transit/integrated")
+    TransitIntegratedV5Response transitIntegrated(@SpringQueryMap TransitIntegratedV5Request request);
 }
