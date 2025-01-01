@@ -80,4 +80,14 @@ public interface DirectionFeign {
     @AmapVersion("v5")
     @GetMapping("/bicycling")
     BicyclingV5Response bicycling(@SpringQueryMap BicyclingV5Request request);
+
+    /**
+     * 电动车路线规划 2.0
+     *
+     * @param request 电动车路线规划 2.0 请求
+     * @return 电动车路线规划 2.0 响应
+     */
+    @AmapVersion("v5")
+    @GetMapping("/electrobike")
+    ElectrobikeV5Response electrobike(@SpringQueryMap ElectrobikeV5Request request);
 }
