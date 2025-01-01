@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @author george
  */
 @FeignClient(name = "amap", contextId = "geocode", path = "/geocode")
-public interface GeocodeFeign {
+public interface AmapGeocodeFeign {
     /**
      * 地理编码
      *

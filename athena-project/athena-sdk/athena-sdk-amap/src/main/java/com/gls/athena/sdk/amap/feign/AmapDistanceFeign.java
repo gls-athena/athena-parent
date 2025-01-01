@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @author george
  */
 @FeignClient(name = "amap", contextId = "distance", path = "/distance")
-public interface DistanceFeign {
+public interface AmapDistanceFeign {
 
     /**
      * 距离测量

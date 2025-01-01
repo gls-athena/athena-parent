@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @author george
  */
 @FeignClient(name = "amap", contextId = "ip", path = "/ip")
-public interface IpFeign {
+public interface AmapIpFeign {
 
     /**
      * IP 定位

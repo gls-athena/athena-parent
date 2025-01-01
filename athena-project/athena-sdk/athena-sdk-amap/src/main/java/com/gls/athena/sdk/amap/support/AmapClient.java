@@ -15,21 +15,21 @@ public class AmapClient {
     /**
      * 配置feign
      */
-    private final ConfigFeign config;
+    private final AmapConfigFeign config;
     /**
      * 方向feign
      */
-    private final DirectionFeign direction;
+    private final AmapDirectionFeign direction;
     /**
      * 距离测量feign
      */
-    private final DistanceFeign distance;
+    private final AmapDistanceFeign distance;
     /**
      * 地理编码feign
      */
-    private final GeocodeFeign geocode;
+    private final AmapGeocodeFeign geocode;
     /**
      * ip feign
      */
-    private final IpFeign ip;
+    private final AmapIpFeign ip;
 }
