@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 public interface DistanceFeign {
 
     /**
-     * 距离测量 API URL
+     * 距离测量
      *
      * @param request 距离测量请求
      * @return 距离测量响应
