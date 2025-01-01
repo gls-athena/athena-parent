@@ -70,4 +70,14 @@ public interface DirectionFeign {
     @AmapVersion("v5")
     @GetMapping("/walking")
     WalkingV5Response walking(@SpringQueryMap WalkingV5Request request);
+
+    /**
+     * 骑行路线规划 2.0
+     *
+     * @param request 骑行路线规划 2.0 请求
+     * @return 骑行路线规划 2.0 响应
+     */
+    @AmapVersion("v5")
+    @GetMapping("/bicycling")
+    BicyclingV5Response bicycling(@SpringQueryMap BicyclingV5Request request);
 }
