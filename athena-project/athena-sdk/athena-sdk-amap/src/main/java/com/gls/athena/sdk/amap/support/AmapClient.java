@@ -1,9 +1,6 @@
 package com.gls.athena.sdk.amap.support;
 
-import com.gls.athena.sdk.amap.feign.ConfigFeign;
-import com.gls.athena.sdk.amap.feign.DirectionFeign;
-import com.gls.athena.sdk.amap.feign.DistanceFeign;
-import com.gls.athena.sdk.amap.feign.GeocodeFeign;
+import com.gls.athena.sdk.amap.feign.*;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -31,4 +28,8 @@ public class AmapClient {
      * 地理编码feign
      */
     private final GeocodeFeign geocode;
+    /**
+     * ip feign
+     */
+    private final IpFeign ip;
 }
