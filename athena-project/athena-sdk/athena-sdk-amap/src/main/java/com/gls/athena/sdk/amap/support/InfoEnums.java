@@ -4,9 +4,19 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 高德地图信息枚举
+ * 高德地图API响应状态码枚举
+ *
+ * <p>该枚举类定义了高德地图API可能返回的所有状态码及其详细信息，包括：
+ * <ul>
+ *     <li>状态码 - 用于标识具体的响应状态</li>
+ *     <li>状态值 - 对应的英文标识</li>
+ *     <li>描述信息 - 对状态的中文描述</li>
+ *     <li>故障排除建议 - 当出现该状态时的处理建议</li>
+ * </ul>
+ * </p>
  *
  * @author george
+ * @since 1.0
  */
 @Getter
 @RequiredArgsConstructor
@@ -222,10 +232,13 @@ public enum InfoEnums {
     private final String troubleshooting;
 
     /**
-     * 根据value获取枚举
+     * 根据状态值获取对应的枚举实例
      *
-     * @param info 信息
-     * @return 枚举
+     * <p>遍历所有枚举值，返回与给定状态值匹配的枚举实例。
+     * 如果未找到匹配的枚举值，则返回null。</p>
+     *
+     * @param info 状态值（英文标识）
+     * @return 匹配的枚举实例，如果未找到则返回null
      */
     public static InfoEnums getByValue(String info) {
         for (InfoEnums infoEnums : InfoEnums.values()) {
@@ -237,10 +250,13 @@ public enum InfoEnums {
     }
 
     /**
-     * 根据code获取枚举
+     * 根据状态码获取对应的枚举实例
      *
-     * @param code 代码
-     * @return 枚举
+     * <p>遍历所有枚举值，返回与给定状态码匹配的枚举实例。
+     * 如果未找到匹配的枚举值，则返回null。</p>
+     *
+     * @param code 状态码
+     * @return 匹配的枚举实例，如果未找到则返回null
      */
     public static InfoEnums getByCode(String code) {
         for (InfoEnums infoEnums : InfoEnums.values()) {
