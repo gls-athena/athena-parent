@@ -36,4 +36,8 @@ public class AmapClient {
      * ip feign
      */
     private final AmapIpFeign ip;
+    /**
+     * 天气feign
+     */
+    private final AmapWeatherFeign weather;
 }
