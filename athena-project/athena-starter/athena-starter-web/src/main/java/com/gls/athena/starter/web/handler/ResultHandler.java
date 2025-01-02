@@ -1,11 +1,10 @@
 package com.gls.athena.starter.web.handler;
 
+import cn.hutool.json.JSONUtil;
 import com.gls.athena.common.bean.result.Result;
 import com.gls.athena.common.bean.result.ResultStatus;
 import com.gls.athena.common.core.constant.IConstants;
 import com.gls.athena.starter.web.config.IWebConstants;
-import com.gls.athena.starter.web.config.WebProperties;
-import jakarta.annotation.Resource;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -14,7 +13,6 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -24,13 +22,6 @@ import java.util.Objects;
  */
 @RestControllerAdvice(basePackages = IConstants.BASE_PACKAGE_PREFIX)
 public class ResultHandler implements ResponseBodyAdvice<Object> {
-
-    /**
-     * Web属性
-     */
-    @Resource
-    private WebProperties webProperties;
-
     /**
      * 是否支持
      *
@@ -40,16 +31,14 @@ public class ResultHandler implements ResponseBodyAdvice<Object> {
      */
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        // 获取忽略的返回类型
-        List<String> returnTypeList = webProperties.getResultIgnore().getReturnType();
-        // 获取忽略的转换器类型
-        List<String> converterTypeList = webProperties.getResultIgnore().getConverterType();
-        // 判断是否忽略
-        if (returnTypeList != null && !returnTypeList.isEmpty()) {
-            return !returnTypeList.contains(returnType.getGenericParameterType().getTypeName());
+        // 如果是返回值是Result类型 直接返回
+        if (Result.class.isAssignableFrom(returnType.getParameterType())) {
+            return false;
         }
-        if (converterTypeList != null && !converterTypeList.isEmpty()) {
-            return !converterTypeList.contains(converterType.getTypeName());
+        // 如果方法上有@ResultIgnore注解 直接返回
+        if (returnType.getMethod().isAnnotationPresent(ResultIgnore.class)
+                || returnType.getDeclaringClass().isAnnotationPresent(ResultIgnore.class)) {
+            return false;
         }
         return true;
     }
@@ -66,18 +55,16 @@ public class ResultHandler implements ResponseBodyAdvice<Object> {
      * @return 返回值
      */
     @Override
-    public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
+    public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
+                                  Class<? extends HttpMessageConverter<?>> selectedConverterType,
+                                  ServerHttpRequest request, ServerHttpResponse response) {
         // 判断客户端类型 是否是feign调用
         if (Objects.equals(request.getHeaders().getFirst(IWebConstants.CLIENT_TYPE), IWebConstants.CLIENT_TYPE_FEIGN)) {
             return body;
         }
-        // 如果返回值是字符串
-        if (body instanceof String) {
-            return body;
-        }
-        // 如果返回值是Result
-        if (body instanceof Result) {
-            return body;
+        // 判断返回值是否是字符串
+        if (body instanceof String str) {
+            return JSONUtil.toJsonStr(ResultStatus.SUCCESS.toResult(str));
         }
         return ResultStatus.SUCCESS.toResult(body);
     }
