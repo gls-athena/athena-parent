@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 
 /**
- * 基础请求
+ * 高德地图API V3版本基础请求参数
  *
  * @author george
  */
@@ -14,23 +14,32 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public abstract class BaseV3Request implements Serializable {
     /**
-     * 高德key
-     * 用户在高德地图官网 申请 Web 服务 API 类型 Key
+     * 高德开发者Key
+     * <p>
+     * 在高德开放平台官网申请的Web服务API类型的Key
+     * 该参数作为访问高德地图Web服务的必要标识
      */
     private String key;
     /**
      * 数字签名
-     * 请参考 数字签名获取和使用方法
+     * <p>
+     * 数字签名用于请求安全性验证
+     * 生成规则请参考高德开放平台"数字签名生成和使用说明"
      */
     private String sig;
     /**
-     * 返回数据格式类型
-     * 可选输入内容包括：JSON，XML。设置 JSON 返回结果数据将会以 JSON 结构构成；如果设置 XML 返回结果数据将以 XML 结构构成。
+     * 返回数据格式
+     * <p>
+     * 可选值：
+     * - JSON：返回JSON格式的数据（默认）
+     * - XML：返回XML格式的数据
      */
     private String output = "JSON";
     /**
-     * 回调函数
-     * callback 值是用户定义的函数名称，此参数只在 output 参数设置为 JSON 时有效。
+     * JSONP回调函数名称
+     * <p>
+     * 仅在output=JSON时生效
+     * 用于解决浏览器跨域请求的问题
      */
     private String callback;
 }

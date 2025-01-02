@@ -8,7 +8,8 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 电动车路径规划 2.0 响应
+ * 高德地图电动车路径规划V5版本响应实体
+ * 用于封装电动车路径规划2.0版本的API响应数据
  *
  * @author george
  */
@@ -16,117 +17,127 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class ElectrobikeV5Response extends BaseV3Response {
     /**
-     * 路径规划方案总数
+     * 返回的路径规划方案数量
      */
     private String count;
     /**
-     * 路径规划方案
+     * 路径规划的详细信息，包含路线、距离等数据
      */
     private Route route;
 
     /**
-     * 路径规划方案
+     * 路径规划的详细路线信息
+     * 包含起点、终点坐标及具体路径方案
      */
     @Data
     public static class Route implements Serializable {
         /**
-         * 起点坐标
+         * 路线起点坐标，格式：经度,纬度
          */
         private String origin;
         /**
-         * 终点坐标
+         * 路线终点坐标，格式：经度,纬度
          */
         private String destination;
         /**
-         * 路径规划方案
+         * 可选的路径规划方案列表
          */
         private List<Path> paths;
     }
 
     /**
-     * 路径规划方案
+     * 单个路径规划方案的详细信息
+     * 包含距离、时间和具体路段信息
      */
     @Data
     public static class Path implements Serializable {
         /**
-         * 起点和终点的步行距离
+         * 路线总距离，单位：米
          */
         private String distance;
         /**
-         * 步行时间预计
+         * 预计行程时间，单位：秒
          */
         private String duration;
         /**
-         * 步行路段
+         * 路线分段信息列表，每个步骤的详细导航信息
          */
         private List<Step> steps;
     }
 
     /**
-     * 步行路段
+     * 路径规划中的单个路段信息
+     * 包含导航指示、道路名称等详细信息
      */
     @Data
     public static class Step implements Serializable {
         /**
-         * 路段步行指示
+         * 当前路段的行进指示说明
          */
         private String instruction;
         /**
-         * 路段方向
+         * 行进方向指示（如：东、南、西、北等）
          */
         private String orientation;
         /**
-         * 分段道路名称
+         * 当前路段的道路名称
          */
         @JsonProperty("road_name")
         private String roadName;
         /**
-         * 分段距离信息
+         * 当前路段的距离，单位：米
          */
         @JsonProperty("step_distance")
         private String stepDistance;
         /**
-         * 设置后可返回方案所需时间及费用成本
+         * 当前路段的时间和费用信息
          */
         private Cost cost;
         /**
-         * 设置后可返回详细导航动作指令
+         * 当前路段的详细导航动作指令
          */
         private Navi navi;
         /**
-         * 设置后可返回分路段坐标点串，两点间用“,”分隔
+         * 当前路段的坐标点串，格式：经度,纬度;经度,纬度;...
          */
         private String polyline;
     }
 
     /**
-     * 设置后可返回方案所需时间及费用成本。注意：steps 中不返回 taxi 字段。
+     * 路段的时间成本信息
+     * 包含该路段的预计耗时
      */
     @Data
     public static class Cost implements Serializable {
         /**
-         * 线路耗时，包括方案总耗时及分段 step 中的耗时
+         * 当前路段的预计耗时，单位：秒
          */
         private String duration;
     }
 
     /**
-     * 设置后可返回详细导航动作指令
+     * 导航动作指令详情
+     * 包含主要动作和辅助动作说明
      */
     @Data
     public static class Navi implements Serializable {
         /**
-         * 导航主要动作指令
+         * 主要导航动作指令（如：向前、左转、右转等）
          */
         private String action;
         /**
-         * 导航辅助动作指令
+         * 辅助导航动作指令，用于补充说明主要动作
          */
         @JsonProperty("assistant_action")
         private String assistantAction;
         /**
-         * 算路结果中存在的道路类型：
-         * 0，普通道路 1，人行横道 3，地下通道 4，过街天桥 5，地铁通道 6，公园 7，广场 8，扶梯 9，直梯 10，索道 11，空中通道 12，建筑物穿越通道 13，行人通道 14，游船路线 15，观光车路线 16，滑道 18，扩路 19，道路附属连接线 20，阶梯 21，斜坡 22，桥 23，隧道 30，轮渡
+         * 道路类型编码：
+         * 0-普通道路   1-人行横道   3-地下通道   4-过街天桥
+         * 5-地铁通道   6-公园      7-广场      8-扶梯
+         * 9-直梯      10-索道     11-空中通道  12-建筑物穿越通道
+         * 13-行人通道  14-游船路线  15-观光车路线 16-滑道
+         * 18-扩路     19-道路附属连接线  20-阶梯   21-斜坡
+         * 22-桥       23-隧道     30-轮渡
          */
         @JsonProperty("walk_type")
         private String walkType;

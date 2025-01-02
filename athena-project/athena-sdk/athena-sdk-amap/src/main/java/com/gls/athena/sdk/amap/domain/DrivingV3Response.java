@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 驾车路径规划响应
+ * 高德地图驾车路径规划 V3 版本响应实体
  *
  * @author george
  */
@@ -16,203 +16,199 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class DrivingV3Response extends BaseV3Response {
     /**
-     * 驾车路径规划方案数目
+     * 返回的驾车路径规划方案数量
      */
     private String count;
     /**
-     * 驾车路径规划信息列表
+     * 驾车路径规划详细信息
      */
     private Route route;
 
     /**
-     * 驾车路径规划信息
+     * 驾车路径规划的路线信息
      */
     @Data
     public static class Route implements Serializable {
         /**
-         * 起点坐标
+         * 起点坐标，格式：x,y（经度,纬度）
          */
         private String origin;
         /**
-         * 终点坐标
+         * 终点坐标，格式：x,y（经度,纬度）
          */
         private String destination;
         /**
-         * 打车费用
+         * 预估的出租车费用，单位：元
          */
         @JsonProperty("taxi_cost")
         private String taxiCost;
         /**
-         * 驾车换乘方案
+         * 可选的驾车导航方案列表
          */
         private List<Path> paths;
-
     }
 
     /**
-     * 驾车换乘方案
+     * 单个驾车导航方案的详细信息
      */
     @Data
     public static class Path implements Serializable {
         /**
-         * 行驶距离
+         * 方案总行驶距离，单位：米
          */
         private String distance;
         /**
-         * 预计行驶时间
+         * 方案预计总耗时，单位：秒
          */
         private String duration;
         /**
-         * 导航策略
+         * 导航策略（不同策略可能对应不同路线）
          */
         private String strategy;
         /**
-         * 此导航方案道路收费
+         * 此导航方案的总道路收费，单位：元
          */
         private String tolls;
         /**
-         * 限行结果
+         * 限行信息说明
          */
         private String restriction;
         /**
-         * 红绿灯个数
+         * 此方案需要经过的红绿灯数量
          */
         @JsonProperty("traffic_lights")
         private String trafficLights;
         /**
-         * 收费路段距离
+         * 收费路段的总距离，单位：米
          */
         @JsonProperty("toll_distance")
         private String tollDistance;
         /**
-         * 导航路段
+         * 导航路段的详细信息列表
          */
         private List<Step> steps;
-
     }
 
     /**
-     * 导航路段
+     * 导航路段的详细信息
      */
     @Data
     public static class Step implements Serializable {
         /**
-         * 行驶指示
+         * 行驶指示说明（如"向北行驶"等）
          */
         private String instruction;
         /**
-         * 方向
+         * 行驶方向描述
          */
         private String orientation;
         /**
-         * 道路名称
+         * 此路段主要道路名称
          */
         private String road;
         /**
-         * 此路段距离
+         * 此路段行驶距离，单位：米
          */
         private String distance;
         /**
-         * 此段收费
+         * 此路段道路收费，单位：元
          */
         private String tolls;
         /**
-         * 收费路段距离
+         * 此路段收费路段长度，单位：米
          */
         @JsonProperty("toll_distance")
         private String tollDistance;
         /**
-         * 主要收费道路
+         * 此路段主要收费道路名称
          */
         @JsonProperty("toll_road")
         private String tollRoad;
         /**
-         * 此路段坐标点串
+         * 此路段坐标点串，格式：x1,y1;x2,y2;...
          */
         private String polyline;
         /**
-         * 导航主要动作
+         * 主要导航动作（如"左转"、"右转"等）
          */
         private String action;
         /**
-         * 导航辅助动作
+         * 辅助导航动作（如"靠左"、"靠右"等）
          */
         @JsonProperty("assistant_action")
         private String assistantAction;
         /**
-         * 驾车导航详细信息
+         * 此路段实时路况信息列表
          */
         private List<Tmc> tmcs;
         /**
-         * 路线途经行政区划
+         * 此路段途经的行政区划信息
          */
         private List<City> cities;
         /**
-         * 此段导航路段的时间
+         * 此路段预计行驶时间，单位：秒
          */
         private String duration;
     }
 
     /**
-     * 驾车导航详细信息
+     * 路段实时路况信息
      */
     @Data
     public static class Tmc implements Serializable {
         /**
-         * 此段路的起点
+         * 路况路段起点坐标
          */
         private String lcode;
         /**
-         * 此段路的长度
+         * 路况路段长度，单位：米
          */
         private String distance;
         /**
-         * 此段路的交通情况
+         * 路况状态：0-未知，1-畅通，2-缓行，3-拥堵，4-严重拥堵
          */
         private String status;
         /**
-         * 此段路的轨迹
+         * 路况路段坐标串，格式：x1,y1;x2,y2;...
          */
         private String polyline;
     }
 
     /**
-     * 路线途经行政区划
+     * 途经城市信息
      */
     @Data
     public static class City implements Serializable {
         /**
-         * 名称
+         * 城市名称
          */
         private String name;
         /**
-         * 途径城市编码
+         * 城市编码
          */
         private String citycode;
         /**
-         * 途径区域编码
+         * 区域编码（行政区划代码）
          */
         private String adcode;
         /**
-         * 途径区域
+         * 途经的区县信息列表
          */
         private List<District> districts;
-
     }
 
     /**
-     * 途径区域
+     * 途经区县信息
      */
     @Data
     public static class District implements Serializable {
         /**
-         * 途径区县名称
+         * 区县名称
          */
         private String name;
         /**
-         * 途径区县编码
+         * 区县编码（行政区划代码）
          */
         private String adcode;
     }
-
 }

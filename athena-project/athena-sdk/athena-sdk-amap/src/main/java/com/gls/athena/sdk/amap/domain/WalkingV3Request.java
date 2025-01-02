@@ -14,31 +14,27 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 public class WalkingV3Request extends BaseV3Request {
+
     /**
-     * 出发点
-     * 必填
-     * 经纬度坐标
-     * 传入内容规则：经度在前，纬度在后，经纬度间以“,”分割，经纬度小数点后不要超过 6 位。
+     * 起点坐标 (经度,纬度)，必填
+     * 示例：116.434307,39.90909
      */
     private String origin;
+
     /**
-     * 目的地
-     * 必填
-     * 经纬度坐标
-     * 传入内容规则：经度在前，纬度在后，经纬度间以“,”分割，经纬度小数点后不要超过 6 位。
+     * 终点坐标 (经度,纬度)，必填
+     * 示例：116.434307,39.90909
      */
     private String destination;
+
     /**
-     * 出发点 POI ID
-     * 可选
-     * 当起点为POI时，建议填充此值
+     * 起点POI ID，选填
      */
     @JsonProperty("origin_id")
     private String originId;
+
     /**
-     * 目的地 POI ID
-     * 可选
-     * 当终点为POI时，建议填充此值
+     * 终点POI ID，选填
      */
     @JsonProperty("destination_id")
     private String destinationId;

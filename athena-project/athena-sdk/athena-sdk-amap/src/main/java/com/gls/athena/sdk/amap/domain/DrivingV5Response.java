@@ -8,7 +8,8 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 驾车路径规划 2.0 响应
+ * 高德地图驾车路径规划V5版本响应实体
+ * 用于封装驾车路径规划API的返回结果
  *
  * @author george
  */
@@ -16,214 +17,279 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class DrivingV5Response extends BaseV3Response {
     /**
-     * 路径规划方案总数
+     * 返回的路径规划方案总数
+     * 表示本次路径规划返回的方案数量
      */
     private String count;
+
     /**
-     * 返回的规划方案列表
+     * 路径规划方案详细信息
+     * 包含起终点信息、路径方案等详细数据
      */
     private Route route;
 
     /**
-     * 路径规划方案
+     * 路径规划方案详细信息类
+     * 包含起点、终点、路径方案等完整信息
      */
     @Data
     public static class Route implements Serializable {
         /**
-         * 起点经纬度
+         * 起点坐标
+         * 格式：经度,纬度
          */
         private String origin;
+
         /**
-         * 终点经纬度
+         * 终点坐标
+         * 格式：经度,纬度
          */
         private String destination;
+
         /**
-         * 预计出租车费用，单位：元
+         * 预计出租车费用
+         * 单位：元（人民币）
          */
         @JsonProperty("taxi_cost")
         private String taxiCost;
+
         /**
-         * 算路方案详情
+         * 路径规划方案列表
+         * 包含多个可选的路径方案
          */
         private List<Path> paths;
-
     }
 
     /**
-     * 算路方案详情
+     * 具体路径方案信息类
+     * 包含距离、限行状态、路段信息等详细数据
      */
     @Data
     public static class Path implements Serializable {
         /**
-         * 方案距离，单位：米
+         * 方案总距离
+         * 单位：米
          */
         private String distance;
+
         /**
-         * 0 代表限行已规避或未限行，即该路线没有限行路段
-         * 1 代表限行无法规避，即该线路有限行路段
+         * 路线限行状态
+         * 0：无限行或已规避限行
+         * 1：包含限行路段
          */
         private String restriction;
+
         /**
-         * 路线分段
+         * 路线分段信息列表
+         * 将完整路径按照路段切分的详细信息
          */
         private List<Step> steps;
+
         /**
-         * 设置后可返回方案所需时间及费用成本
+         * 方案成本信息
+         * 包含时间成本和费用成本等信息
          */
         private Cost cost;
-
     }
 
     /**
-     * 路线分段
+     * 路段信息类
+     * 描述单个路段的详细信息
      */
     @Data
     public static class Step implements Serializable {
         /**
-         * 行驶指示
+         * 行驶指示信息
+         * 描述该路段的行驶指示说明
          */
         private String instruction;
+
         /**
-         * 进入道路方向
+         * 进入道路的方向
+         * 如：东、南、西、北等
          */
         private String orientation;
+
         /**
-         * 分段道路名称
+         * 道路名称
+         * 当前路段所在道路的名称
          */
         @JsonProperty("road_name")
         private String roadName;
+
         /**
-         * 分段距离信息
+         * 路段距离
+         * 单位：米
          */
         @JsonProperty("step_distance")
         private String stepDistance;
+
         /**
-         * 设置后可返回方案所需时间及费用成本
+         * 路段成本信息
+         * 包含时间、收费等信息
          */
         private Cost cost;
+
         /**
-         * 设置后可返回分段路况详情
+         * 路况信息列表
+         * 包含路段的实时路况信息
          */
         private List<Tmc> tmcs;
+
         /**
-         * 设置后可返回详细导航动作指令
+         * 导航指令信息
+         * 包含主要和辅助导航动作
          */
         private Navi navi;
+
         /**
-         * 设置后可返回分段途径城市信息
+         * 途经城市信息列表
+         * 记录该路段途经的城市信息
          */
         private List<City> cities;
+
         /**
-         * 设置后可返回分路段坐标点串，两点间用“;”分隔
+         * 路段坐标点串
+         * 格式：经度,纬度;经度,纬度;...
          */
         private String polyline;
     }
 
     /**
-     * 设置后可返回方案所需时间及费用成本
+     * 成本信息类
+     * 描述路径或路段的各项成本
      */
     @Data
     public static class Cost implements Serializable {
         /**
-         * 线路耗时，分段 step 中的耗时
+         * 行驶耗时
+         * 单位：秒
          */
         private String duration;
+
         /**
-         * 此路线道路收费，单位：元，包括分段信息
+         * 道路通行费
+         * 单位：元（人民币）
          */
         private String tolls;
+
         /**
-         * 收费路段里程，单位：米，包括分段信息
+         * 收费路段长度
+         * 单位：米
          */
         @JsonProperty("toll_distance")
         private String tollDistance;
+
         /**
-         * 主要收费道路
+         * 主要收费道路名称
+         * 记录途经的主要收费道路
          */
         @JsonProperty("toll_road")
         private String tollRoad;
+
         /**
-         * 方案中红绿灯个数，单位：个
+         * 红绿灯数量
+         * 单位：个
          */
         @JsonProperty("traffic_lights")
         private String trafficLights;
     }
 
     /**
-     * 设置后可返回分段路况详情
+     * 路况信息类
+     * 描述道路的实时交通状况
      */
     @Data
     public static class Tmc implements Serializable {
         /**
-         * 路况信息，包括：未知、畅通、缓行、拥堵、严重拥堵
+         * 路况状态
+         * 可能值：未知、畅通、缓行、拥堵、严重拥堵
          */
         @JsonProperty("tmc_status")
         private String tmcStatus;
+
         /**
-         * 从当前坐标点开始 step 中路况相同的距离
+         * 相同路况的距离
+         * 单位：米
          */
         @JsonProperty("tmc_distance")
         private String tmcDistance;
+
         /**
-         * 此段路况涉及的道路坐标点串，点间用","分隔
+         * 路况对应的坐标点串
+         * 格式：经度,纬度,经度,纬度,...
          */
         @JsonProperty("tmc_polyline")
         private String tmcPolyline;
     }
 
     /**
-     * 设置后可返回详细导航动作指令
+     * 导航指令类
+     * 包含导航过程中的转向等指令信息
      */
     @Data
     public static class Navi implements Serializable {
         /**
-         * 导航主要动作指令
+         * 主导航动作
+         * 如：左转、右转、直行等
          */
         private String action;
+
         /**
-         * 导航辅助动作指令
+         * 辅助导航动作
+         * 对主导航动作的补充说明
          */
         @JsonProperty("assistant_action")
         private String assistantAction;
     }
 
     /**
-     * 设置后可返回分段途径城市信息
+     * 城市信息类
+     * 描述途经城市的详细信息
      */
     @Data
     public static class City implements Serializable {
         /**
-         * 途径区域编码
+         * 区域编码
+         * 高德地图行政区划编码
          */
         private String adcode;
+
         /**
-         * 途径城市编码
+         * 城市编码
+         * 高德地图城市编码
          */
         private String citycode;
+
         /**
-         * 途径城市名称
+         * 城市名称
+         * 途经城市的中文名称
          */
         private String city;
+
         /**
-         * 途径区县信息
+         * 区县信息列表
+         * 途经的区县级行政区划信息
          */
         private List<District> districts;
     }
 
     /**
-     * 途径区县信息
+     * 区县信息类
+     * 描述途经区县的详细信息
      */
     @Data
     public static class District implements Serializable {
         /**
-         * 途径区县名称
+         * 区县名称
+         * 途经区县的中文名称
          */
         private String name;
+
         /**
-         * 途径区县 adcode
+         * 区县编码
+         * 高德地图区县级行政区划编码
          */
         private String adcode;
-
     }
-
 }
