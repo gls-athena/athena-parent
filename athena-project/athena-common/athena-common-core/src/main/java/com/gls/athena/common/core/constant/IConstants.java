@@ -23,6 +23,10 @@ public interface IConstants {
      */
     String DEFAULT_DATASOURCE_NAME = "master";
     /**
+     * 客户端类型
+     */
+    String CLIENT_TYPE = "client-type";
+    /**
      * 默认网关服务ID
      */
     String GATEWAY_SERVICE_ID = "athena-gateway";

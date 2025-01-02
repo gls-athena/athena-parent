@@ -1,4 +1,4 @@
-package com.gls.athena.starter.web.config;
+package com.gls.athena.common.core.constant;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
