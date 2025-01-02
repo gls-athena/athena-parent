@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.gls.athena.common.bean.result.Result;
 import com.gls.athena.common.bean.result.ResultStatus;
 import com.gls.athena.common.core.constant.IConstants;
+import com.gls.athena.starter.web.config.ClientTypeEnums;
 import com.gls.athena.starter.web.config.IWebConstants;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -59,7 +60,7 @@ public class ResultHandler implements ResponseBodyAdvice<Object> {
                                   Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                   ServerHttpRequest request, ServerHttpResponse response) {
         // 判断客户端类型 是否是feign调用
-        if (Objects.equals(request.getHeaders().getFirst(IWebConstants.CLIENT_TYPE), IWebConstants.CLIENT_TYPE_FEIGN)) {
+        if (Objects.equals(request.getHeaders().getFirst(IWebConstants.CLIENT_TYPE), ClientTypeEnums.FEIGN.getCode())) {
             return body;
         }
         // 判断返回值是否是字符串
