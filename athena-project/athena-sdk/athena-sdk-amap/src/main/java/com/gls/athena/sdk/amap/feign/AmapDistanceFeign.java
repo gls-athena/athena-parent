@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "amap", contextId = "distance", path = "/distance")
+@FeignClient(name = "athena-sdk-amap", contextId = "amap-distance", path = "/distance")
 public interface AmapDistanceFeign {
 
     /**

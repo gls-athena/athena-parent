@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "amap", contextId = "config", path = "/config")
+@FeignClient(name = "athena-sdk-amap", contextId = "amap-config", path = "/config")
 public interface AmapConfigFeign {
 
     /**

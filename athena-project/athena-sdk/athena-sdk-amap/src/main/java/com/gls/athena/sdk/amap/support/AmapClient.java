@@ -13,6 +13,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class AmapClient {
     /**
+     * 辅助feign
+     */
+    private final AmapAssistantFeign assistant;
+    /**
      * 配置feign
      */
     private final AmapConfigFeign config;
