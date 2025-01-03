@@ -2,6 +2,7 @@ package com.gls.athena.starter.web.support;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.StrUtil;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,14 +28,18 @@ import java.util.Map;
 @Slf4j
 public class RequestBodyWrapper extends HttpServletRequestWrapper {
 
+    private static final String FORM_DATA_SEPARATOR = "&";
+    private static final String KEY_VALUE_SEPARATOR = "=";
+
     /**
      * 请求体
      */
     private final String body;
+
     /**
      * 参数映射
      */
-    private final Map<String, String[]> parameterMap = new HashMap<>();
+    private final Map<String, String[]> parameterMap;
 
     /**
      * 构造函数
@@ -43,10 +48,20 @@ public class RequestBodyWrapper extends HttpServletRequestWrapper {
      */
     public RequestBodyWrapper(HttpServletRequest request) {
         super(request);
+        this.parameterMap = new HashMap<>();
         this.body = getBodyString(request);
-        // 解析请求体
-        if (request.getContentType() != null
-                && request.getContentType().contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+        parseRequestBody(request);
+    }
+
+    /**
+     * 解析请求体
+     *
+     * @param request 请求
+     */
+    private void parseRequestBody(HttpServletRequest request) {
+        String contentType = request.getContentType();
+        if (StrUtil.isNotEmpty(body) && contentType != null
+                && contentType.contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
             parseFormData(body);
         }
     }
@@ -57,20 +72,43 @@ public class RequestBodyWrapper extends HttpServletRequestWrapper {
      * @param body 请求体
      */
     private void parseFormData(String body) {
-        String[] params = body.split("&");
+        String[] params = body.split(FORM_DATA_SEPARATOR);
         for (String param : params) {
-            String[] keyValue = param.split("=");
+            if (StrUtil.isEmpty(param)) {
+                continue;
+            }
+
+            String[] keyValue = param.split(KEY_VALUE_SEPARATOR, 2);
+            if (keyValue.length != 2) {
+                continue;
+            }
+
             String key = decode(keyValue[0]);
             String value = decode(keyValue[1]);
-            if (parameterMap.containsKey(key)) {
-                String[] values = parameterMap.get(key);
-                String[] newValues = new String[values.length + 1];
-                System.arraycopy(values, 0, newValues, 0, values.length);
-                newValues[values.length] = value;
-                parameterMap.put(key, newValues);
-            } else {
-                parameterMap.put(key, new String[]{value});
+
+            if (key == null) {
+                continue;
             }
+
+            addParameter(key, value);
+        }
+    }
+
+    /**
+     * 添加参数
+     *
+     * @param key   键
+     * @param value 值
+     */
+    private void addParameter(String key, String value) {
+        String[] existingValues = parameterMap.get(key);
+        if (existingValues != null) {
+            String[] newValues = new String[existingValues.length + 1];
+            System.arraycopy(existingValues, 0, newValues, 0, existingValues.length);
+            newValues[existingValues.length] = value;
+            parameterMap.put(key, newValues);
+        } else {
+            parameterMap.put(key, new String[]{value});
         }
     }
 
@@ -81,10 +119,13 @@ public class RequestBodyWrapper extends HttpServletRequestWrapper {
      * @return 解码后的值
      */
     private String decode(String value) {
+        if (value == null) {
+            return null;
+        }
         try {
             return URLDecoder.decode(value, getCharacterEncoding());
         } catch (Exception e) {
-            log.error("解码失败", e);
+            log.warn("Failed to decode value: {}", value, e);
             return value;
         }
     }
@@ -96,29 +137,24 @@ public class RequestBodyWrapper extends HttpServletRequestWrapper {
      * @return 请求体字符串
      */
     private String getBodyString(HttpServletRequest request) {
-        try {
-            return IoUtil.read(request.getInputStream(), CharsetUtil.charset(getCharacterEncoding()));
+        try (ServletInputStream inputStream = request.getInputStream()) {
+            return IoUtil.read(inputStream, CharsetUtil.charset(getCharacterEncoding()));
         } catch (IOException e) {
-            log.error("获取请求体失败", e);
-            throw new RuntimeException(e);
+            log.error("Failed to read request body", e);
+            return "";
         }
     }
 
-    /**
-     * 获取输入流
-     *
-     * @return 输入流
-     * @throws IOException IO异常
-     */
     @Override
     public ServletInputStream getInputStream() throws IOException {
-        // 字节数组输入流
-        final ByteArrayInputStream inputStream = new ByteArrayInputStream(body.getBytes());
-        // 返回输入流
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
+                body.getBytes(getCharacterEncoding())
+        );
+
         return new ServletInputStream() {
             @Override
             public boolean isFinished() {
-                return false;
+                return byteArrayInputStream.available() == 0;
             }
 
             @Override
@@ -128,12 +164,12 @@ public class RequestBodyWrapper extends HttpServletRequestWrapper {
 
             @Override
             public void setReadListener(ReadListener listener) {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException("ReadListener is not supported");
             }
 
             @Override
             public int read() {
-                return inputStream.read();
+                return byteArrayInputStream.read();
             }
         };
     }

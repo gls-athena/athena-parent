@@ -10,59 +10,82 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import java.io.IOException;
 
 /**
- * 异常序列化器
+ * 通用异常序列化器
+ * 将异常对象序列化为包含详细信息的JSON格式
  *
  * @author george
  */
 public class GenericExceptionSerializer<T extends Exception> extends JsonSerializer<T> {
 
-    /**
-     * 序列化异常
-     *
-     * @param exception     异常
-     * @param jsonGenerator JSON  generator
-     * @param serializers   序列化器提供者
-     * @throws IOException IO  exception
-     */
+    private static final String FIELD_MESSAGE = "message";
+    private static final String FIELD_TYPE = "type";
+    private static final String FIELD_STACK_TRACE = "stackTrace";
+    private static final String FIELD_CAUSE = "cause";
+    private static final String FIELD_CLASS_NAME = "className";
+    private static final String FIELD_METHOD_NAME = "methodName";
+    private static final String FIELD_LINE_NUMBER = "lineNumber";
+
     @Override
-    public void serialize(T exception, JsonGenerator jsonGenerator, SerializerProvider serializers) throws IOException {
-        // 序列化异常信息
-        jsonGenerator.writeStringField("message", exception.getMessage());
-        // 序列化异常类型
-        jsonGenerator.writeStringField("type", exception.getClass().getName());
-        // 序列化异常栈追踪
-        jsonGenerator.writeArrayFieldStart("stackTrace");
-        for (StackTraceElement element : exception.getStackTrace()) {
-            // 序列化每个栈追踪元素
-            jsonGenerator.writeStartObject();
-            jsonGenerator.writeStringField("className", element.getClassName());
-            jsonGenerator.writeStringField("methodName", element.getMethodName());
-            jsonGenerator.writeNumberField("lineNumber", element.getLineNumber());
-            jsonGenerator.writeEndObject();
-        }
-        jsonGenerator.writeEndArray();
+    public void serialize(T exception, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        gen.writeStartObject();
+        writeExceptionContent(exception, gen);
+        gen.writeEndObject();
+    }
+
+    @Override
+    public void serializeWithType(T exception, JsonGenerator gen, SerializerProvider serializers,
+                                  TypeSerializer typeSer) throws IOException {
+        WritableTypeId typeId = typeSer.typeId(exception, JsonToken.START_OBJECT);
+        typeSer.writeTypePrefix(gen, typeId);
+        writeExceptionContent(exception, gen);
+        typeSer.writeTypeSuffix(gen, typeId);
     }
 
     /**
-     * 序列化异常并包含类型信息
-     *
-     * @param exception     异常
-     * @param jsonGenerator JSON generator
-     * @param serializers   序列化器提供者
-     * @param typeSer       类型序列化器
-     * @throws IOException IO exception
+     * 写入异常的详细内容
      */
-    @Override
-    public void serializeWithType(T exception, JsonGenerator jsonGenerator, SerializerProvider serializers, TypeSerializer typeSer) throws IOException {
-        // 获取异常的类型ID并开始对象序列化
-        WritableTypeId typeId = typeSer.typeId(exception, JsonToken.START_OBJECT);
-        typeSer.writeTypePrefix(jsonGenerator, typeId);
+    private void writeExceptionContent(T exception, JsonGenerator gen) throws IOException {
+        // 序列化异常消息
+        gen.writeStringField(FIELD_MESSAGE, exception.getMessage() != null ?
+                exception.getMessage() : "");
 
-        // 序列化异常对象
-        serialize(exception, jsonGenerator, serializers);
+        // 序列化异常类型
+        gen.writeStringField(FIELD_TYPE, exception.getClass().getName());
 
-        // 完成对象序列化并写入类型后缀
-        typeSer.writeTypeSuffix(jsonGenerator, typeId);
+        // 序列化异常栈追踪
+        writeStackTrace(exception, gen);
+
+        // 序列化cause异常
+        writeCauseIfPresent(exception, gen);
+    }
+
+    /**
+     * 写入异常堆栈信息
+     */
+    private void writeStackTrace(T exception, JsonGenerator gen) throws IOException {
+        gen.writeArrayFieldStart(FIELD_STACK_TRACE);
+        for (StackTraceElement element : exception.getStackTrace()) {
+            gen.writeStartObject();
+            gen.writeStringField(FIELD_CLASS_NAME, element.getClassName());
+            gen.writeStringField(FIELD_METHOD_NAME, element.getMethodName());
+            gen.writeNumberField(FIELD_LINE_NUMBER, element.getLineNumber());
+            gen.writeEndObject();
+        }
+        gen.writeEndArray();
+    }
+
+    /**
+     * 如果存在cause异常，则写入cause异常信息
+     */
+    private void writeCauseIfPresent(T exception, JsonGenerator gen) throws IOException {
+        Throwable cause = exception.getCause();
+        if (cause != null) {
+            gen.writeObjectFieldStart(FIELD_CAUSE);
+            gen.writeStringField(FIELD_MESSAGE, cause.getMessage() != null ?
+                    cause.getMessage() : "");
+            gen.writeStringField(FIELD_TYPE, cause.getClass().getName());
+            gen.writeEndObject();
+        }
     }
 }
 
