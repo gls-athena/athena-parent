@@ -8,39 +8,44 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 分页查询响应VO
+ * 分页查询响应对象
+ * 用于封装分页查询的结果数据，包含分页信息和实际数据列表
  *
- * @param <T> 数据类型
+ * @param <T> 数据实体类型
  * @author george
  */
 @Data
 @Accessors(chain = true)
-@Schema(title = "分页查询响应VO", description = "分页查询响应VO")
+@Schema(title = "分页查询响应对象", description = "封装分页查询的结果数据，包含分页信息和实际数据列表")
 public class PageResponse<T> implements Serializable {
 
     /**
-     * 页码
+     * 当前页码，从1开始
      */
-    @Schema(title = "页码", description = "页码")
+    @Schema(title = "当前页码", description = "当前页码，从1开始")
     private Integer page;
+
     /**
-     * 每页条数
+     * 每页显示记录数
      */
-    @Schema(title = "每页条数", description = "每页条数")
+    @Schema(title = "每页记录数", description = "每页显示的记录数量")
     private Integer size;
+
     /**
-     * 总条数
+     * 总记录数
      */
-    @Schema(title = "总条数", description = "总条数")
+    @Schema(title = "总记录数", description = "符合条件的记录总数")
     private Long total;
+
     /**
      * 总页数
      */
-    @Schema(title = "总页数", description = "总页数")
+    @Schema(title = "总页数", description = "根据总记录数和每页记录数计算得出的总页数")
     private Integer pages;
+
     /**
-     * 数据
+     * 当前页数据列表
      */
-    @Schema(title = "数据", description = "数据")
+    @Schema(title = "数据列表", description = "当前页的数据记录列表")
     private List<T> data;
 }

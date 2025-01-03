@@ -6,34 +6,39 @@ import cn.hutool.core.lang.tree.parser.NodeParser;
 
 /**
  * 树节点解析器
+ * 用于将实现了 ITreeNode 接口的实体类解析为树形结构节点
  *
- * @param <T> 树节点类型
+ * @param <T> 树节点类型，必须实现 ITreeNode 接口
  * @author george
  */
 public class ITreeNodeParser<T extends ITreeNode> implements NodeParser<T, Long> {
     /**
-     * 解析
+     * 将源数据实体解析为树节点
      *
-     * @param object   源数据实体
-     * @param treeNode 树节点实体
+     * @param object   源数据实体，实现了 ITreeNode 接口的对象
+     * @param treeNode 目标树节点实体，用于存储解析后的树节点数据
      */
     @Override
     public void parse(T object, Tree<Long> treeNode) {
-        // 设置ID
+        // 设置节点基本属性
+        // 节点唯一标识
         treeNode.setId(object.getId());
-        // 设置父节点ID
+        // 父节点ID
         treeNode.setParentId(object.getParentId());
-        // 设置节点名称
+        // 节点名称
         treeNode.setName(object.getName());
-        // 设置节点权重
+        // 节点排序权重
         treeNode.setWeight(object.getSort());
-        // 设置节点编码
+
+        // 设置节点扩展属性
+        // 节点编码
         treeNode.putExtra("code", object.getCode());
-        // 设置节点描述
+        // 节点描述
         treeNode.putExtra("description", object.getDescription());
-        // 设置节点类型
+        // 节点类型
         treeNode.putExtra("type", object.getType());
-        // 设置其它额外信息
+
+        // 将源对象的所有属性复制到树节点的扩展属性中
         treeNode.putAll(BeanUtil.beanToMap(object));
     }
 }
