@@ -21,6 +21,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CaptchaProvider<Captcha extends BaseCaptcha> {
     /**
+     * 添加常量和路径匹配器
+     */
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+    private static final String GRANT_TYPE_PARAM = "grant_type";
+    private static final String PASSWORD_GRANT = "password";
+    private static final String SMS_GRANT = "sms";
+    /**
      * 验证码存储器
      */
     private final ICaptchaRepository repository;
@@ -79,23 +86,23 @@ public class CaptchaProvider<Captcha extends BaseCaptcha> {
      * @param request 请求
      */
     public void verify(ServletWebRequest request) {
-        // 获取接收目标和验证码
         String target = getTarget(request);
         String code = getCode(request);
-        // 获取验证码
+
+        if (StrUtil.isBlank(target) || StrUtil.isBlank(code)) {
+            throw new CaptchaAuthenticationException("验证码参数不完整");
+        }
+
         BaseCaptcha baseCaptcha = repository.get(target);
-        // 验证码不存在或已过期
         if (baseCaptcha == null) {
             throw new CaptchaAuthenticationException("验证码不存在或已过期");
         }
-        // 验证码正确且未过期
-        if (baseCaptcha.getCode().equals(code)
-                && baseCaptcha.getExpireTime().getTime() > System.currentTimeMillis()) {
-            repository.remove(target);
-        } else {
-            // 验证码错误
+
+        if (!isValidCaptcha(baseCaptcha, code)) {
             throw new CaptchaAuthenticationException("验证码错误");
         }
+
+        repository.remove(target);
     }
 
     /**
@@ -105,10 +112,7 @@ public class CaptchaProvider<Captcha extends BaseCaptcha> {
      * @return 是否支持
      */
     public boolean support(ServletWebRequest request) {
-        if (isSendRequest(request)) {
-            return true;
-        }
-        return isVerifyRequest(request);
+        return isSendRequest(request) || isVerifyRequest(request);
     }
 
     /**
@@ -118,8 +122,7 @@ public class CaptchaProvider<Captcha extends BaseCaptcha> {
      * @return 是否是发送请求
      */
     public boolean isSendRequest(ServletWebRequest request) {
-        AntPathMatcher pathMatcher = new AntPathMatcher();
-        return pathMatcher.match(url, request.getRequest().getRequestURI());
+        return PATH_MATCHER.match(url, getRequestUri(request));
     }
 
     /**
@@ -132,8 +135,8 @@ public class CaptchaProvider<Captcha extends BaseCaptcha> {
         if (isLogin(request)) {
             return true;
         }
-        AntPathMatcher pathMatcher = new AntPathMatcher();
-        return urls.stream().anyMatch(url -> pathMatcher.match(url, request.getRequest().getRequestURI()));
+        String requestUri = getRequestUri(request);
+        return urls.stream().anyMatch(url -> PATH_MATCHER.match(url, requestUri));
     }
 
     /**
@@ -143,15 +146,16 @@ public class CaptchaProvider<Captcha extends BaseCaptcha> {
      * @return 是否登录
      */
     private boolean isLogin(ServletWebRequest request) {
-        String requestURI = request.getRequest().getRequestURI();
-        if (requestURI.contains(loginProcessingUrl)) {
-            String target = WebUtil.getParameter(request.getRequest(), targetParameterName);
-            return StrUtil.isNotBlank(target);
+        String requestUri = getRequestUri(request);
+
+        if (requestUri.contains(loginProcessingUrl)) {
+            return hasValidTarget(request);
         }
-        if (requestURI.contains(oauth2TokenUrl)) {
-            String grantType = request.getParameter("grant_type");
-            return StrUtil.containsIgnoreCase(grantType, "password") || StrUtil.containsIgnoreCase(grantType, "sms");
+
+        if (requestUri.contains(oauth2TokenUrl)) {
+            return isPasswordOrSmsGrant(request);
         }
+
         return false;
     }
 
@@ -173,6 +177,51 @@ public class CaptchaProvider<Captcha extends BaseCaptcha> {
      */
     private String getCode(ServletWebRequest request) {
         return WebUtil.getParameter(request.getRequest(), codeParameterName);
+    }
+
+    /**
+     * 提取验证 target 参数的方法
+     *
+     * @param request 请求
+     * @return 是否有效
+     */
+    private boolean hasValidTarget(ServletWebRequest request) {
+        String target = WebUtil.getParameter(request.getRequest(), targetParameterName);
+        return StrUtil.isNotBlank(target);
+    }
+
+    /**
+     * 提取验证 grant_type 的方法
+     *
+     * @param request 请求
+     * @return 是否有效
+     */
+    private boolean isPasswordOrSmsGrant(ServletWebRequest request) {
+        String grantType = request.getParameter(GRANT_TYPE_PARAM);
+        return StrUtil.containsIgnoreCase(grantType, PASSWORD_GRANT)
+                || StrUtil.containsIgnoreCase(grantType, SMS_GRANT);
+    }
+
+    /**
+     * 添加获取请求URI的工具方法
+     *
+     * @param request 请求
+     * @return 请求URI
+     */
+    private String getRequestUri(ServletWebRequest request) {
+        return request.getRequest().getRequestURI();
+    }
+
+    /**
+     * 提取验证码验证逻辑
+     *
+     * @param captcha 验证码
+     * @param code    输入的验证码
+     * @return 是否有效
+     */
+    private boolean isValidCaptcha(BaseCaptcha captcha, String code) {
+        return captcha.getCode().equals(code)
+                && captcha.getExpireTime().getTime() > System.currentTimeMillis();
     }
 
 }

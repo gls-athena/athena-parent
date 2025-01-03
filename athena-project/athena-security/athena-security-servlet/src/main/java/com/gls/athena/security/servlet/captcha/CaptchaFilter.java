@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 验证码过滤器
@@ -41,41 +42,55 @@ public class CaptchaFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        ServletWebRequest servletWebRequest = new ServletWebRequest(request, response);
-        CaptchaProvider<?> provider = getProvider(servletWebRequest);
-        // 无需校验验证码
-        if (provider == null) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        ServletWebRequest webRequest = new ServletWebRequest(request, response);
+
         try {
-            // 发送验证码请求
-            if (provider.isSendRequest(servletWebRequest)) {
-                provider.send(servletWebRequest);
-                return;
-            }
-            // 校验验证码请求
-            provider.verify(servletWebRequest);
-            // 继续执行过滤器链
-            filterChain.doFilter(request, response);
+            processCaptchaRequest(webRequest, filterChain);
         } catch (CaptchaAuthenticationException e) {
-            log.error("验证码校验失败", e);
-            // 校验失败处理
+            log.error("验证码处理失败: {}", e.getMessage(), e);
             authenticationFailureHandler.onAuthenticationFailure(request, response, e);
         }
     }
 
     /**
-     * 获取验证码提供器
+     * 处理验证码请求
      *
-     * @param request 请求
+     * @param webRequest  请求上下文
+     * @param filterChain 过滤器链
+     */
+    private void processCaptchaRequest(ServletWebRequest webRequest,
+                                       FilterChain filterChain) throws ServletException, IOException {
+        Optional<CaptchaProvider<?>> providerOpt = findSupportedProvider(webRequest);
+
+        if (providerOpt.isEmpty()) {
+            log.debug("未找到匹配的验证码处理器，跳过验证码校验");
+            filterChain.doFilter(webRequest.getRequest(), webRequest.getResponse());
+            return;
+        }
+
+        CaptchaProvider<?> provider = providerOpt.get();
+
+        if (provider.isSendRequest(webRequest)) {
+            log.debug("处理发送验证码请求");
+            provider.send(webRequest);
+            return;
+        }
+
+        log.debug("验证验证码");
+        provider.verify(webRequest);
+        filterChain.doFilter(webRequest.getRequest(), webRequest.getResponse());
+    }
+
+    /**
+     * 查找支持当前请求的验证码提供器
+     *
+     * @param request 请求上下文
      * @return 验证码提供器
      */
-    private CaptchaProvider<?> getProvider(ServletWebRequest request) {
+    private Optional<CaptchaProvider<?>> findSupportedProvider(ServletWebRequest request) {
         return providers.stream()
                 .filter(provider -> provider.support(request))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
 }

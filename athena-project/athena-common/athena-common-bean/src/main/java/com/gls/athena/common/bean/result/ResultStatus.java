@@ -39,7 +39,12 @@ public enum ResultStatus implements IResultStatus {
     /**
      * 服务器错误
      */
-    SERVER_ERROR(500, "服务器错误");
+    SERVER_ERROR(500, "服务器错误"),
+    /**
+     * 服务器内部错误
+     */
+    INTERNAL_SERVER_ERROR(500, "服务器内部错误"),
+    ;
 
     /**
      * 状态码
