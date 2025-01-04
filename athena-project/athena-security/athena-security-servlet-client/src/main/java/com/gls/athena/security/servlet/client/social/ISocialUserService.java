@@ -1,5 +1,7 @@
 package com.gls.athena.security.servlet.client.social;
 
+import com.gls.athena.common.bean.security.SocialUser;
+
 /**
  * 社交用户服务
  *

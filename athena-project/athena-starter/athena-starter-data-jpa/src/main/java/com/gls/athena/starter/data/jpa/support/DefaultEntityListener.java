@@ -1,7 +1,6 @@
 package com.gls.athena.starter.data.jpa.support;
 
-import cn.hutool.extra.spring.SpringUtil;
-import com.gls.athena.common.bean.security.IUserHelper;
+import com.gls.athena.common.bean.security.LoginUserHelper;
 import com.gls.athena.common.core.constant.IConstants;
 import com.gls.athena.starter.data.jpa.base.BaseEntity;
 import jakarta.persistence.PrePersist;
@@ -27,11 +26,10 @@ public class DefaultEntityListener {
      */
     @PrePersist
     public <E extends BaseEntity> void prePersist(E entity) {
-        IUserHelper userHelper = SpringUtil.getBean(IUserHelper.class);
         log.info("prePersist entity: {}", entity);
-        Long userId = userHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
-        String userRealName = userHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
-        Long tenantId = userHelper.getCurrentUserTenantId().orElse(IConstants.DEFAULT_TENANT_ID);
+        Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
+        String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
+        Long tenantId = LoginUserHelper.getCurrentUserTenantId().orElse(IConstants.DEFAULT_TENANT_ID);
         Date now = new Date();
         entity.setTenantId(tenantId);
         entity.setDeleted(false);
@@ -51,10 +49,9 @@ public class DefaultEntityListener {
      */
     @PreUpdate
     public <E extends BaseEntity> void preUpdate(E entity) {
-        IUserHelper userHelper = SpringUtil.getBean(IUserHelper.class);
         log.info("preUpdate entity: {}", entity);
-        Long userId = userHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
-        String userRealName = userHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
+        Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
+        String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
         Date now = new Date();
         entity.setUpdateUserId(userId);
         entity.setUpdateUserName(userRealName);

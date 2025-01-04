@@ -1,6 +1,7 @@
 package com.gls.athena.security.servlet.authorization.support;
 
 import cn.hutool.core.collection.CollUtil;
+import com.gls.athena.common.bean.security.LoginUserHelper;
 import com.gls.athena.common.bean.security.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -101,7 +102,7 @@ public class InMemoryUserService implements IUserService {
      */
     @Override
     public void changePassword(String oldPassword, String newPassword) {
-        User user = (User) getCurrentUser().orElseThrow(() -> new IllegalArgumentException("用户未登录"));
+        User user = (User) LoginUserHelper.getCurrentUser().orElseThrow(() -> new IllegalArgumentException("用户未登录"));
         if (!user.getPassword().equals(oldPassword)) {
             throw new IllegalArgumentException("原密码错误");
         }

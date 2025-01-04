@@ -1,7 +1,6 @@
-package com.gls.athena.security.servlet.client.social;
+package com.gls.athena.common.bean.security;
 
 import com.gls.athena.common.bean.base.BaseVo;
-import com.gls.athena.common.bean.security.User;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;

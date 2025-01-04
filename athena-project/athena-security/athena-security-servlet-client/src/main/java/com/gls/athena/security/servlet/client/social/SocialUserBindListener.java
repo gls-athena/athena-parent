@@ -1,5 +1,6 @@
 package com.gls.athena.security.servlet.client.social;
 
+import com.gls.athena.common.bean.security.SocialUser;
 import com.gls.athena.common.bean.security.User;
 import com.gls.athena.security.servlet.client.config.IClientConstants;
 import jakarta.annotation.Resource;

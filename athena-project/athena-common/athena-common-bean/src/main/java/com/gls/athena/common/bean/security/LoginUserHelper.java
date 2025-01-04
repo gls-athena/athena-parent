@@ -3,6 +3,7 @@ package com.gls.athena.common.bean.security;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeUtil;
 import com.gls.athena.common.bean.base.ITreeNodeParser;
+import lombok.experimental.UtilityClass;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
@@ -17,26 +18,8 @@ import java.util.TimeZone;
  *
  * @author george
  */
-public interface IUserHelper {
-
-    /**
-     * 默认用户帮助类
-     *
-     * @return 默认用户帮助类
-     */
-    static IUserHelper withDefaults() {
-        return () -> {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.getPrincipal() instanceof User user) {
-                return Optional.of(user);
-            }
-            // token用户
-            if (authentication != null && authentication.getPrincipal() instanceof OAuth2AuthenticatedPrincipal oauth2Principal) {
-                return Optional.of(toUser(oauth2Principal));
-            }
-            return Optional.empty();
-        };
-    }
+@UtilityClass
+public class LoginUserHelper {
 
     /**
      * 转换为用户
@@ -44,7 +27,7 @@ public interface IUserHelper {
      * @param oauth2Principal OAuth2认证主体
      * @return 用户
      */
-    static User toUser(OAuth2AuthenticatedPrincipal oauth2Principal) {
+    public User toUser(OAuth2AuthenticatedPrincipal oauth2Principal) {
         User user = new User();
         user.setUsername(oauth2Principal.getName());
         user.setPassword(oauth2Principal.getAttribute("password"));
@@ -76,15 +59,24 @@ public interface IUserHelper {
      *
      * @return 当前用户
      */
-    Optional<? extends IUser<?, ?, ?>> getCurrentUser();
+    public Optional<? extends IUser<?, ?, ?>> getCurrentUser() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Authentication::getPrincipal)
+                .map(principal -> switch (principal) {
+                    case SocialUser socialUser -> socialUser.getUser();
+                    case User user -> user;
+                    case OAuth2AuthenticatedPrincipal oauth2Principal -> toUser(oauth2Principal);
+                    default -> null;
+                });
+    }
 
     /**
      * 获取当前用户ID
      *
      * @return 当前用户ID
      */
-    default Optional<Long> getCurrentUserId() {
-        return this.getCurrentUser().map(IUser::getId);
+    public Optional<Long> getCurrentUserId() {
+        return getCurrentUser().map(IUser::getId);
     }
 
     /**
@@ -92,8 +84,8 @@ public interface IUserHelper {
      *
      * @return 当前用户租户ID
      */
-    default Optional<Long> getCurrentUserTenantId() {
-        return this.getCurrentUser().map(IUser::getTenantId);
+    public Optional<Long> getCurrentUserTenantId() {
+        return getCurrentUser().map(IUser::getTenantId);
     }
 
     /**
@@ -101,8 +93,8 @@ public interface IUserHelper {
      *
      * @return 当前用户用户名
      */
-    default Optional<String> getCurrentUsername() {
-        return this.getCurrentUser().map(IUser::getUsername);
+    public Optional<String> getCurrentUsername() {
+        return getCurrentUser().map(IUser::getUsername);
     }
 
     /**
@@ -110,8 +102,8 @@ public interface IUserHelper {
      *
      * @return 当前用户手机号
      */
-    default Optional<String> getCurrentUserMobile() {
-        return this.getCurrentUser().map(IUser::getMobile);
+    public Optional<String> getCurrentUserMobile() {
+        return getCurrentUser().map(IUser::getMobile);
     }
 
     /**
@@ -119,8 +111,8 @@ public interface IUserHelper {
      *
      * @return 当前用户邮箱
      */
-    default Optional<String> getCurrentUserEmail() {
-        return this.getCurrentUser().map(IUser::getEmail);
+    public Optional<String> getCurrentUserEmail() {
+        return getCurrentUser().map(IUser::getEmail);
     }
 
     /**
@@ -128,8 +120,8 @@ public interface IUserHelper {
      *
      * @return 当前用户姓名
      */
-    default Optional<String> getCurrentUserRealName() {
-        return this.getCurrentUser().map(IUser::getRealName);
+    public Optional<String> getCurrentUserRealName() {
+        return getCurrentUser().map(IUser::getRealName);
     }
 
     /**
@@ -137,8 +129,8 @@ public interface IUserHelper {
      *
      * @return 当前用户昵称
      */
-    default Optional<String> getCurrentUserNickName() {
-        return this.getCurrentUser().map(IUser::getNickName);
+    public Optional<String> getCurrentUserNickName() {
+        return getCurrentUser().map(IUser::getNickName);
     }
 
     /**
@@ -146,8 +138,8 @@ public interface IUserHelper {
      *
      * @return 当前用户头像
      */
-    default Optional<String> getCurrentUserAvatar() {
-        return this.getCurrentUser().map(IUser::getAvatar);
+    public Optional<String> getCurrentUserAvatar() {
+        return getCurrentUser().map(IUser::getAvatar);
     }
 
     /**
@@ -155,8 +147,8 @@ public interface IUserHelper {
      *
      * @return 当前用户语言
      */
-    default Optional<String> getCurrentUserLanguage() {
-        return this.getCurrentUser().map(IUser::getLanguage);
+    public Optional<String> getCurrentUserLanguage() {
+        return getCurrentUser().map(IUser::getLanguage);
     }
 
     /**
@@ -164,8 +156,8 @@ public interface IUserHelper {
      *
      * @return 当前用户区域
      */
-    default Optional<Locale> getCurrentUserLocale() {
-        return this.getCurrentUser().map(IUser::getLocale).map(Locale::forLanguageTag);
+    public Optional<Locale> getCurrentUserLocale() {
+        return getCurrentUser().map(IUser::getLocale).map(Locale::forLanguageTag);
     }
 
     /**
@@ -173,8 +165,8 @@ public interface IUserHelper {
      *
      * @return 当前用户时区
      */
-    default Optional<TimeZone> getCurrentUserTimeZone() {
-        return this.getCurrentUser().map(IUser::getTimeZone).map(TimeZone::getTimeZone);
+    public Optional<TimeZone> getCurrentUserTimeZone() {
+        return getCurrentUser().map(IUser::getTimeZone).map(TimeZone::getTimeZone);
     }
 
     /**
@@ -182,8 +174,8 @@ public interface IUserHelper {
      *
      * @return 当前用户角色
      */
-    default Optional<? extends IRole<?>> getCurrentUserRole() {
-        return this.getCurrentUser().map(IUser::getRole);
+    public Optional<? extends IRole<?>> getCurrentUserRole() {
+        return getCurrentUser().map(IUser::getRole);
     }
 
     /**
@@ -191,8 +183,8 @@ public interface IUserHelper {
      *
      * @return 当前用户组织机构
      */
-    default Optional<? extends IOrganization> getCurrentUserOrganization() {
-        return this.getCurrentUser().map(IUser::getOrganization);
+    public Optional<? extends IOrganization> getCurrentUserOrganization() {
+        return getCurrentUser().map(IUser::getOrganization);
     }
 
     /**
@@ -200,8 +192,8 @@ public interface IUserHelper {
      *
      * @return 当前用户角色列表
      */
-    default Optional<List<? extends IRole<?>>> getCurrentUserRoles() {
-        return this.getCurrentUser().map(IUser::getRoles);
+    public Optional<List<? extends IRole<?>>> getCurrentUserRoles() {
+        return getCurrentUser().map(IUser::getRoles);
     }
 
     /**
@@ -209,8 +201,8 @@ public interface IUserHelper {
      *
      * @return 当前用户组织机构列表
      */
-    default Optional<List<? extends IOrganization>> getCurrentUserOrganizations() {
-        return this.getCurrentUser().map(IUser::getOrganizations);
+    public Optional<List<? extends IOrganization>> getCurrentUserOrganizations() {
+        return getCurrentUser().map(IUser::getOrganizations);
     }
 
     /**
@@ -218,8 +210,8 @@ public interface IUserHelper {
      *
      * @return 当前用户权限列表
      */
-    default Optional<List<? extends IPermission>> getCurrentUserPermissions() {
-        return this.getCurrentUser()
+    public Optional<List<? extends IPermission>> getCurrentUserPermissions() {
+        return getCurrentUser()
                 .map(IUser::getRoles)
                 .map(roles -> roles.stream()
                         .map(IRole::getPermissions)
@@ -232,8 +224,8 @@ public interface IUserHelper {
      *
      * @return 当前用户角色树
      */
-    default Optional<List<Tree<Long>>> getCurrentUserRoleTree() {
-        return this.getCurrentUserRoles()
+    public Optional<List<Tree<Long>>> getCurrentUserRoleTree() {
+        return getCurrentUserRoles()
                 .map(roles -> TreeUtil.build(roles, 0L, new ITreeNodeParser<>()));
     }
 
@@ -242,8 +234,8 @@ public interface IUserHelper {
      *
      * @return 当前用户组织机构树
      */
-    default Optional<List<Tree<Long>>> getCurrentUserOrganizationTree() {
-        return this.getCurrentUserOrganizations()
+    public Optional<List<Tree<Long>>> getCurrentUserOrganizationTree() {
+        return getCurrentUserOrganizations()
                 .map(organizations -> TreeUtil.build(organizations, 0L, new ITreeNodeParser<>()));
     }
 
@@ -252,8 +244,8 @@ public interface IUserHelper {
      *
      * @return 当前用户权限树
      */
-    default Optional<List<Tree<Long>>> getCurrentUserPermissionTree() {
-        return this.getCurrentUserPermissions()
+    public Optional<List<Tree<Long>>> getCurrentUserPermissionTree() {
+        return getCurrentUserPermissions()
                 .map(permissions -> TreeUtil.build(permissions, 0L, new ITreeNodeParser<>()));
     }
 

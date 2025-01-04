@@ -1,9 +1,9 @@
 package com.gls.athena.security.servlet.client.delegate;
 
 import cn.hutool.core.map.MapUtil;
+import com.gls.athena.common.bean.security.SocialUser;
 import com.gls.athena.security.servlet.client.config.IClientConstants;
 import com.gls.athena.security.servlet.client.social.ISocialUserService;
-import com.gls.athena.security.servlet.client.social.SocialUser;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.ObjectProvider;

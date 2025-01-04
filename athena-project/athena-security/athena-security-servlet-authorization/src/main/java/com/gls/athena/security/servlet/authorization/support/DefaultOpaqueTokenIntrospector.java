@@ -1,8 +1,8 @@
 package com.gls.athena.security.servlet.authorization.support;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.gls.athena.common.bean.security.SocialUser;
 import com.gls.athena.common.bean.security.User;
-import com.gls.athena.security.servlet.client.social.SocialUser;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;

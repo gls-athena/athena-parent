@@ -1,11 +1,11 @@
 package com.gls.athena.security.servlet.authorization.customizer;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.gls.athena.common.bean.security.SocialUser;
 import com.gls.athena.security.servlet.authorization.authentication.PasswordAuthenticationConverter;
 import com.gls.athena.security.servlet.authorization.authentication.PasswordAuthenticationProvider;
 import com.gls.athena.security.servlet.authorization.authentication.SmsAuthenticationConverter;
 import com.gls.athena.security.servlet.authorization.authentication.SmsAuthenticationProvider;
-import com.gls.athena.security.servlet.client.social.SocialUser;
 import jakarta.annotation.Resource;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.core.Authentication;
