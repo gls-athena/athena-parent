@@ -48,9 +48,9 @@ public class WebUtil {
         // 获取请求属性
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
         // 如果是Servlet请求属性
-        if (requestAttributes instanceof ServletRequestAttributes) {
+        if (requestAttributes instanceof ServletRequestAttributes servletRequestAttributes) {
             // 返回请求
-            return Optional.of(((ServletRequestAttributes) requestAttributes).getRequest());
+            return Optional.of(servletRequestAttributes.getRequest());
         }
         // 返回空
         return Optional.empty();
@@ -65,9 +65,9 @@ public class WebUtil {
         // 获取请求属性
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
         // 如果是Servlet请求属性
-        if (requestAttributes instanceof ServletRequestAttributes) {
+        if (requestAttributes instanceof ServletRequestAttributes servletRequestAttributes) {
             // 返回响应
-            return Optional.ofNullable(((ServletRequestAttributes) requestAttributes).getResponse());
+            return Optional.ofNullable(servletRequestAttributes.getResponse());
         }
         // 返回空
         return Optional.empty();
