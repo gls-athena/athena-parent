@@ -1,5 +1,6 @@
 package com.gls.athena.common.bean.security;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeUtil;
 import com.gls.athena.common.bean.base.ITreeNodeParser;
@@ -28,30 +29,7 @@ public class LoginUserHelper {
      * @return 用户
      */
     public User toUser(OAuth2AuthenticatedPrincipal oauth2Principal) {
-        User user = new User();
-        user.setUsername(oauth2Principal.getName());
-        user.setPassword(oauth2Principal.getAttribute("password"));
-        user.setMobile(oauth2Principal.getAttribute("mobile"));
-        user.setEmail(oauth2Principal.getAttribute("email"));
-        user.setRealName(oauth2Principal.getAttribute("realName"));
-        user.setNickName(oauth2Principal.getAttribute("nickName"));
-        user.setAvatar(oauth2Principal.getAttribute("avatar"));
-        user.setLanguage(oauth2Principal.getAttribute("language"));
-        user.setLocale(oauth2Principal.getAttribute("locale"));
-        user.setTimeZone(oauth2Principal.getAttribute("timeZone"));
-        user.setRoles(oauth2Principal.getAttribute("roles"));
-        user.setOrganizations(oauth2Principal.getAttribute("organizations"));
-        user.setId(oauth2Principal.getAttribute("id"));
-        user.setTenantId(oauth2Principal.getAttribute("tenantId"));
-        user.setVersion(oauth2Principal.getAttribute("version"));
-        user.setDeleted(oauth2Principal.getAttribute("deleted"));
-        user.setCreateTime(oauth2Principal.getAttribute("createTime"));
-        user.setCreateUserId(oauth2Principal.getAttribute("createUserId"));
-        user.setCreateUserName(oauth2Principal.getAttribute("createUserName"));
-        user.setUpdateTime(oauth2Principal.getAttribute("updateTime"));
-        user.setUpdateUserId(oauth2Principal.getAttribute("updateUserId"));
-        user.setUpdateUserName(oauth2Principal.getAttribute("updateUserName"));
-        return user;
+        return BeanUtil.fillBeanWithMap(oauth2Principal.getAttributes(), new User(), true);
     }
 
     /**

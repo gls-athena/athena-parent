@@ -6,6 +6,7 @@ import com.gls.athena.common.bean.result.Result;
 import com.gls.athena.common.bean.result.ResultStatus;
 import com.gls.athena.common.core.constant.ClientTypeEnums;
 import com.gls.athena.common.core.constant.IConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -14,11 +15,14 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
+import java.util.Optional;
+
 /**
  * 结果通知
  *
  * @author george
  */
+@Slf4j
 @RestControllerAdvice(basePackages = IConstants.BASE_PACKAGE_PREFIX)
 public class ResultHandler implements ResponseBodyAdvice<Object> {
     /**
@@ -35,11 +39,9 @@ public class ResultHandler implements ResponseBodyAdvice<Object> {
             return false;
         }
         // 如果方法上有@ResultIgnore注解 直接返回
-        if (returnType.getMethod().isAnnotationPresent(ResultIgnore.class)
-                || returnType.getDeclaringClass().isAnnotationPresent(ResultIgnore.class)) {
-            return false;
-        }
-        return true;
+        return Optional.ofNullable(returnType.getMethod())
+                .map(method -> method.getAnnotation(ResultIgnore.class))
+                .isEmpty();
     }
 
     /**
@@ -57,6 +59,7 @@ public class ResultHandler implements ResponseBodyAdvice<Object> {
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
                                   Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                   ServerHttpRequest request, ServerHttpResponse response) {
+        log.debug("beforeBodyWrite: {}", body);
         // 判断客户端类型 是否是feign调用
         if (StrUtil.equals(request.getHeaders().getFirst(IConstants.CLIENT_TYPE), ClientTypeEnums.FEIGN.getCode())) {
             return body;
