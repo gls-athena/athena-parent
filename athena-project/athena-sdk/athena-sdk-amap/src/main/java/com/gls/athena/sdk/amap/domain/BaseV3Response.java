@@ -2,8 +2,6 @@ package com.gls.athena.sdk.amap.domain;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 高德地图API V3版本基础响应对象
  * 封装了API响应的通用字段，所有V3版本的响应类都应继承此类
@@ -11,7 +9,7 @@ import java.io.Serializable;
  * @author george
  */
 @Data
-public abstract class BaseV3Response implements Serializable {
+public abstract class BaseV3Response {
     /**
      * 返回结果状态值
      * 值为0或1，1表示成功，0表示失败

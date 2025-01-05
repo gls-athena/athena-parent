@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class CaptchaProperties extends BaseProperties {
      * 短信验证码配置
      */
     @Data
-    public static class Sms implements Serializable {
+    public static class Sms {
         /**
          * 验证码长度
          */
@@ -77,7 +76,7 @@ public class CaptchaProperties extends BaseProperties {
      * 图形验证码配置
      */
     @Data
-    public static class Image implements Serializable {
+    public static class Image {
         /**
          * 验证码长度
          */

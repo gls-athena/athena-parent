@@ -3,8 +3,6 @@ package com.gls.athena.common.bean.result;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
-
 /**
  * 统一响应结果封装类
  *
@@ -14,7 +12,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public class Result<T> implements Serializable {
+public class Result<T> {
 
     private static final long serialVersionUID = 1L;
 

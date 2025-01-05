@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,7 +80,7 @@ public class ClientSecurityProperties extends BaseProperties {
      * 微信公众平台
      */
     @Data
-    public static class WechatMp implements Serializable {
+    public static class WechatMp {
         /**
          * 语言
          */
@@ -92,7 +91,7 @@ public class ClientSecurityProperties extends BaseProperties {
      * 微信开放平台
      */
     @Data
-    public static class WechatOpen implements Serializable {
+    public static class WechatOpen {
         /**
          * 语言
          */
@@ -103,7 +102,7 @@ public class ClientSecurityProperties extends BaseProperties {
      * 企业微信
      */
     @Data
-    public static class WechatWork implements Serializable {
+    public static class WechatWork {
         /**
          * 语言
          */

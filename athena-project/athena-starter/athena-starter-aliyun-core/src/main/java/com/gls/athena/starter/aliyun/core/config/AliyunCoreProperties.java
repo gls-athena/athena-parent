@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +28,7 @@ public class AliyunCoreProperties extends BaseProperties {
     /**
      * 认证模式
      */
-    public enum AuthMode implements Serializable {
+    public enum AuthMode {
         /**
          * AS AK
          */
@@ -46,7 +45,7 @@ public class AliyunCoreProperties extends BaseProperties {
      * @author george
      */
     @Data
-    public static class Client implements Serializable {
+    public static class Client {
         /**
          * 认证模式
          */

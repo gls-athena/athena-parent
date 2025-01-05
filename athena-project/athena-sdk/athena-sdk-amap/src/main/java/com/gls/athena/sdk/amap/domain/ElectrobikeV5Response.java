@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -30,7 +29,7 @@ public class ElectrobikeV5Response extends BaseV3Response {
      * 包含起点、终点坐标及具体路径方案
      */
     @Data
-    public static class Route implements Serializable {
+    public static class Route {
         /**
          * 路线起点坐标，格式：经度,纬度
          */
@@ -50,7 +49,7 @@ public class ElectrobikeV5Response extends BaseV3Response {
      * 包含距离、时间和具体路段信息
      */
     @Data
-    public static class Path implements Serializable {
+    public static class Path {
         /**
          * 路线总距离，单位：米
          */
@@ -70,7 +69,7 @@ public class ElectrobikeV5Response extends BaseV3Response {
      * 包含导航指示、道路名称等详细信息
      */
     @Data
-    public static class Step implements Serializable {
+    public static class Step {
         /**
          * 当前路段的行进指示说明
          */
@@ -108,7 +107,7 @@ public class ElectrobikeV5Response extends BaseV3Response {
      * 包含该路段的预计耗时
      */
     @Data
-    public static class Cost implements Serializable {
+    public static class Cost {
         /**
          * 当前路段的预计耗时，单位：秒
          */
@@ -120,7 +119,7 @@ public class ElectrobikeV5Response extends BaseV3Response {
      * 包含主要动作和辅助动作说明
      */
     @Data
-    public static class Navi implements Serializable {
+    public static class Navi {
         /**
          * 主要导航动作指令（如：向前、左转、右转等）
          */

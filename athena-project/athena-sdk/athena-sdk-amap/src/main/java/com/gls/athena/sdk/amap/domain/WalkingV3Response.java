@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -29,7 +28,7 @@ public class WalkingV3Response extends BaseV3Response {
      * 路径规划详细信息实体类
      */
     @Data
-    public static class Route implements Serializable {
+    public static class Route {
         /**
          * 起点坐标，格式：longitude,latitude
          */
@@ -50,7 +49,7 @@ public class WalkingV3Response extends BaseV3Response {
      * 步行路径规划方案实体类
      */
     @Data
-    public static class Path implements Serializable {
+    public static class Path {
         /**
          * 方案总步行距离，单位：米
          */
@@ -71,7 +70,7 @@ public class WalkingV3Response extends BaseV3Response {
      * 步行路段详细信息实体类
      */
     @Data
-    public static class Step implements Serializable {
+    public static class Step {
         /**
          * 行走指示说明，如"向东步行100米"
          */

@@ -4,8 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
-
 /**
  * 分页查询请求对象
  * 用于封装分页查询的请求参数，包括页码、每页条数、排序信息等
@@ -16,7 +14,7 @@ import java.io.Serializable;
 @Data
 @Accessors(chain = true)
 @Schema(title = "分页查询请求对象", description = "封装分页查询的请求参数")
-public class PageRequest<T> implements Serializable {
+public class PageRequest<T> {
     /**
      * 当前页码，从1开始
      * 默认值：1

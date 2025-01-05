@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
-
 /**
  * 应用访问令牌响应
  *
@@ -13,7 +11,7 @@ import java.io.Serializable;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FeishuAppAccessTokenResponse extends FeishuResponse<String> implements Serializable {
+public class FeishuAppAccessTokenResponse extends FeishuResponse<String> {
     /**
      * 应用访问令牌
      */

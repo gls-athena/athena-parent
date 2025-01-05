@@ -3,7 +3,6 @@ package com.gls.athena.sdk.message.domain;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -13,7 +12,7 @@ import java.util.Map;
  */
 @Data
 @Accessors(chain = true)
-public class MessageDto implements Serializable {
+public class MessageDto {
     /**
      * 消息类型
      */

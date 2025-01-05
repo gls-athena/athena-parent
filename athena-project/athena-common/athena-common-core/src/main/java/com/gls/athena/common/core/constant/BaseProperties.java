@@ -2,7 +2,6 @@ package com.gls.athena.common.core.constant;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -11,7 +10,7 @@ import java.util.Map;
  * @author george
  */
 @Data
-public abstract class BaseProperties implements Serializable {
+public abstract class BaseProperties {
     /**
      * 是否生效
      */

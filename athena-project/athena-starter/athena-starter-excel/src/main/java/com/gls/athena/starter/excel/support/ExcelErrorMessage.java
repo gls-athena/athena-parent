@@ -3,8 +3,6 @@ package com.gls.athena.starter.excel.support;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
-
 /**
  * Excel错误消息
  *
@@ -12,7 +10,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public class ExcelErrorMessage implements Serializable {
+public class ExcelErrorMessage {
     /**
      * 行号
      */

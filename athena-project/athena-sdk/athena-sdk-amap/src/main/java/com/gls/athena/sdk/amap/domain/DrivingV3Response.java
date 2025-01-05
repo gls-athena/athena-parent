@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -28,7 +27,7 @@ public class DrivingV3Response extends BaseV3Response {
      * 驾车路径规划的路线信息
      */
     @Data
-    public static class Route implements Serializable {
+    public static class Route {
         /**
          * 起点坐标，格式：x,y（经度,纬度）
          */
@@ -52,7 +51,7 @@ public class DrivingV3Response extends BaseV3Response {
      * 单个驾车导航方案的详细信息
      */
     @Data
-    public static class Path implements Serializable {
+    public static class Path {
         /**
          * 方案总行驶距离，单位：米
          */
@@ -93,7 +92,7 @@ public class DrivingV3Response extends BaseV3Response {
      * 导航路段的详细信息
      */
     @Data
-    public static class Step implements Serializable {
+    public static class Step {
         /**
          * 行驶指示说明（如"向北行驶"等）
          */
@@ -155,7 +154,7 @@ public class DrivingV3Response extends BaseV3Response {
      * 路段实时路况信息
      */
     @Data
-    public static class Tmc implements Serializable {
+    public static class Tmc {
         /**
          * 路况路段起点坐标
          */
@@ -178,7 +177,7 @@ public class DrivingV3Response extends BaseV3Response {
      * 途经城市信息
      */
     @Data
-    public static class City implements Serializable {
+    public static class City {
         /**
          * 城市名称
          */
@@ -201,7 +200,7 @@ public class DrivingV3Response extends BaseV3Response {
      * 途经区县信息
      */
     @Data
-    public static class District implements Serializable {
+    public static class District {
         /**
          * 区县名称
          */

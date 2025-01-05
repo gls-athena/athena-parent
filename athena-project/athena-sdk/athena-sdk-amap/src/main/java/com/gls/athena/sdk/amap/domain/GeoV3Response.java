@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -33,7 +32,7 @@ public class GeoV3Response extends BaseV3Response {
      * 封装单个地址的地理编码详细信息，包括结构化地址、行政区划、坐标等
      */
     @Data
-    public static class Geocode implements Serializable {
+    public static class Geocode {
         /**
          * 结构化地址信息
          * 规范化的地址字符串，包含省市区街道等信息
@@ -125,7 +124,7 @@ public class GeoV3Response extends BaseV3Response {
      * 封装社区相关的详细信息
      */
     @Data
-    public static class Neighborhood implements Serializable {
+    public static class Neighborhood {
         /**
          * 社区名称
          * 例如：望京花园社区
@@ -144,7 +143,7 @@ public class GeoV3Response extends BaseV3Response {
      * 封装建筑物相关的详细信息
      */
     @Data
-    public static class Building implements Serializable {
+    public static class Building {
         /**
          * 建筑物名称
          * 例如：望京国际研发园

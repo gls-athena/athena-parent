@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -45,7 +44,7 @@ public class WeatherV3Response extends BaseV3Response {
      * <p>包含某个城市当前的天气现象、温度、湿度、风向等实时气象数据</p>
      */
     @Data
-    public static class Live implements Serializable {
+    public static class Live {
         /**
          * 省份名
          * <p>例如：北京市</p>
@@ -121,7 +120,7 @@ public class WeatherV3Response extends BaseV3Response {
      * <p>包含某个城市未来几天的天气预报信息，包括天气现象、温度、风向等预报数据</p>
      */
     @Data
-    public static class Forecast implements Serializable {
+    public static class Forecast {
         /**
          * 城市名称
          * <p>例如：北京市</p>
@@ -159,7 +158,7 @@ public class WeatherV3Response extends BaseV3Response {
      * <p>包含某一天的白天和夜间天气预报详细信息，包括天气现象、温度、风向等</p>
      */
     @Data
-    public static class Cast implements Serializable {
+    public static class Cast {
         /**
          * 预报日期
          * <p>格式：yyyy-MM-dd</p>

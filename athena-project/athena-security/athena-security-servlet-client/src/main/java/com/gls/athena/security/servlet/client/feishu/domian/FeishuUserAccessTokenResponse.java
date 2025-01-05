@@ -3,15 +3,13 @@ package com.gls.athena.security.servlet.client.feishu.domian;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 飞书用户访问令牌响应
  *
  * @author george
  */
 @Data
-public class FeishuUserAccessTokenResponse implements Serializable {
+public class FeishuUserAccessTokenResponse {
     /**
      * 访问令牌
      */

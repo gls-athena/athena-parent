@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.io.Serializable;
-
 /**
  * 消息配置
  *
@@ -26,7 +24,7 @@ public class MessageProperties extends BaseProperties {
      * kafka配置
      */
     @Data
-    public static class Kafka implements Serializable {
+    public static class Kafka {
         /**
          * 主题
          */

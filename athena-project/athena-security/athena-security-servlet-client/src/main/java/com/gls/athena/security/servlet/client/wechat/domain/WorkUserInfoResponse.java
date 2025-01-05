@@ -3,15 +3,13 @@ package com.gls.athena.security.servlet.client.wechat.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 企业微信用户信息响应
  *
  * @author george
  */
 @Data
-public class WorkUserInfoResponse implements Serializable {
+public class WorkUserInfoResponse {
     /**
      * 返回码
      */

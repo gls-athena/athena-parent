@@ -2,15 +2,13 @@ package com.gls.athena.security.servlet.client.wechat.domain;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 小程序登录请求
  *
  * @author george
  */
 @Data
-public class MiniUserInfoRequest implements Serializable {
+public class MiniUserInfoRequest {
     /**
      * 小程序 appId
      */

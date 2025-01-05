@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -17,7 +16,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @Schema(title = "分页查询响应对象", description = "封装分页查询的结果数据，包含分页信息和实际数据列表")
-public class PageResponse<T> implements Serializable {
+public class PageResponse<T> {
 
     /**
      * 当前页码，从1开始

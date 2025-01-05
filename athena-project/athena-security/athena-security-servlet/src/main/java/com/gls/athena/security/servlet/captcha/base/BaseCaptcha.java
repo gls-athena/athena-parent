@@ -2,7 +2,6 @@ package com.gls.athena.security.servlet.captcha.base;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -11,7 +10,7 @@ import java.util.Date;
  * @author george
  */
 @Data
-public abstract class BaseCaptcha implements Serializable {
+public abstract class BaseCaptcha {
     /**
      * 验证码
      */

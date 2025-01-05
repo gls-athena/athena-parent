@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -33,7 +32,7 @@ public class DrivingV5Response extends BaseV3Response {
      * 包含起点、终点、路径方案等完整信息
      */
     @Data
-    public static class Route implements Serializable {
+    public static class Route {
         /**
          * 起点坐标
          * 格式：经度,纬度
@@ -65,7 +64,7 @@ public class DrivingV5Response extends BaseV3Response {
      * 包含距离、限行状态、路段信息等详细数据
      */
     @Data
-    public static class Path implements Serializable {
+    public static class Path {
         /**
          * 方案总距离
          * 单位：米
@@ -97,7 +96,7 @@ public class DrivingV5Response extends BaseV3Response {
      * 描述单个路段的详细信息
      */
     @Data
-    public static class Step implements Serializable {
+    public static class Step {
         /**
          * 行驶指示信息
          * 描述该路段的行驶指示说明
@@ -160,7 +159,7 @@ public class DrivingV5Response extends BaseV3Response {
      * 描述路径或路段的各项成本
      */
     @Data
-    public static class Cost implements Serializable {
+    public static class Cost {
         /**
          * 行驶耗时
          * 单位：秒
@@ -200,7 +199,7 @@ public class DrivingV5Response extends BaseV3Response {
      * 描述道路的实时交通状况
      */
     @Data
-    public static class Tmc implements Serializable {
+    public static class Tmc {
         /**
          * 路况状态
          * 可能值：未知、畅通、缓行、拥堵、严重拥堵
@@ -228,7 +227,7 @@ public class DrivingV5Response extends BaseV3Response {
      * 包含导航过程中的转向等指令信息
      */
     @Data
-    public static class Navi implements Serializable {
+    public static class Navi {
         /**
          * 主导航动作
          * 如：左转、右转、直行等
@@ -248,7 +247,7 @@ public class DrivingV5Response extends BaseV3Response {
      * 描述途经城市的详细信息
      */
     @Data
-    public static class City implements Serializable {
+    public static class City {
         /**
          * 区域编码
          * 高德地图行政区划编码
@@ -279,7 +278,7 @@ public class DrivingV5Response extends BaseV3Response {
      * 描述途经区县的详细信息
      */
     @Data
-    public static class District implements Serializable {
+    public static class District {
         /**
          * 区县名称
          * 途经区县的中文名称

@@ -3,8 +3,6 @@ package com.gls.athena.sdk.amap.domain;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
-
 /**
  * 高德地图API V3版本基础请求参数
  *
@@ -12,7 +10,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public abstract class BaseV3Request implements Serializable {
+public abstract class BaseV3Request {
     /**
      * 高德开发者Key
      * <p>

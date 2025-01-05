@@ -3,8 +3,6 @@ package com.gls.athena.sdk.amap.domain;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
-
 /**
  * 高德地图骑行路径规划API请求参数
  * 用于调用高德地图V4版本骑行路径规划服务
@@ -14,7 +12,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public class BicyclingV4Request implements Serializable {
+public class BicyclingV4Request {
     /**
      * 高德地图应用key
      * 用于访问高德地图API的身份认证

@@ -3,8 +3,6 @@ package com.gls.athena.sdk.log.domain;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
-
 /**
  * 方法日志事件
  *
@@ -12,7 +10,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public class MethodDto implements Serializable {
+public class MethodDto {
     /**
      * 编码
      */

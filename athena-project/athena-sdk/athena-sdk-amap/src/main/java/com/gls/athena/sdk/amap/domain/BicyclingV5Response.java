@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -31,7 +30,7 @@ public class BicyclingV5Response extends BaseV3Response {
      * 包含起点、终点坐标及具体路径信息
      */
     @Data
-    public static class Route implements Serializable {
+    public static class Route {
         /**
          * 起点坐标，格式：longitude,latitude
          */
@@ -53,7 +52,7 @@ public class BicyclingV5Response extends BaseV3Response {
      * 包含距离、时间和具体路段信息
      */
     @Data
-    public static class Path implements Serializable {
+    public static class Path {
         /**
          * 方案总距离，单位：米
          */
@@ -75,7 +74,7 @@ public class BicyclingV5Response extends BaseV3Response {
      * 包含该段路径的详细导航信息
      */
     @Data
-    public static class Step implements Serializable {
+    public static class Step {
         /**
          * 路段骑行导航指示信息
          */
@@ -120,7 +119,7 @@ public class BicyclingV5Response extends BaseV3Response {
      * 路段的时间成本信息
      */
     @Data
-    public static class Cost implements Serializable {
+    public static class Cost {
         /**
          * 当前路段的预计耗时，单位：秒
          */
@@ -131,7 +130,7 @@ public class BicyclingV5Response extends BaseV3Response {
      * 导航动作指令详细信息
      */
     @Data
-    public static class Navi implements Serializable {
+    public static class Navi {
         /**
          * 主要导航动作
          * 如：直行、左转、右转等

@@ -1,6 +1,5 @@
 package com.gls.athena.common.bean.base;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -10,7 +9,7 @@ import java.util.Date;
  *
  * @author george
  */
-public interface IDomain extends Serializable {
+public interface IDomain {
     /**
      * 获取记录的唯一标识
      *

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -30,7 +29,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 包含起终点信息、距离、费用等基础数据
      */
     @Data
-    public static class Route implements Serializable {
+    public static class Route {
         /**
          * 起点坐标 格式：x,y
          */
@@ -59,7 +58,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 包含费用、时间、距离等具体换乘数据
      */
     @Data
-    public static class Transit implements Serializable {
+    public static class Transit {
         /**
          * 此换乘方案的总费用，单位：元
          */
@@ -100,7 +99,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 用于描述公交线路的临时调整、故障等特殊情况
      */
     @Data
-    public static class Emergency implements Serializable {
+    public static class Emergency {
         /**
          * 事件影响的线路类型
          * 例如：地铁、公交等
@@ -130,7 +129,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 描述一次完整出行中的各个出行阶段，包括步行、公交、地铁等
      */
     @Data
-    public static class Segment implements Serializable {
+    public static class Segment {
         /**
          * 步行段信息，包含步行路线、距离等
          */
@@ -162,7 +161,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 包含步行路线的起终点、距离、预计时间等信息
      */
     @Data
-    public static class Walking implements Serializable {
+    public static class Walking {
         /**
          * 步行起点坐标，格式：x,y
          */
@@ -190,7 +189,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 描述具体的步行导航指示
      */
     @Data
-    public static class Step implements Serializable {
+    public static class Step {
         /**
          * 步行导航指示说明
          * 例如："向北步行100米"
@@ -231,7 +230,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 包含完整的公交线路信息
      */
     @Data
-    public static class Bus implements Serializable {
+    public static class Bus {
         /**
          * 可选的公交线路列表
          * 可能包含多条可选择的公交线路
@@ -244,7 +243,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 描述具体的公交线路，包含首末班车时间、途经站点等信息
      */
     @Data
-    public static class Busline implements Serializable {
+    public static class Busline {
         /**
          * 上车站点信息
          */
@@ -314,7 +313,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 描述公交站点的基本信息，包括名称、位置等
      */
     @Data
-    public static class Stop implements Serializable {
+    public static class Stop {
         /**
          * 站点名称
          */
@@ -334,7 +333,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 描述地铁站的具体出入口位置信息
      */
     @Data
-    public static class Point implements Serializable {
+    public static class Point {
         /**
          * 出入口名称
          * 例如："A口"、"B口"等
@@ -351,7 +350,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 包含完整的火车线路信息，如车次、时刻表等
      */
     @Data
-    public static class Railway implements Serializable {
+    public static class Railway {
         /**
          * 线路唯一标识
          */
@@ -408,7 +407,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 火车始发站信息
      */
     @Data
-    public static class DepartureStop implements Serializable {
+    public static class DepartureStop {
         /**
          * 车站唯一标识
          */
@@ -439,7 +438,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 火车终到站信息
      */
     @Data
-    public static class ArrivalStop implements Serializable {
+    public static class ArrivalStop {
         /**
          * 车站唯一标识
          */
@@ -470,7 +469,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 火车途经站点信息
      */
     @Data
-    public static class ViaStops implements Serializable {
+    public static class ViaStops {
         /**
          * 车站唯一标识
          */
@@ -497,7 +496,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 备选方案信息
      */
     @Data
-    public static class Alter implements Serializable {
+    public static class Alter {
         /**
          * 备选方案唯一标识
          */
@@ -512,7 +511,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * 座位类型及票价信息
      */
     @Data
-    public static class Space implements Serializable {
+    public static class Space {
         /**
          * 座位类型编码
          * 例如：特等座、一等座、二等座等
@@ -529,7 +528,7 @@ public class TransitIntegratedV3Response extends BaseV3Response {
      * TODO: 待完善具体字段
      */
     @Data
-    public static class Taxi implements Serializable {
+    public static class Taxi {
         //TODO
     }
 }

@@ -2,15 +2,13 @@ package com.gls.athena.security.servlet.client.feishu.domian;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 飞书响应
  *
  * @author george
  */
 @Data
-public class FeishuResponse<T> implements Serializable {
+public class FeishuResponse<T> {
     /**
      * 响应码
      */

@@ -3,15 +3,13 @@ package com.gls.athena.security.servlet.client.wechat.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 微信访问令牌响应
  *
  * @author george
  */
 @Data
-public class WechatAccessTokenResponse implements Serializable {
+public class WechatAccessTokenResponse {
     /**
      * 访问令牌
      */

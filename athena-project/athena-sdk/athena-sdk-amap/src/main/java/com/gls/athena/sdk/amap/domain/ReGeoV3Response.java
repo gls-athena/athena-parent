@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -27,7 +26,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 包含结构化地址、地址组成要素、周边道路、POI等信息
      */
     @Data
-    public static class ReGeocode implements Serializable {
+    public static class ReGeocode {
         /**
          * 结构化地址信息
          * 包含省市区到具体门牌号的完整地址描述
@@ -71,7 +70,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 包含从国家到街道等各级行政区划信息
      */
     @Data
-    public static class AddressComponent implements Serializable {
+    public static class AddressComponent {
         /**
          * 国家名称
          * 例如：中国
@@ -148,7 +147,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 描述周边社区的基本信息
      */
     @Data
-    public static class Neighborhood implements Serializable {
+    public static class Neighborhood {
         /**
          * 社区名称
          * 例如：望京社区、中关村社区
@@ -166,7 +165,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 描述周边建筑物的基本信息
      */
     @Data
-    public static class Building implements Serializable {
+    public static class Building {
         /**
          * 建筑物名称
          * 例如：中关村科技大厦、望京SOHO
@@ -184,7 +183,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 描述具体街道门牌号的位置信息
      */
     @Data
-    public static class StreetNumber implements Serializable {
+    public static class StreetNumber {
         /**
          * 街道名称
          * 例如：朝阳路、中关村大街
@@ -217,7 +216,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 描述周边商业区的基本信息
      */
     @Data
-    public static class BusinessArea implements Serializable {
+    public static class BusinessArea {
         /**
          * 商圈所在区域的编码
          * 六位数字区域编码
@@ -240,7 +239,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 描述周边道路的基本信息
      */
     @Data
-    public static class Road implements Serializable {
+    public static class Road {
         /**
          * 道路唯一标识
          */
@@ -272,7 +271,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 描述道路交叉口的详细信息
      */
     @Data
-    public static class RoadInter implements Serializable {
+    public static class RoadInter {
         /**
          * 交叉路口到请求坐标的距离
          * 单位：米
@@ -315,7 +314,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 描述周边POI(Point of Interest)的详细信息
      */
     @Data
-    public static class Poi implements Serializable {
+    public static class Poi {
         /**
          * POI唯一标识
          */
@@ -369,7 +368,7 @@ public class ReGeoV3Response extends BaseV3Response {
      * 描述周边AOI(Area of Interest)的详细信息
      */
     @Data
-    public static class Aoi implements Serializable {
+    public static class Aoi {
         /**
          * AOI唯一标识
          */

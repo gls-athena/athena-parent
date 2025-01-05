@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -28,7 +27,7 @@ public class DistanceV3Response extends BaseV3Response {
      * 单次距离测量结果详情
      */
     @Data
-    public static class Result implements Serializable {
+    public static class Result {
         /**
          * 起点标识ID，从1开始的序列号
          */

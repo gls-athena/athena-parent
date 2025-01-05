@@ -1,7 +1,5 @@
 package com.gls.athena.common.bean.base;
 
-import java.io.Serializable;
-
 /**
  * 树节点通用接口
  * <p>
@@ -12,7 +10,7 @@ import java.io.Serializable;
  * @author george
  * @since 1.0.0
  */
-public interface ITreeNode extends Serializable {
+public interface ITreeNode {
     /**
      * 获取节点唯一标识
      *

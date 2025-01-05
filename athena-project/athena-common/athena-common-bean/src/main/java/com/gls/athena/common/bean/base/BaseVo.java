@@ -1,7 +1,6 @@
 package com.gls.athena.common.bean.base;
 
 import com.alibaba.excel.annotation.ExcelProperty;
-import com.gls.athena.common.bean.excel.DeletedConverter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -39,7 +38,7 @@ public abstract class BaseVo implements IDomain {
      * true: 已删除
      * false: 正常
      */
-    @ExcelProperty(value = "删除标记", converter = DeletedConverter.class)
+    @ExcelProperty(value = "删除标记")
     @Schema(title = "删除标记", description = "逻辑删除标记（true:已删除 false:正常）")
     private Boolean deleted;
     /**

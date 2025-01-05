@@ -3,7 +3,6 @@ package com.gls.athena.sdk.amap.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -12,7 +11,7 @@ import java.util.List;
  * @author george
  */
 @Data
-public class BicyclingV4Response implements Serializable {
+public class BicyclingV4Response {
     /**
      * 响应的主要业务数据
      */
@@ -46,7 +45,7 @@ public class BicyclingV4Response implements Serializable {
      * 骑行路径规划的主要业务数据结构
      */
     @Data
-    public static class Bicycling implements Serializable {
+    public static class Bicycling {
         /**
          * 起点坐标
          * 格式：经度,纬度
@@ -70,7 +69,7 @@ public class BicyclingV4Response implements Serializable {
      * 骑行路线方案详细信息
      */
     @Data
-    public static class Path implements Serializable {
+    public static class Path {
         /**
          * 骑行总距离
          * 单位：米
@@ -94,7 +93,7 @@ public class BicyclingV4Response implements Serializable {
      * 骑行路段详细信息
      */
     @Data
-    public static class Step implements Serializable {
+    public static class Step {
         /**
          * 路段导航指示
          * 例如："向北骑行100米"

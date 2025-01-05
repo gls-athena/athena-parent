@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -30,7 +29,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 包含起终点信息、距离、费用以及具体的换乘方案列表
      */
     @Data
-    public static class Route implements Serializable {
+    public static class Route {
         /**
          * 起点坐标，格式：longitude,latitude
          */
@@ -62,7 +61,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 包含时间成本和金额成本的完整计算
      */
     @Data
-    public static class Cost implements Serializable {
+    public static class Cost {
         /**
          * 行程总耗时，单位：秒
          */
@@ -84,7 +83,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 包含单个完整换乘方案的所有细节
      */
     @Data
-    public static class Transit implements Serializable {
+    public static class Transit {
         /**
          * 当前换乘方案的费用信息，包含时间和金额成本
          */
@@ -115,7 +114,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 包含步行和公交两种出行方式的详细信息
      */
     @Data
-    public static class Segment implements Serializable {
+    public static class Segment {
         /**
          * 步行路段详细信息，包含距离、时间和导航指示
          */
@@ -131,7 +130,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 包含步行导航的完整信息，如起终点、距离、时间和具体步行指示
      */
     @Data
-    public static class Walking implements Serializable {
+    public static class Walking {
         /**
          * 步行终点坐标，格式：longitude,latitude
          */
@@ -159,7 +158,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 包含单个步行段的详细导航信息
      */
     @Data
-    public static class Step implements Serializable {
+    public static class Step {
         /**
          * 行走指示说明，如"向北步行100米"
          */
@@ -187,7 +186,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 用于在地图上绘制路线
      */
     @Data
-    public static class Polyline implements Serializable {
+    public static class Polyline {
         /**
          * 坐标点串，格式：longitude1,latitude1;longitude2,latitude2;...
          */
@@ -199,7 +198,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 描述在路径规划中的具体导航动作
      */
     @Data
-    public static class Navi implements Serializable {
+    public static class Navi {
         /**
          * 导航主要动作，如"向前直行"、"左转"、"右转"等
          */
@@ -223,7 +222,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 包含公交线路的完整信息
      */
     @Data
-    public static class Bus implements Serializable {
+    public static class Bus {
         /**
          * 可选的公交线路列表，包含所有可用的公交线路信息
          */
@@ -235,7 +234,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 包含单条公交线路的完整运营信息
      */
     @Data
-    public static class BusLine implements Serializable {
+    public static class BusLine {
         /**
          * 上车站点的详细信息，包含名称、位置等
          */
@@ -306,7 +305,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 包含站点的位置、名称及出入口信息
      */
     @Data
-    public static class Stop implements Serializable {
+    public static class Stop {
         /**
          * 站点名称，如"西单站"
          */
@@ -334,7 +333,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 主要用于描述地铁站的入口位置
      */
     @Data
-    public static class Entrance implements Serializable {
+    public static class Entrance {
         /**
          * 入口名称，如"A口"、"B口"等
          */
@@ -350,7 +349,7 @@ public class TransitIntegratedV5Response extends BaseV3Response {
      * 主要用于描述地铁站的出口位置
      */
     @Data
-    public static class Exit implements Serializable {
+    public static class Exit {
         /**
          * 出口名称，如"C口"、"D口"等
          */

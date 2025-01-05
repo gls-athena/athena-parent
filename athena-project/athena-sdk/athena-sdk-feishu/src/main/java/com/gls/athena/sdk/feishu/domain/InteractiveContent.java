@@ -3,7 +3,6 @@ package com.gls.athena.sdk.feishu.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -12,7 +11,7 @@ import java.util.Map;
  * @author george
  */
 @Data
-public class InteractiveContent implements Serializable {
+public class InteractiveContent {
     /**
      * 类型
      */
@@ -26,7 +25,7 @@ public class InteractiveContent implements Serializable {
      * 模板
      */
     @Data
-    public static class Template implements Serializable {
+    public static class Template {
         /**
          * 模板ID
          */
