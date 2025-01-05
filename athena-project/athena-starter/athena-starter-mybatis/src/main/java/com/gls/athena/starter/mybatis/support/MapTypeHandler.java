@@ -13,10 +13,7 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Map类型处理器
@@ -55,13 +52,7 @@ public class MapTypeHandler<K, V> extends BaseTypeHandler<Map<K, V>> {
     @Override
     public Map<K, V> getNullableResult(ResultSet rs, String columnName) throws SQLException {
         // 获取json字符串
-        String jsonStr = rs.getString(columnName);
-        if (StrUtil.isNotBlank(jsonStr)) {
-            // json字符串转map
-            return JSONUtil.toBean(jsonStr, new TypeReference<>() {
-            }, true);
-        }
-        return null;
+        return Optional.ofNullable(rs.getString(columnName)).map(this::toMap).orElse(null);
     }
 
     /**
@@ -74,14 +65,7 @@ public class MapTypeHandler<K, V> extends BaseTypeHandler<Map<K, V>> {
      */
     @Override
     public Map<K, V> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        // 获取json字符串
-        String jsonStr = rs.getString(columnIndex);
-        if (StrUtil.isNotBlank(jsonStr)) {
-            // json字符串转map
-            return JSONUtil.toBean(jsonStr, new TypeReference<>() {
-            }, true);
-        }
-        return null;
+        return Optional.ofNullable(rs.getString(columnIndex)).map(this::toMap).orElse(null);
     }
 
     /**
@@ -95,12 +79,21 @@ public class MapTypeHandler<K, V> extends BaseTypeHandler<Map<K, V>> {
     @Override
     public Map<K, V> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         // 获取json字符串
-        String jsonStr = cs.getString(columnIndex);
-        if (StrUtil.isNotBlank(jsonStr)) {
-            // json字符串转map
-            return JSONUtil.toBean(jsonStr, new TypeReference<>() {
-            }, true);
-        }
-        return null;
+        return Optional.ofNullable(cs.getString(columnIndex)).map(this::toMap).orElse(null);
     }
+
+    /**
+     * json字符串转map
+     *
+     * @param jsonStr json字符串
+     * @return map
+     */
+    private Map<K, V> toMap(String jsonStr) {
+        if (StrUtil.isBlank(jsonStr)) {
+            return null;
+        }
+        return JSONUtil.toBean(jsonStr, new TypeReference<>() {
+        }, true);
+    }
+
 }

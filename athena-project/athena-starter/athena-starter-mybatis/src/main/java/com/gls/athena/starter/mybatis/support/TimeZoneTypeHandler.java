@@ -10,6 +10,7 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.TimeZone;
 
 /**
@@ -47,11 +48,7 @@ public class TimeZoneTypeHandler extends BaseTypeHandler<TimeZone> {
     @Override
     public TimeZone getNullableResult(ResultSet rs, String columnName) throws SQLException {
         // 获取字符串
-        String result = rs.getString(columnName);
-        if (result != null) {
-            return TimeZone.getTimeZone(result);
-        }
-        return null;
+        return Optional.ofNullable(rs.getString(columnName)).map(TimeZone::getTimeZone).orElse(null);
     }
 
     /**
@@ -65,11 +62,7 @@ public class TimeZoneTypeHandler extends BaseTypeHandler<TimeZone> {
     @Override
     public TimeZone getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         // 获取字符串
-        String result = rs.getString(columnIndex);
-        if (result != null) {
-            return TimeZone.getTimeZone(result);
-        }
-        return null;
+        return Optional.ofNullable(rs.getString(columnIndex)).map(TimeZone::getTimeZone).orElse(null);
     }
 
     /**
@@ -83,10 +76,6 @@ public class TimeZoneTypeHandler extends BaseTypeHandler<TimeZone> {
     @Override
     public TimeZone getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         // 获取字符串
-        String result = cs.getString(columnIndex);
-        if (result != null) {
-            return TimeZone.getTimeZone(result);
-        }
-        return null;
+        return Optional.ofNullable(cs.getString(columnIndex)).map(TimeZone::getTimeZone).orElse(null);
     }
 }

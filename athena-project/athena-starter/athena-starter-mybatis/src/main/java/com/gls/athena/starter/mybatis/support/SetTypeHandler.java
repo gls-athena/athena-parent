@@ -11,10 +11,7 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -54,11 +51,7 @@ public class SetTypeHandler<V> extends BaseTypeHandler<Set<V>> {
      */
     @Override
     public Set<V> getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        String result = rs.getString(columnName);
-        if (StrUtil.isNotEmpty(result)) {
-            return StrUtil.split(result, ",").stream().map(v -> (V) v).collect(Collectors.toSet());
-        }
-        return null;
+        return Optional.ofNullable(rs.getString(columnName)).map(this::toSet).orElse(null);
     }
 
     /**
@@ -71,11 +64,7 @@ public class SetTypeHandler<V> extends BaseTypeHandler<Set<V>> {
      */
     @Override
     public Set<V> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        String result = rs.getString(columnIndex);
-        if (StrUtil.isNotEmpty(result)) {
-            return StrUtil.split(result, ",").stream().map(v -> (V) v).collect(Collectors.toSet());
-        }
-        return null;
+        return Optional.ofNullable(rs.getString(columnIndex)).map(this::toSet).orElse(null);
     }
 
     /**
@@ -88,10 +77,19 @@ public class SetTypeHandler<V> extends BaseTypeHandler<Set<V>> {
      */
     @Override
     public Set<V> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        String result = cs.getString(columnIndex);
-        if (StrUtil.isNotEmpty(result)) {
-            return StrUtil.split(result, ",").stream().map(v -> (V) v).collect(Collectors.toSet());
+        return Optional.ofNullable(cs.getString(columnIndex)).map(this::toSet).orElse(null);
+    }
+
+    /**
+     * 字符串转set
+     *
+     * @param str 字符串
+     * @return set
+     */
+    private Set<V> toSet(String str) {
+        if (StrUtil.isBlank(str)) {
+            return null;
         }
-        return null;
+        return StrUtil.split(str, ",").stream().map(v -> (V) v).collect(Collectors.toSet());
     }
 }

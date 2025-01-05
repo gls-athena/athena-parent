@@ -59,8 +59,8 @@ public class BaseEntityHandler implements MetaObjectHandler {
         // 获取当前时间
         Date now = new Date();
         // 严格更新填充
-        this.strictInsertFill(metaObject, "updateUserId", Long.class, userId);
-        this.strictInsertFill(metaObject, "updateUserName", String.class, userName);
+        this.strictUpdateFill(metaObject, "updateUserId", Long.class, userId);
+        this.strictUpdateFill(metaObject, "updateUserName", String.class, userName);
         this.strictUpdateFill(metaObject, "updateTime", Date.class, now);
     }
 }

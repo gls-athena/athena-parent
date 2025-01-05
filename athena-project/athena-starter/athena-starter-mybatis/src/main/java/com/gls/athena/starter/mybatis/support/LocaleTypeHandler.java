@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * 语言类型处理器
@@ -47,11 +48,7 @@ public class LocaleTypeHandler extends BaseTypeHandler<Locale> {
     @Override
     public Locale getNullableResult(ResultSet rs, String columnName) throws SQLException {
         // 获取字符串
-        String result = rs.getString(columnName);
-        if (result != null) {
-            return Locale.forLanguageTag(result);
-        }
-        return null;
+        return Optional.ofNullable(rs.getString(columnName)).map(Locale::forLanguageTag).orElse(null);
     }
 
     /**
@@ -65,11 +62,7 @@ public class LocaleTypeHandler extends BaseTypeHandler<Locale> {
     @Override
     public Locale getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         // 获取字符串
-        String result = rs.getString(columnIndex);
-        if (result != null) {
-            return Locale.forLanguageTag(result);
-        }
-        return null;
+        return Optional.ofNullable(rs.getString(columnIndex)).map(Locale::forLanguageTag).orElse(null);
     }
 
     /**
@@ -83,10 +76,6 @@ public class LocaleTypeHandler extends BaseTypeHandler<Locale> {
     @Override
     public Locale getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         // 获取字符串
-        String result = cs.getString(columnIndex);
-        if (result != null) {
-            return Locale.forLanguageTag(result);
-        }
-        return null;
+        return Optional.ofNullable(cs.getString(columnIndex)).map(Locale::forLanguageTag).orElse(null);
     }
 }
