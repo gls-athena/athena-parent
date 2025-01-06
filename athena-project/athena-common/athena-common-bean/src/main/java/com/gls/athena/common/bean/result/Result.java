@@ -14,8 +14,6 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class Result<T> {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * 响应状态码
      * 200: 成功
