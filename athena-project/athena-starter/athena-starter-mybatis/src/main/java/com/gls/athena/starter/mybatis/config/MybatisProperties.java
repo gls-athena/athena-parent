@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + ".mybatis.tenant")
+@ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + ".mybatis")
 public class MybatisProperties extends BaseProperties {
 
     /**
