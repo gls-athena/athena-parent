@@ -9,41 +9,30 @@ import com.alibaba.excel.metadata.property.ExcelContentProperty;
 
 /**
  * 数据源类型转换器
+ * 用于Excel导入导出时在String和Integer类型之间进行转换
  *
  * @author george
  */
 public class DatasourceTypeConverter implements Converter<Integer> {
-    /**
-     * 支持的Java类型
-     *
-     * @return Java类型
-     */
+
     @Override
     public Class<?> supportJavaTypeKey() {
         return Integer.class;
     }
 
-    /**
-     * 支持的Excel类型
-     *
-     * @return Excel类型
-     */
     @Override
     public CellDataTypeEnum supportExcelTypeKey() {
         return CellDataTypeEnum.STRING;
     }
 
     /**
-     * 转换Excel数据到Java数据
-     *
-     * @param cellData            Excel数据
-     * @param contentProperty     Excel属性
-     * @param globalConfiguration 全局配置
-     * @return Java数据
+     * Excel数据转Java数据
+     * mysql -> 1, oracle -> 2, sqlserver -> 3, postgresql -> 4
      */
     @Override
-    public Integer convertToJavaData(ReadCellData<?> cellData, ExcelContentProperty contentProperty, GlobalConfiguration globalConfiguration) {
-        return switch (cellData.getStringValue()) {
+    public Integer convertToJavaData(ReadCellData<?> cellData, ExcelContentProperty contentProperty,
+                                     GlobalConfiguration globalConfiguration) {
+        return switch (cellData.getStringValue().toLowerCase()) {
             case "mysql" -> 1;
             case "oracle" -> 2;
             case "sqlserver" -> 3;
@@ -53,22 +42,18 @@ public class DatasourceTypeConverter implements Converter<Integer> {
     }
 
     /**
-     * 转换Java数据到Excel数据
-     *
-     * @param value               Java数据
-     * @param contentProperty     Excel属性
-     * @param globalConfiguration 全局配置
-     * @return Excel数据
+     * Java数据转Excel数据
+     * 1 -> mysql, 2 -> oracle, 3 -> sqlserver, 4 -> postgresql
      */
     @Override
-    public WriteCellData<?> convertToExcelData(Integer value, ExcelContentProperty contentProperty, GlobalConfiguration globalConfiguration) {
-        return switch (value) {
-            case 1 -> new WriteCellData<>("mysql");
-            case 2 -> new WriteCellData<>("oracle");
-            case 3 -> new WriteCellData<>("sqlserver");
-            case 4 -> new WriteCellData<>("postgresql");
-            default -> new WriteCellData<>("");
-        };
+    public WriteCellData<?> convertToExcelData(Integer value, ExcelContentProperty contentProperty,
+                                               GlobalConfiguration globalConfiguration) {
+        return new WriteCellData<>(switch (value) {
+            case 1 -> "mysql";
+            case 2 -> "oracle";
+            case 3 -> "sqlserver";
+            case 4 -> "postgresql";
+            default -> "";
+        });
     }
-
 }

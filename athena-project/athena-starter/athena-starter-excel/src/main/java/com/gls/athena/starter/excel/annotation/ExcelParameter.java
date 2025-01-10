@@ -7,9 +7,9 @@ import com.alibaba.excel.write.handler.WriteHandler;
 import java.lang.annotation.*;
 
 /**
- * ExcelParameter 注解
+ * Excel参数配置注解
  * <p>
- * 用于标记实体类中的方法，用于标记Excel的参数
+ * 用于配置实体类的Excel导入导出相关参数，支持字段级别和方法级别的注解
  *
  * @author george
  */
@@ -18,114 +18,114 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExcelParameter {
     /**
-     * 表头
+     * Excel表头配置
      *
-     * @return 默认空
+     * @return 表头名称数组，支持多级表头配置，默认为空数组
      */
     String[] head() default {};
 
     /**
-     * 转换器
+     * 数据类型转换器
      *
-     * @return 默认空
+     * @return 自定义转换器类数组，用于特殊数据类型的转换，默认为空数组
      */
     Class<? extends Converter<?>>[] converter() default {};
 
     /**
-     * excel中时间是存储1900年起的一个双精度浮点数，但是有时候默认开始日期是1904，所以设置这个值改成默认1904年开始
+     * Excel日期系统设置
      *
-     * @return 默认false
+     * @return true表示使用1904年为起始时间，false表示使用1900年，默认为false
      */
     boolean use1904windowing() default false;
 
     /**
-     * 区域
+     * 区域设置
      *
-     * @return 默认zh_CN
+     * @return 指定区域设置的字符串，例如："zh_CN"，默认为空
      */
     String locale() default "";
 
     /**
-     * 字段缓存位置
+     * 字段缓存策略
      *
-     * @return 默认THREAD_LOCAL
+     * @return 缓存位置枚举值，默认使用THREAD_LOCAL策略
      */
     CacheLocationEnum filedCacheLocation() default CacheLocationEnum.THREAD_LOCAL;
 
     /**
-     * 自动去除空格 会对头、读取数据等进行自动trim
+     * 自动去除数据前后空格
      *
-     * @return 默认true
+     * @return true表示自动去除空格，作用于表头和数据单元格，默认为true
      */
     boolean autoTrim() default true;
 
     /**
-     * 写入到excel和上面空开几行
+     * 表头偏移行数
      *
-     * @return 默认0
+     * @return 指定开始写入数据时，距离顶部的空行数，默认为0
      */
     int relativeHeadRowIndex() default 0;
 
     /**
-     * 是否需要写入头到excel
+     * 是否写入表头
      *
-     * @return 默认true
+     * @return true表示写入表头，false表示不写入，默认为true
      */
     boolean needHead() default true;
 
     /**
-     * 写处理器
+     * 自定义写入处理器
      *
-     * @return 默认空
+     * @return 处理器类数组，用于自定义写入逻辑，默认为空数组
      */
     Class<? extends WriteHandler>[] writeHandler() default {};
 
     /**
-     * 是否使用默认样式
+     * 默认样式启用设置
      *
-     * @return 默认true
+     * @return true表示使用默认样式，false表示完全自定义，默认为true
      */
     boolean useDefaultStyle() default true;
 
     /**
-     * 是否自动合并头
+     * 表头自动合并设置
      *
-     * @return 默认true
+     * @return true表示自动合并相同的表头，false表示不合并，默认为true
      */
     boolean automaticMergeHead() default true;
 
     /**
-     * 需要排除对象中的index的数据
+     * 排除列索引配置
      *
-     * @return 默认空
+     * @return 要排除的列索引数组，这些列不会被导出，默认为空数组
      */
     int[] excludeColumnIndexes() default {};
 
     /**
-     * 需要排除对象中的字段的数据
+     * 排除字段名配置
      *
-     * @return 默认空
+     * @return 要排除的字段名数组，这些字段不会被导出，默认为空数组
      */
     String[] excludeColumnFieldNames() default {};
 
     /**
-     * 只要导出对象中的index的数据
+     * 包含列索引配置
      *
-     * @return 默认空
+     * @return 要包含的列索引数组，仅导出这些列，默认为空数组
      */
     int[] includeColumnIndexes() default {};
 
     /**
-     * 只要导出对象中的字段的数据
+     * 包含字段名配置
      *
-     * @return 默认空
+     * @return 要包含的字段名数组，仅导出这些字段，默认为空数组
      */
     String[] includeColumnFieldNames() default {};
 
     /**
-     * 在使用了参数includeColumnFieldNames 或者 includeColumnIndexes的时候，会根据传入集合的顺序排序
+     * 包含列的排序设置
      *
-     * @return 默认false
+     * @return true表示按照include配置的顺序排序，false表示使用默认顺序，默认为false
      */
     boolean orderByIncludeColumn() default false;
 }
