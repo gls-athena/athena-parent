@@ -21,10 +21,10 @@ import java.util.concurrent.TimeUnit;
  */
 @UtilityClass
 public class RedisUtil {
+    public static final String SEPARATOR = ":";
     private static final String LOCK_PREFIX = "athena:lock:";
     private static final String CACHE_PREFIX = "athena:cache:";
     private static final String COUNTER_PREFIX = "athena:counter:";
-    private static final String SEPARATOR = ":";
 
     /**
      * 获取缓存值
