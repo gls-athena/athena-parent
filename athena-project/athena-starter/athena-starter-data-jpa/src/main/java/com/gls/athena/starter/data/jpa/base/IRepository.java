@@ -12,39 +12,41 @@ import org.springframework.data.repository.NoRepositoryBean;
 import java.util.List;
 
 /**
- * 持久化接口
+ * 基础数据访问接口
+ * 提供实体的基本CRUD和分页查询功能
  *
+ * @param <E> 实体类型
  * @author george
  */
 @NoRepositoryBean
 public interface IRepository<E extends BaseEntity> extends JpaRepositoryImplementation<E, Long> {
 
     /**
-     * 获取翻页数据
+     * 根据实体条件进行分页查询
      *
-     * @param entity   查询条件
+     * @param criteria 查询条件实体
      * @param pageable 分页参数
-     * @return 翻页数据
+     * @return 分页结果
      */
-    default Page<E> findAll(E entity, Pageable pageable) {
-        return findAll(Example.of(entity), pageable);
+    default Page<E> findAll(E criteria, Pageable pageable) {
+        return findAll(Example.of(criteria), pageable);
     }
 
     /**
-     * 获取数据列表
+     * 根据实体条件查询所有匹配记录
      *
-     * @param entity 查询条件
-     * @return 数据列表
+     * @param criteria 查询条件实体
+     * @return 匹配的实体列表
      */
-    default List<E> findAll(E entity) {
-        return findAll(Example.of(entity));
+    default List<E> findAll(E criteria) {
+        return findAll(Example.of(criteria));
     }
 
     /**
-     * 分页查询
+     * 执行分页查询并转换为统一的分页响应格式
      *
-     * @param pageRequest 分页请求
-     * @return 分页数据
+     * @param pageRequest 分页查询请求，包含查询条件和分页参数
+     * @return 统一格式的分页响应
      */
     default PageResponse<E> findAll(PageRequest<E> pageRequest) {
         Pageable pageable = PageUtil.toPageable(pageRequest);

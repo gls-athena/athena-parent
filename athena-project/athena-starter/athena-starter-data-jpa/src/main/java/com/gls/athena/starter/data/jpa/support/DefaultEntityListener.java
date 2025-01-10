@@ -11,26 +11,32 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 /**
- * 默认实体监听器
+ * JPA实体操作前的默认监听器
+ * 用于自动填充实体的审计字段
  *
  * @author george
  */
 @Slf4j
 @Component
 public class DefaultEntityListener {
+
     /**
-     * 新增前操作
+     * 实体保存前的处理
+     * 填充创建人、创建时间、更新人、更新时间等审计字段
      *
-     * @param entity 实体
-     * @param <E>    实体类型
+     * @param entity 待保存的实体对象
      */
     @PrePersist
-    public <E extends BaseEntity> void prePersist(E entity) {
-        log.info("prePersist entity: {}", entity);
+    public void prePersist(BaseEntity entity) {
+        log.debug("Entity pre persist processing: [{}]", entity.getClass().getSimpleName());
+
+        // 获取当前用户上下文信息
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
         String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
         Long tenantId = LoginUserHelper.getCurrentUserTenantId().orElse(IConstants.DEFAULT_TENANT_ID);
         Date now = new Date();
+
+        // 设置审计字段
         entity.setTenantId(tenantId);
         entity.setDeleted(false);
         entity.setCreateUserId(userId);
@@ -42,19 +48,20 @@ public class DefaultEntityListener {
     }
 
     /**
-     * 更新前操作
+     * 实体更新前的处理
+     * 更新修改人和修改时间字段
      *
-     * @param entity 实体
-     * @param <E>    实体类型
+     * @param entity 待更新的实体对象
      */
     @PreUpdate
-    public <E extends BaseEntity> void preUpdate(E entity) {
-        log.info("preUpdate entity: {}", entity);
+    public void preUpdate(BaseEntity entity) {
+        log.debug("Entity pre update processing: [{}]", entity.getClass().getSimpleName());
+
+        // 获取当前用户信息并更新审计字段
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
         String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
-        Date now = new Date();
         entity.setUpdateUserId(userId);
         entity.setUpdateUserName(userRealName);
-        entity.setUpdateTime(now);
+        entity.setUpdateTime(new Date());
     }
 }

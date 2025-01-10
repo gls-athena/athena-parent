@@ -8,7 +8,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 雪花算法注解
+ * Snowflake ID生成器注解
+ * 用于标注需要使用雪花算法生成分布式唯一ID的字段
  *
  * @author george
  */
@@ -18,16 +19,18 @@ import java.lang.annotation.Target;
 public @interface SnowflakeId {
 
     /**
-     * 工作id
+     * 工作机器ID (0~31)
+     * 用于标识不同的服务器节点
      *
-     * @return 工作id
+     * @return 工作机器ID
      */
     long workerId() default 0;
 
     /**
-     * 数据中心id
+     * 数据中心ID (0~31)
+     * 用于标识不同的数据中心
      *
-     * @return 数据中心id
+     * @return 数据中心ID
      */
     long datacenterId() default 0;
 }
