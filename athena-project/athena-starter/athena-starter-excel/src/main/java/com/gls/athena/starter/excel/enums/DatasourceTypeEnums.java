@@ -1,9 +1,8 @@
 package com.gls.athena.starter.excel.enums;
 
+import com.gls.athena.common.bean.base.IEnum;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import java.util.Arrays;
 
 /**
  * 数据源类型枚举
@@ -14,7 +13,7 @@ import java.util.Arrays;
  */
 @Getter
 @RequiredArgsConstructor
-public enum DatasourceTypeEnums {
+public enum DatasourceTypeEnums implements IEnum {
     /**
      * MySQL数据库
      * 广泛使用的开源关系型数据库
@@ -59,10 +58,7 @@ public enum DatasourceTypeEnums {
      * @return 对应的数据源类型枚举值，未找到则返回null
      */
     public static DatasourceTypeEnums getByCode(Integer code) {
-        return Arrays.stream(values())
-                .filter(type -> type.code.equals(code))
-                .findFirst()
-                .orElse(null);
+        return IEnum.of(DatasourceTypeEnums.class, code);
     }
 
     /**
@@ -73,9 +69,6 @@ public enum DatasourceTypeEnums {
      * @return 对应的数据源类型枚举值，未找到则返回null
      */
     public static DatasourceTypeEnums getByName(String name) {
-        return Arrays.stream(values())
-                .filter(type -> type.name.equalsIgnoreCase(name))
-                .findFirst()
-                .orElse(null);
+        return IEnum.fromName(DatasourceTypeEnums.class, name, false);
     }
 }
