@@ -13,7 +13,15 @@ import org.hibernate.annotations.Comment;
 import java.util.Date;
 
 /**
- * 基础实体类
+ * JPA实体基类
+ * <p>
+ * 提供实体类通用的基础字段，包括：
+ * - ID: 主键标识
+ * - 租户信息: 支持多租户
+ * - 版本控制: 乐观锁
+ * - 数据追踪: 创建和更新信息
+ * - 逻辑删除: 软删除标记
+ * </p>
  *
  * @author george
  */
@@ -21,57 +29,67 @@ import java.util.Date;
 @MappedSuperclass
 @EntityListeners({DefaultEntityListener.class})
 public abstract class BaseEntity implements IDomain {
+
     /**
-     * 主键
+     * ID主键, 使用雪花算法生成
      */
     @Id
     @SnowflakeId
-    @Comment("主键")
+    @Comment("主键ID")
     private Long id;
+
     /**
-     * 租户ID
+     * 租户ID, 用于多租户数据隔离
      */
-    @Comment("租户ID")
+    @Comment("租户标识")
     private Long tenantId;
+
     /**
-     * 版本号
+     * 版本号, 用于乐观锁控制
      */
-    @Comment("版本号")
     @Version
+    @Comment("版本号(乐观锁)")
     private Integer version;
+
     /**
-     * 删除标记 0:正常;1:已删除
+     * 删除标记(false:正常;true:已删除)
      */
-    @Comment("删除标记 0:正常;1:已删除")
+    @Comment("删除标记(false:正常;true:已删除)")
     private Boolean deleted;
+
     /**
      * 创建人ID
      */
     @Comment("创建人ID")
     private Long createUserId;
+
     /**
      * 创建人姓名
      */
     @Comment("创建人姓名")
     private String createUserName;
+
     /**
      * 创建时间
      */
     @Comment("创建时间")
     private Date createTime;
+
     /**
-     * 修改人ID
+     * 最后修改人ID
      */
-    @Comment("修改人ID")
+    @Comment("最后修改人ID")
     private Long updateUserId;
+
     /**
-     * 修改人姓名
+     * 最后修改人姓名
      */
-    @Comment("修改人姓名")
+    @Comment("最后修改人姓名")
     private String updateUserName;
+
     /**
-     * 更新时间
+     * 最后修改时间
      */
-    @Comment("更新时间")
+    @Comment("最后修改时间")
     private Date updateTime;
 }
