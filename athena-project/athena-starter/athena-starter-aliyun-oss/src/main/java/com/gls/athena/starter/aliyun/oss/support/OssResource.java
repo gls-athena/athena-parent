@@ -12,29 +12,55 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 
 /**
- * oss资源
- * <p>
- * 实现{@link WritableResource}接口 用于读取和写入阿里云对象存储服务（OSS）中的对象
+ * 阿里云OSS资源访问实现
+ *
+ * <p>实现{@link WritableResource}接口，提供阿里云OSS对象的读写操作能力。
+ * 该实现支持对OSS中的对象进行读取和写入操作，同时也支持对存储空间的基本操作。</p>
+ *
+ * <p>支持的URI格式:
+ * <ul>
+ *     <li>oss://bucketName/objectKey - 访问具体对象</li>
+ *     <li>oss://bucketName - 访问存储空间</li>
+ * </ul>
  * </p>
- * <p>
- * 例如：
- * <li>oss://bucketName/objectKey</li>
- * <li>oss://bucketName</li>
+ *
+ * <p>使用示例:
+ * <pre>
+ * // 创建OSS资源
+ * OssResource resource = new OssResource("oss://my-bucket/path/to/file.txt");
+ *
+ * // 写入内容
+ * try (OutputStream out = resource.getOutputStream()) {
+ *     out.write("Hello World".getBytes());
+ * }
+ *
+ * // 读取内容
+ * try (InputStream in = resource.getInputStream()) {
+ *     // 处理输入流
+ * }
+ * </pre>
  * </p>
  *
  * @author george
+ * @see WritableResource
+ * @see Resource
  */
 public class OssResource implements WritableResource {
     /**
-     * 位置
+     * OSS资源的URI位置
+     * 格式: oss://bucketName/objectKey
      */
     private final URI location;
+
     /**
-     * 存储空间名称
+     * OSS存储空间名称
+     * 从URI的authority部分获取
      */
     private final String bucketName;
+
     /**
-     * 对象键
+     * OSS对象键
+     * 从URI的path部分获取，去除开头的'/'
      */
     private final String objectKey;
 
@@ -54,91 +80,90 @@ public class OssResource implements WritableResource {
     }
 
     /**
-     * 获取输出流
+     * 获取OSS对象的输出流，用于写入数据
      *
-     * @return 输出流
-     * @throws IOException IO异常
+     * <p>该方法使用管道流实现异步上传，避免占用过多内存</p>
+     *
+     * @return 用于写入数据的输出流
+     * @throws FileNotFoundException 当目标文件不存在时
+     * @throws IOException           当创建输出流或上传过程中发生IO错误时
      */
     @Override
     public OutputStream getOutputStream() throws IOException {
-        if (exists()) {
-            throw new IOException("文件已存在");
+        if (!exists()) {
+            throw new FileNotFoundException(String.format("目标文件不存在: %s", location));
         }
-        // 创建管道流
-        final PipedInputStream inputStream = new PipedInputStream();
-        final PipedOutputStream outputStream = new PipedOutputStream(inputStream);
-        // 获取oss任务执行器
+
+        PipedInputStream inputStream = new PipedInputStream();
+        PipedOutputStream outputStream = new PipedOutputStream(inputStream);
+
         ExecutorService ossTaskExecutor = SpringUtil.getBean(ExecutorService.class);
         ossTaskExecutor.submit(() -> {
-            try {
-                // 上传文件
-                OSS oss = SpringUtil.getBean(OSS.class);
-                oss.putObject(bucketName, objectKey, inputStream);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            try (InputStream is = inputStream) {
+                SpringUtil.getBean(OSS.class).putObject(bucketName, objectKey, is);
+            } catch (IOException e) {
+                throw new RuntimeException("OSS文件上传失败", e);
             }
         });
+
         return outputStream;
     }
 
     /**
-     * 是否是存储空间
+     * 获取OSS对象的输入流，用于读取数据
      *
-     * @return 是否是存储空间
+     * @return 用于读取数据的输入流
+     * @throws FileNotFoundException 当文件不存在时
+     * @throws IllegalStateException 当试图对存储空间创建输入流时
+     * @throws IOException           当创建输入流过程中发生IO错误时
+     */
+    @Override
+    public InputStream getInputStream() throws IOException {
+        if (!exists()) {
+            throw new FileNotFoundException(String.format("文件不存在: %s", location));
+        }
+
+        if (isBucket()) {
+            throw new IllegalStateException(String.format("无法对存储空间创建输入流: %s", location));
+        }
+
+        return SpringUtil.getBean(OSS.class)
+                .getObject(bucketName, objectKey)
+                .getObjectContent();
+    }
+
+    /**
+     * 判断当前资源是否为存储空间
      */
     private boolean isBucket() {
-        // 判断对象键是否为空
         return StrUtil.isEmpty(objectKey);
     }
 
     /**
-     * 是否可写
+     * 判断OSS资源是否存在
      *
-     * @return 是否可写
+     * @return 如果是存储空间，返回存储空间是否存在；如果是对象，返回对象是否存在
      */
     @Override
     public boolean exists() {
-        // 判断是否是存储空间
         OSS oss = SpringUtil.getBean(OSS.class);
-        if (isBucket()) {
-            // 存储空间是否存在
-            return oss.doesBucketExist(bucketName);
-        } else {
-            // 对象是否存在
-            return oss.doesObjectExist(bucketName, objectKey);
-        }
+        return isBucket() ?
+                oss.doesBucketExist(bucketName) :
+                oss.doesObjectExist(bucketName, objectKey);
     }
 
-    /**
-     * 获取URL
-     *
-     * @return URL
-     * @throws IOException IO异常
-     */
     @Override
     public URL getURL() throws IOException {
         // 返回URL
         return this.location.toURL();
     }
 
-    /**
-     * 获取URI
-     *
-     * @return URI
-     * @throws IOException IO异常
-     */
     @Override
     public URI getURI() throws IOException {
         // 返回位置
         return this.location;
     }
 
-    /**
-     * 获取文件
-     *
-     * @return 文件
-     * @throws IOException IO异常
-     */
     @Override
     public File getFile() throws IOException {
         // 抛出异常
@@ -146,10 +171,10 @@ public class OssResource implements WritableResource {
     }
 
     /**
-     * 内容长度
+     * 获取OSS对象的内容长度
      *
-     * @return 内容长度
-     * @throws IOException IO异常
+     * @return 对象的字节数，如果是存储空间则返回0
+     * @throws IOException 当获取元数据失败时
      */
     @Override
     public long contentLength() throws IOException {
@@ -162,12 +187,6 @@ public class OssResource implements WritableResource {
         return oss.getObjectMetadata(bucketName, objectKey).getContentLength();
     }
 
-    /**
-     * 最后修改时间
-     *
-     * @return 最后修改时间
-     * @throws IOException IO异常
-     */
     @Override
     public long lastModified() throws IOException {
         // 判断是否是存储空间
@@ -179,59 +198,20 @@ public class OssResource implements WritableResource {
         return oss.getObjectMetadata(bucketName, objectKey).getLastModified().getTime();
     }
 
-    /**
-     * 创建相对路径
-     *
-     * @param relativePath 相对路径
-     * @return 资源
-     * @throws IOException IO异常
-     */
     @Override
     public Resource createRelative(String relativePath) throws IOException {
         // 创建oss资源
         return new OssResource(relativePath);
     }
 
-    /**
-     * 获取文件名
-     *
-     * @return 文件名
-     */
     @Override
     public String getFilename() {
         // 返回存储空间名称或对象键
         return isBucket() ? bucketName : objectKey;
     }
 
-    /**
-     * 获取描述
-     *
-     * @return 描述
-     */
     @Override
     public String getDescription() {
-        // 返回位置
-        return this.location.toString();
-    }
-
-    /**
-     * 获取输入流
-     *
-     * @return 输入流
-     * @throws IOException IO异常
-     */
-    @Override
-    public InputStream getInputStream() throws IOException {
-        // 判断是否存在
-        if (exists()) {
-            throw new FileNotFoundException("文件不存在");
-        }
-        // 判断是否是存储空间
-        if (isBucket()) {
-            throw new IllegalStateException("无法打开输入流到存储空间: '" + this.location + "'");
-        }
-        // 获取对象
-        OSS oss = SpringUtil.getBean(OSS.class);
-        return oss.getObject(bucketName, objectKey).getObjectContent();
+        return String.format("OSS资源 [%s]", location);
     }
 }
