@@ -1,37 +1,48 @@
 package com.gls.athena.sdk.message.domain;
 
+import com.gls.athena.common.bean.base.IEnum;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * 消息类型
  *
  * @author george
  */
-public enum MessageType {
+@Getter
+@RequiredArgsConstructor
+public enum MessageType implements IEnum<String> {
     /**
      * 短信
      */
-    SMS,
+    SMS("sms", "短信"),
     /**
      * 邮件
      */
-    EMAIL,
+    EMAIL("email", "邮件"),
     /**
      * 站内信
      */
-    SITE_MESSAGE,
+    SITE_MESSAGE("site_message", "站内信"),
     /**
      * 微信
      */
-    WECHAT,
+    WECHAT("wechat", "微信"),
     /**
      * 钉钉
      */
-    DING_TALK,
+    DING_TALK("ding_talk", "钉钉"),
     /**
      * 飞书
      */
-    FEISHU,
+    FEISHU("feishu", "飞书"),
     /**
      * 企业微信
      */
-    WECHAT_WORK,
+    WECHAT_WORK("wechat_work", "企业微信"),
+    ;
+
+    private final String code;
+
+    private final String name;
 }

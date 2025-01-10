@@ -1,5 +1,6 @@
 package com.gls.athena.common.core.constant;
 
+import com.gls.athena.common.bean.base.IEnum;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -10,7 +11,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum ClientTypeEnums {
+public enum ClientTypeEnums implements IEnum<String> {
 
     /**
      * WEB
@@ -47,5 +48,5 @@ public enum ClientTypeEnums {
     /**
      * 描述
      */
-    private final String desc;
+    private final String name;
 }

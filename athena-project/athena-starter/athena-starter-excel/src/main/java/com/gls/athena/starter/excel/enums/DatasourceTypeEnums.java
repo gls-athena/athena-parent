@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum DatasourceTypeEnums implements IEnum {
+public enum DatasourceTypeEnums implements IEnum<Integer> {
     /**
      * MySQL数据库
      * 广泛使用的开源关系型数据库

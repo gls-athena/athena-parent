@@ -1,5 +1,6 @@
 package com.gls.athena.sdk.amap.support;
 
+import com.gls.athena.common.bean.base.IEnum;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +21,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum InfoEnums {
+public enum InfoEnums implements IEnum<String> {
     /**
      * 请求正常
      */
@@ -227,7 +228,7 @@ public enum InfoEnums {
     ABROAD_QUOTA_PLAN_RUN_OUT("40003", "ABROAD_QUOTA_PLAN_RUN_OUT", "海外服务余额耗尽", "所购买服务的海外余额耗尽，无法继续使用服务");
 
     private final String code;
-    private final String value;
+    private final String name;
     private final String description;
     private final String troubleshooting;
 
@@ -241,12 +242,7 @@ public enum InfoEnums {
      * @return 匹配的枚举实例，如果未找到则返回null
      */
     public static InfoEnums getByValue(String info) {
-        for (InfoEnums infoEnums : InfoEnums.values()) {
-            if (infoEnums.getValue().equals(info)) {
-                return infoEnums;
-            }
-        }
-        return null;
+        return IEnum.fromName(InfoEnums.class, info, false);
     }
 
     /**
@@ -259,11 +255,6 @@ public enum InfoEnums {
      * @return 匹配的枚举实例，如果未找到则返回null
      */
     public static InfoEnums getByCode(String code) {
-        for (InfoEnums infoEnums : InfoEnums.values()) {
-            if (infoEnums.getCode().equals(code)) {
-                return infoEnums;
-            }
-        }
-        return null;
+        return IEnum.of(InfoEnums.class, code);
     }
 }
