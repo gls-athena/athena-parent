@@ -13,50 +13,57 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 缓存过期处理器
+ * 缓存过期时间处理器
+ * 用于扫描并处理带有 @CacheExpire 注解的方法，
+ * 收集缓存名称与过期时间的映射关系
  *
  * @author george
  */
 @Data
 @Component
 public class CacheExpireProcessor implements BeanFactoryPostProcessor {
+
     /**
-     * 缓存过期时间
+     * 存储缓存名称和对应的过期时间配置
+     * key: 缓存名称
+     * value: 过期时间
      */
     private final Map<String, Duration> expires = new HashMap<>();
 
-    /**
-     * 处理bean工厂
-     *
-     * @param beanFactory bean工厂
-     * @throws BeansException bean异常
-     */
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        // 获取所有bean名称
         String[] beanNames = beanFactory.getBeanDefinitionNames();
+
         for (String beanName : beanNames) {
-            // 获取bean的类型
             Class<?> beanClass = beanFactory.getType(beanName);
-            // 如果bean类型为空则跳过
             if (beanClass == null) {
                 continue;
             }
-            // 处理bean的方法
-            ReflectionUtils.doWithMethods(beanClass, method -> {
-                // 如果方法上有CacheExpire注解
-                CacheExpire cacheExpire = method.getAnnotation(CacheExpire.class);
-                if (cacheExpire != null) {
-                    // 获取缓存名称
-                    List<String> cacheNames = DefaultCacheResolver.getCacheNames(beanClass, method);
-                    // 缓存过期时间
-                    Duration duration = Duration.of(cacheExpire.timeToLive(), cacheExpire.timeUnit().toChronoUnit());
-                    for (String cacheName : cacheNames) {
-                        // 缓存过期时间
-                        expires.put(cacheName, duration);
-                    }
-                }
-            }, method -> method.isAnnotationPresent(CacheExpire.class));
+
+            processCacheExpireAnnotations(beanClass);
         }
+    }
+
+    /**
+     * 处理类中带有 CacheExpire 注解的方法
+     *
+     * @param beanClass 要处理的Bean类
+     */
+    private void processCacheExpireAnnotations(Class<?> beanClass) {
+        ReflectionUtils.doWithMethods(beanClass,
+                method -> {
+                    CacheExpire cacheExpire = method.getAnnotation(CacheExpire.class);
+                    if (cacheExpire != null) {
+                        List<String> cacheNames = DefaultCacheResolver.getCacheNames(beanClass, method);
+                        Duration expireTime = Duration.of(
+                                cacheExpire.timeToLive(),
+                                cacheExpire.timeUnit().toChronoUnit()
+                        );
+
+                        cacheNames.forEach(cacheName -> expires.put(cacheName, expireTime));
+                    }
+                },
+                method -> method.isAnnotationPresent(CacheExpire.class)
+        );
     }
 }

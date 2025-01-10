@@ -4,36 +4,27 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.extra.spring.SpringUtil;
 import lombok.experimental.UtilityClass;
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Redis 工具类
+ * Redis 通用操作工具类
+ * 提供缓存、分布式锁、计数器等常用功能
  *
  * @author george
  */
 @UtilityClass
 public class RedisUtil {
-    /**
-     * 锁前缀
-     */
-    public static final String LOCK_PREFIX = "athena:lock:";
-    /**
-     * 缓存前缀
-     */
-    public static final String CACHE_PREFIX = "athena:cache:";
-    /**
-     * 计数器前缀
-     */
-    public static final String COUNTER_PREFIX = "athena:counter:";
-    /**
-     * 分隔符
-     */
-    public static final String SEPARATOR = ":";
+    private static final String LOCK_PREFIX = "athena:lock:";
+    private static final String CACHE_PREFIX = "athena:cache:";
+    private static final String COUNTER_PREFIX = "athena:counter:";
+    private static final String SEPARATOR = ":";
 
     /**
      * 获取缓存值
@@ -216,6 +207,20 @@ public class RedisUtil {
     }
 
     /**
+     * 批量删除缓存
+     *
+     * @param cacheName 缓存名称
+     * @return 删除的key数量
+     */
+    public long deleteCacheByPattern(String cacheName) {
+        Set<String> keys = getRedisTemplate().keys(getCacheKey(cacheName, "*"));
+        if (keys != null && !keys.isEmpty()) {
+            return Objects.requireNonNull(getRedisTemplate().delete(keys));
+        }
+        return 0L;
+    }
+
+    /**
      * 获取锁
      *
      * @param lockName 锁名称
@@ -234,6 +239,26 @@ public class RedisUtil {
      */
     public boolean getLock(String key) {
         return getRedissonClient().getLock(getLockKey(key)).tryLock();
+    }
+
+    /**
+     * 获取带超时的分布式锁
+     *
+     * @param lockName  锁名称
+     * @param key       键
+     * @param waitTime  等待时间
+     * @param leaseTime 租期时间
+     * @param timeUnit  时间单位
+     * @return 是否获取成功
+     */
+    public boolean getLock(String lockName, String key, long waitTime, long leaseTime, TimeUnit timeUnit) {
+        try {
+            RLock lock = getRedissonClient().getLock(getLockKey(lockName, key));
+            return lock.tryLock(waitTime, leaseTime, timeUnit);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 
     /**
@@ -330,6 +355,18 @@ public class RedisUtil {
             getRedisTemplate().opsForValue().set(getCounterKey(key), 0);
         }
         return getRedisTemplate().opsForValue().increment(getCounterKey(key), delta);
+    }
+
+    /**
+     * 获取计数器当前值
+     *
+     * @param counterName 计数器名称
+     * @param key         键
+     * @return 当前值
+     */
+    public Long getCounterValue(String counterName, String key) {
+        Object value = getRedisTemplate().opsForValue().get(getCounterKey(counterName, key));
+        return value == null ? 0L : Convert.convert(Long.class, value);
     }
 
     /**

@@ -13,58 +13,50 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 自定义缓存名称解析器
- * 用于统一管理缓存名称的生成规则，默认格式为: className:cacheName
+ * 默认缓存名称解析器
+ * <p>
+ * 用于统一管理缓存键的生成规则，遵循 "className:cacheName" 的命名约定。
+ * 当未指定缓存名称时，默认使用 "className:default" 作为缓存键。
  *
  * @author george
  */
 @Component
 public class DefaultCacheResolver extends AbstractCacheResolver {
 
-    private static final String CACHE_NAME_DELIMITER = ":";
-    private static final char CLASS_NAME_DELIMITER = '-';
-    private static final String DEFAULT_CACHE_SUFFIX = "default";
+    private static final String CACHE_KEY_SEPARATOR = ":";
+    private static final char CLASS_NAME_SEPARATOR = '-';
+    private static final String DEFAULT_CACHE_NAME = "default";
 
-    /**
-     * 通过CacheManager初始化缓存解析器
-     *
-     * @param cacheManager Spring缓存管理器
-     */
     public DefaultCacheResolver(CacheManager cacheManager) {
         super(cacheManager);
     }
 
     /**
-     * 解析指定类和方法的缓存名称
-     * 如果方法上没有显式指定缓存名称，将使用默认名称(className:default)
+     * 解析目标类和方法的缓存名称
      *
-     * @param beanClass 目标类
-     * @param method    目标方法
-     * @return 解析后的缓存名称列表
+     * @param beanClass 目标类Class对象
+     * @param method    目标方法对象
+     * @return 格式化后的缓存名称列表
+     * @throws NullPointerException 当beanClass或method为null时抛出
      */
     public static List<String> getCacheNames(Class<?> beanClass, Method method) {
-        Objects.requireNonNull(beanClass, "BeanClass must not be null");
-        Objects.requireNonNull(method, "Method must not be null");
+        Objects.requireNonNull(beanClass, "目标类不能为null");
+        Objects.requireNonNull(method, "目标方法不能为null");
 
-        String className = StrUtil.toSymbolCase(beanClass.getSimpleName(), CLASS_NAME_DELIMITER);
-        AnnotationCacheOperationSource cacheOperationSource = new AnnotationCacheOperationSource(false);
+        String normalizedClassName = StrUtil.toSymbolCase(beanClass.getSimpleName(), CLASS_NAME_SEPARATOR);
+        AnnotationCacheOperationSource operationSource = new AnnotationCacheOperationSource(false);
 
-        return Optional.ofNullable(cacheOperationSource.getCacheOperations(method, beanClass))
-                .map(cacheOperations -> cacheOperations.stream()
+        return Optional.ofNullable(operationSource.getCacheOperations(method, beanClass))
+                .map(operations -> operations.stream()
                         .map(CacheOperation::getCacheNames)
                         .flatMap(Collection::stream)
                         .distinct()
-                        .map(cacheName -> className + CACHE_NAME_DELIMITER + cacheName)
+                        .map(name -> normalizedClassName + CACHE_KEY_SEPARATOR + name)
                         .collect(Collectors.toList()))
-                .orElseGet(() -> Collections.singletonList(className + CACHE_NAME_DELIMITER + DEFAULT_CACHE_SUFFIX));
+                .orElseGet(() -> Collections.singletonList(
+                        normalizedClassName + CACHE_KEY_SEPARATOR + DEFAULT_CACHE_NAME));
     }
 
-    /**
-     * 实现父类方法，解析缓存操作上下文中的缓存名称
-     *
-     * @param context 缓存操作上下文
-     * @return 解析后的缓存名称集合
-     */
     @Override
     protected Collection<String> getCacheNames(CacheOperationInvocationContext<?> context) {
         return getCacheNames(context.getTarget().getClass(), context.getMethod());
