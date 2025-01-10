@@ -1,54 +1,46 @@
 package com.gls.athena.starter.aliyun.oss.support;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
- * oss协议解析器
+ * OSS协议解析器
+ * 用于解析oss://开头的资源路径
  *
  * @author george
  */
-public class OssProtocolResolver
-        implements ProtocolResolver, ResourceLoaderAware {
-    /**
-     * 协议
-     */
-    public static final String PROTOCOL = "oss://";
+@Slf4j
+public class OssProtocolResolver implements ProtocolResolver, ResourceLoaderAware {
 
-    /**
-     * 设置资源加载器
-     *
-     * @param resourceLoader 资源加载器
-     */
+    public static final String PROTOCOL = "oss://";
+    private static final String ERROR_UNSUPPORTED_RESOURCE_LOADER = "不支持的资源加载器类型: %s";
+
     @Override
     public void setResourceLoader(ResourceLoader resourceLoader) {
-        // 判断资源加载器是否支持
-        if (DefaultResourceLoader.class.isAssignableFrom(resourceLoader.getClass())) {
-            // 添加协议解析器
-            ((DefaultResourceLoader) resourceLoader).addProtocolResolver(this);
-        } else {
-            throw new IllegalArgumentException("解析器不支持的资源加载器：" + resourceLoader.getClass());
-        }
+        Assert.notNull(resourceLoader, "ResourceLoader不能为空");
 
+        if (resourceLoader instanceof DefaultResourceLoader) {
+            ((DefaultResourceLoader) resourceLoader).addProtocolResolver(this);
+            log.debug("成功注册OSS协议解析器");
+        } else {
+            throw new IllegalArgumentException(String.format(ERROR_UNSUPPORTED_RESOURCE_LOADER,
+                    resourceLoader.getClass().getName()));
+        }
     }
 
-    /**
-     * 解析资源
-     *
-     * @param location       资源位置
-     * @param resourceLoader 资源加载器
-     * @return 资源
-     */
     @Override
     public Resource resolve(String location, ResourceLoader resourceLoader) {
-        // 判断是否以协议开头
-        if (!location.startsWith(PROTOCOL)) {
+        if (!StringUtils.hasText(location) || !location.startsWith(PROTOCOL)) {
             return null;
         }
-        // 返回oss资源
+
+        log.debug("正在解析OSS资源: {}", location);
         return new OssResource(location);
     }
 }
