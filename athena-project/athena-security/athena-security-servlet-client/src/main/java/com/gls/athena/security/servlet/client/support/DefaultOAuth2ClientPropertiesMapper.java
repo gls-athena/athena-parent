@@ -17,21 +17,25 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 默认OAuth2客户端属性映射器
+ * OAuth2客户端属性映射器的默认实现类
+ * 主要职责：
+ * 1. 将OAuth2ClientProperties配置属性转换为ClientRegistration对象
+ * 2. 处理不同OAuth2提供者的配置映射
+ * 3. 支持自定义提供者、通用提供者和默认提供者的配置转换
  *
  * @author george
  */
 @RequiredArgsConstructor
 public class DefaultOAuth2ClientPropertiesMapper {
-    /**
-     * OAuth2客户端属性
-     */
+
     private final OAuth2ClientProperties properties;
 
     /**
-     * 获取客户端注册信息Map
+     * 获取所有OAuth2客户端注册信息
      *
-     * @return 客户端注册信息Map
+     * @return 返回注册ID到客户端注册信息的映射关系
+     * key: 注册ID
+     * value: 对应的客户端注册信息
      */
     public Map<String, ClientRegistration> getClientRegistrations() {
         return this.properties.getRegistration().entrySet().stream()
@@ -40,10 +44,10 @@ public class DefaultOAuth2ClientPropertiesMapper {
     }
 
     /**
-     * 获取提供者
+     * 获取OAuth2服务提供者标识
      *
-     * @param registrationId 注册ID
-     * @return 提供者
+     * @param registrationId 客户端注册ID
+     * @return 如果显式配置了provider则返回配置值，否则返回registrationId作为默认provider
      */
     public String getProvider(String registrationId) {
         if (registrationId == null) {
@@ -57,18 +61,17 @@ public class DefaultOAuth2ClientPropertiesMapper {
     }
 
     /**
-     * 转换为客户端注册信息
+     * 将OAuth2客户端注册配置转换为ClientRegistration对象
      *
-     * @param registrationId 注册ID
-     * @param registration   注册信息
-     * @return 客户端注册信息
+     * @param registrationId 注册ID，用于唯一标识客户端注册
+     * @param registration   OAuth2客户端注册配置信息
+     * @return 构建完成的ClientRegistration实例
      */
     private ClientRegistration getClientRegistration(String registrationId, OAuth2ClientProperties.Registration registration) {
-        // 获取提供者ID
         String providerId = getProvider(registrationId);
-        // 获取构建器
         ClientRegistration.Builder builder = getBuilderByProvider(registrationId, providerId);
-        // 映射属性
+
+        // 映射配置属性到builder
         PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
         map.from(registrationId).to(builder::registrationId);
         map.from(registration::getClientId).to(builder::clientId);
@@ -82,15 +85,21 @@ public class DefaultOAuth2ClientPropertiesMapper {
         map.from(registration::getRedirectUri).to(builder::redirectUri);
         map.from(registration::getScope).as(StringUtils::toStringArray).to(builder::scope);
         map.from(registration::getClientName).to(builder::clientName);
+
         return builder.build();
     }
 
     /**
-     * 获取构建器
+     * 根据提供者信息获取ClientRegistration构建器
+     * 查找顺序：
+     * 1. 优先从配置文件中的provider配置获取
+     * 2. 尝试从CommonOAuth2Provider内置提供者获取
+     * 3. 最后尝试从自定义DefaultOAuth2Provider获取
      *
-     * @param registrationId 注册ID
+     * @param registrationId 客户端注册ID
      * @param providerId     提供者ID
-     * @return 构建器
+     * @return ClientRegistration的构建器实例
+     * @throws IllegalArgumentException 当无法找到对应的provider配置时抛出
      */
     private ClientRegistration.Builder getBuilderByProvider(String registrationId, String providerId) {
         // 获取构建器 - 从提供者属性
@@ -112,11 +121,11 @@ public class DefaultOAuth2ClientPropertiesMapper {
     }
 
     /**
-     * 从默认提供者获取构建器
+     * 从DefaultOAuth2Provider获取构建器
      *
-     * @param registrationId 注册ID
+     * @param registrationId 客户端注册ID
      * @param providerId     提供者ID
-     * @return 构建器
+     * @return 成功则返回构建器实例，失败则返回null
      */
     private ClientRegistration.Builder getBuilderByDefault(String registrationId, String providerId) {
         try {
@@ -128,11 +137,11 @@ public class DefaultOAuth2ClientPropertiesMapper {
     }
 
     /**
-     * 从通用提供者获取构建器
+     * 从CommonOAuth2Provider获取构建器
      *
-     * @param registrationId 注册ID
+     * @param registrationId 客户端注册ID
      * @param providerId     提供者ID
-     * @return 构建器
+     * @return 成功则返回构建器实例，失败则返回null
      */
     private ClientRegistration.Builder getBuilderByCommon(String registrationId, String providerId) {
         try {
@@ -148,11 +157,14 @@ public class DefaultOAuth2ClientPropertiesMapper {
     }
 
     /**
-     * 从提供者属性获取构建器
+     * 从配置文件的provider属性创建构建器
+     * 支持两种方式：
+     * 1. 通过issuerUri自动发现配置
+     * 2. 通过详细的provider配置手动创建
      *
-     * @param registrationId 注册ID
+     * @param registrationId 客户端注册ID
      * @param providerId     提供者ID
-     * @return 构建器
+     * @return 成功则返回构建器实例，失败则返回null
      */
     private ClientRegistration.Builder getBuilderByProperties(String registrationId, String providerId) {
         // 获取提供者属性
@@ -172,11 +184,11 @@ public class DefaultOAuth2ClientPropertiesMapper {
     }
 
     /**
-     * 获取构建器
+     * 将Provider配置属性复制到Builder实例
      *
-     * @param builder  构建器
-     * @param provider 提供者属性
-     * @return 构建器
+     * @param builder  ClientRegistration构建器
+     * @param provider OAuth2提供者配置
+     * @return 更新后的构建器实例
      */
     private ClientRegistration.Builder copyProviderToBuilder(ClientRegistration.Builder builder, OAuth2ClientProperties.Provider provider) {
         PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
