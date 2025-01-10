@@ -4,20 +4,19 @@ import com.alibaba.excel.write.builder.ExcelWriterTableBuilder;
 import com.gls.athena.starter.excel.annotation.ExcelTable;
 
 /**
- * Excel写入Table构建器自定义器
+ * Excel表格写入构建器的自定义配置类
+ * 用于定制Excel表格写入时的Table相关参数
  *
  * @author george
  */
 public class ExcelWriterTableBuilderCustomizer extends ExcelWriterParameterBuilderCustomizer<ExcelWriterTableBuilder> {
-    /**
-     * ExcelTable
-     */
+
     private final ExcelTable excelTable;
 
     /**
-     * 构造函数
+     * 初始化表格构建器自定义配置
      *
-     * @param excelTable ExcelTable
+     * @param excelTable Excel表格注解配置
      */
     public ExcelWriterTableBuilderCustomizer(ExcelTable excelTable) {
         super(excelTable.parameter());
@@ -25,14 +24,14 @@ public class ExcelWriterTableBuilderCustomizer extends ExcelWriterParameterBuild
     }
 
     /**
-     * 自定义
+     * 执行自定义配置
+     * 设置表格序号等参数
      *
-     * @param builder ExcelWriterTableBuilder
+     * @param builder Excel表格构建器
      */
     @Override
     public void customize(ExcelWriterTableBuilder builder) {
         super.customize(builder);
-        // tableNo
         builder.tableNo(excelTable.tableNo());
     }
 }

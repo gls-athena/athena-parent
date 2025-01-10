@@ -6,7 +6,6 @@ import com.gls.athena.starter.excel.listener.IReadListener;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
-import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -21,90 +20,132 @@ import java.io.InputStream;
 import java.util.List;
 
 /**
- * Excel请求处理器
+ * Excel文件上传请求参数解析器
+ * 实现Spring MVC的参数解析器接口，用于处理带有@ExcelRequest注解的方法参数
+ * 主要功能：
+ * 1. 接收上传的Excel文件
+ * 2. 解析Excel内容并转换为对象列表
+ * 3. 处理数据验证结果
+ * 4. 支持自定义读取监听器
  *
  * @author george
  */
 public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
-    /**
-     * 是否支持参数
-     *
-     * @param parameter 参数
-     * @return 是否支持
-     */
+
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(ExcelRequest.class);
     }
 
     /**
-     * 解析参数
+     * 解析上传的Excel文件并转换为对象列表
      *
-     * @param parameter     方法参数
-     * @param mavContainer  模型视图容器
-     * @param webRequest    web请求
-     * @param binderFactory 绑定工厂
-     * @return 参数
-     * @throws Exception 异常
+     * @param parameter     方法参数信息，包含参数类型和注解信息
+     * @param mavContainer  Spring MVC的模型视图容器
+     * @param webRequest    当前Web请求对象
+     * @param binderFactory 数据绑定工厂
+     * @return 解析后的对象列表
+     * @throws Exception 解析过程中的异常
      */
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-        // 获取参数类型
-        Class<?> parameterType = parameter.getParameterType();
-        // 如果不是List类型, 则抛出异常
-        if (!List.class.isAssignableFrom(parameterType)) {
-            throw new IllegalArgumentException("Excel上传请求解析器错误, @ExcelRequest参数不是List, " + parameterType);
-        }
-        // 获取目标类型
-        Class<?> targetType = getTargetType(parameter);
-        // 获取参数注解
-        ExcelRequest excelRequest = getExcelRequest(parameter);
-        // 获取监听器
-        IReadListener<?> readListener = getReadListener(excelRequest);
-        // 获取文件流
-        InputStream inputStream = getInputStream(webRequest, excelRequest.fileName());
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+        validateParameterType(parameter);
 
-        // 读取Excel
+        Class<?> targetType = getTargetType(parameter);
+        ExcelRequest excelRequest = getExcelRequest(parameter);
+        IReadListener<?> readListener = createReadListener(excelRequest);
+
+        try (InputStream inputStream = getInputStream(webRequest, excelRequest.fileName())) {
+            if (inputStream == null) {
+                throw new IllegalArgumentException("未找到上传的Excel文件: " + excelRequest.fileName());
+            }
+
+            processExcelFile(inputStream, targetType, readListener, excelRequest);
+            bindValidationResult(mavContainer, webRequest, binderFactory, readListener);
+
+            return readListener.getList();
+        }
+    }
+
+    /**
+     * 验证参数类型是否为List类型
+     *
+     * @param parameter 方法参数信息
+     * @throws IllegalArgumentException 当参数类型不是List时抛出
+     */
+    private void validateParameterType(MethodParameter parameter) {
+        if (!List.class.isAssignableFrom(parameter.getParameterType())) {
+            throw new IllegalArgumentException(
+                    String.format("Excel解析错误：参数类型必须是List，当前类型：%s", parameter.getParameterType().getName())
+            );
+        }
+    }
+
+    /**
+     * 处理Excel文件的读取过程
+     * 使用EasyExcel框架进行文件解析
+     *
+     * @param inputStream  Excel文件输入流
+     * @param targetType   目标对象类型
+     * @param readListener 自定义读取监听器
+     * @param excelRequest Excel请求注解信息
+     */
+    private void processExcelFile(InputStream inputStream, Class<?> targetType,
+                                  IReadListener<?> readListener, ExcelRequest excelRequest) {
         EasyExcel.read(inputStream, targetType, readListener)
                 .headRowNumber(excelRequest.headRowNumber())
                 .ignoreEmptyRow(excelRequest.ignoreEmptyRow())
                 .sheet()
                 .doRead();
-
-        // 创建绑定器
-        WebDataBinder binder = binderFactory.createBinder(webRequest, readListener.getErrors(), "excel");
-        ModelMap model = mavContainer.getModel();
-        model.put(BindingResult.MODEL_KEY_PREFIX + "excel", binder.getBindingResult());
-
-        // 返回结果
-        return readListener.getList();
     }
 
     /**
-     * 获取读取监听器
+     * 绑定数据验证结果到Spring MVC的模型中
      *
-     * @param excelRequest Excel请求
-     * @return 读取监听器
+     * @param mavContainer  模型视图容器
+     * @param webRequest    Web请求对象
+     * @param binderFactory 数据绑定工厂
+     * @param readListener  包含验证错误信息的读取监听器
+     * @throws Exception 绑定过程中的异常
      */
-    private IReadListener<?> getReadListener(ExcelRequest excelRequest) {
-        return BeanUtils.instantiateClass(excelRequest.readListener());
+    private void bindValidationResult(ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
+                                      WebDataBinderFactory binderFactory, IReadListener<?> readListener) throws Exception {
+        WebDataBinder binder = binderFactory.createBinder(webRequest, readListener.getErrors(), "excel");
+        mavContainer.getModel().put(BindingResult.MODEL_KEY_PREFIX + "excel", binder.getBindingResult());
     }
 
     /**
-     * 获取目标类型
+     * 创建Excel读取监听器实例
      *
-     * @param parameter 方法参数
-     * @return 目标类型
+     * @param excelRequest Excel请求注解
+     * @return 读取监听器实例
+     * @throws IllegalStateException 创建监听器失败时抛出
+     */
+    private IReadListener<?> createReadListener(ExcelRequest excelRequest) {
+        try {
+            return BeanUtils.instantiateClass(excelRequest.readListener());
+        } catch (Exception e) {
+            throw new IllegalStateException("无法创建Excel读取监听器: " + excelRequest.readListener(), e);
+        }
+    }
+
+    /**
+     * 获取目标类型（List泛型类型）
+     *
+     * @param parameter 方法参数信息
+     * @return List的泛型类型
      */
     private Class<?> getTargetType(MethodParameter parameter) {
         return ResolvableType.forMethodParameter(parameter).asCollection().resolveGeneric();
     }
 
     /**
-     * 获取Excel请求
+     * 获取ExcelRequest注解
      *
-     * @param parameter 方法参数
-     * @return Excel请求
+     * @param parameter 方法参数信息
+     * @return Excel请求注解
+     * @throws IllegalArgumentException 注解不存在时抛出
      */
     private ExcelRequest getExcelRequest(MethodParameter parameter) {
         ExcelRequest excelRequest = parameter.getParameterAnnotation(ExcelRequest.class);
@@ -115,25 +156,21 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
     }
 
     /**
-     * 获取文件流
+     * 获取上传文件的输入流
      *
-     * @param webRequest web请求
-     * @param fileName   文件名
-     * @return 文件流
-     * @throws IOException IO异常
+     * @param webRequest Web请求对象
+     * @param fileName   文件参数名
+     * @return 文件输入流，如果文件不存在则返回null
+     * @throws IOException           读取文件失败时抛出
+     * @throws IllegalStateException 请求不是多部分请求时抛出
      */
     private InputStream getInputStream(NativeWebRequest webRequest, String fileName) throws IOException {
-        // 获取MultipartRequest
         MultipartRequest multipartRequest = webRequest.getNativeRequest(MultipartRequest.class);
         if (multipartRequest == null) {
-            return null;
+            throw new IllegalStateException("当前请求不是多部分请求，无法处理文件上传");
         }
-        // 获取文件
+
         MultipartFile file = multipartRequest.getFile(fileName);
-        if (file == null) {
-            return null;
-        }
-        // 返回文件流
-        return file.getInputStream();
+        return file != null ? file.getInputStream() : null;
     }
 }

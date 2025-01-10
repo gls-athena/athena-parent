@@ -5,36 +5,39 @@ import com.gls.athena.starter.excel.annotation.ExcelSheet;
 
 /**
  * Excel写入Sheet构建器自定义器
+ * 用于自定义配置Excel写入时的Sheet相关参数
  *
  * @author george
+ * @since 1.0.0
  */
 public class ExcelWriterSheetBuilderCustomizer extends ExcelWriterParameterBuilderCustomizer<ExcelWriterSheetBuilder> {
+
     /**
-     * ExcelSheet
+     * Sheet配置注解
+     * 包含sheet相关的配置信息，如sheet编号、名称等
      */
     private final ExcelSheet excelSheet;
 
     /**
-     * 构造函数
+     * 构造Excel Sheet构建器自定义器
      *
-     * @param excelSheet ExcelSheet
+     * @param excelSheet Sheet配置注解，不能为null
      */
-    public ExcelWriterSheetBuilderCustomizer(ExcelSheet excelSheet) {
+    public ExcelWriterSheetBuilderCustomizer(final ExcelSheet excelSheet) {
         super(excelSheet.parameter());
         this.excelSheet = excelSheet;
     }
 
     /**
-     * 定制
+     * 自定义配置Sheet构建器
+     * 设置sheet编号和名称等参数
      *
-     * @param builder 定制对象
+     * @param builder Sheet构建器实例
      */
     @Override
-    public void customize(ExcelWriterSheetBuilder builder) {
+    public void customize(final ExcelWriterSheetBuilder builder) {
         super.customize(builder);
-        // sheetNo
-        builder.sheetNo(excelSheet.sheetNo());
-        // sheetName
-        builder.sheetName(excelSheet.sheetName());
+        builder.sheetNo(excelSheet.sheetNo())
+                .sheetName(excelSheet.sheetName());
     }
 }

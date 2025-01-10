@@ -32,17 +32,35 @@ import java.util.stream.Collectors;
 
 /**
  * Excel响应处理器
+ * <p>
+ * 处理带有 @ExcelResponse 注解的控制器方法返回值，将数据导出为Excel文件。
+ * 支持多sheet、多table的导出，支持自定义导出样式。
+ * <p>
+ * 使用示例：
+ * <pre>{@code
+ * @GetMapping("/export")
+ * @ExcelResponse(filename = "测试导出", sheets = {
+ *     @ExcelSheet(sheetNo = 0, sheetName = "sheet1")
+ * })
+ * public List<UserDTO> export() {
+ *     return userService.list();
+ * }
+ * }</pre>
  *
  * @author george
  */
 @Slf4j
 public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
 
+    private static final String EXCEL_CONTENT_TYPE = "application/vnd.ms-excel";
+    private static final String UTF_8 = "utf-8";
+    private static final String ERROR_PREFIX = "Excel响应处理器错误: ";
+
     /**
-     * 是否支持返回类型
+     * 检查方法是否支持Excel响应处理
      *
-     * @param returnType 返回类型
-     * @return 是否支持
+     * @param returnType 方法返回类型参数
+     * @return 如果方法带有@ExcelResponse注解则返回true
      */
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {
@@ -50,77 +68,98 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
     }
 
     /**
-     * 处理返回值
-     *
-     * @param returnValue  返回值
-     * @param returnType   返回类型
-     * @param mavContainer 模型视图容器
-     * @param webRequest   web请求
-     * @throws Exception 异常
+     * 处理Excel导出响应
+     * <p>
+     * 将返回值转换为Excel文件并写入响应流
      */
     @Override
     public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-        // 获取返回值类型
-        Class<?> returnTypeClass = returnType.getParameterType();
-        // 如果不是List类型, 则抛出异常
-        if (!List.class.isAssignableFrom(returnTypeClass)) {
-            throw new IllegalArgumentException("Excel响应处理器错误, @ExcelResponse参数不是List, " + returnTypeClass);
-        }
-        // 获取返回值
-        List<?> data = (List<?>) returnValue;
+        validateReturnType(returnType, returnValue);
 
-        // 获取注解
+        List<?> data = (List<?>) returnValue;
         ExcelResponse excelResponse = getExcelResponse(returnType);
 
-        // 获取OutputStream
-        OutputStream outputStream = getOutputStream(webRequest, excelResponse);
+        try (OutputStream outputStream = getOutputStream(webRequest, excelResponse)) {
+            ExcelWriter excelWriter = getExcelWriter(outputStream, excelResponse);
+            try {
+                List<WriteSheet> writeSheetList = getExcelWriterSheet(excelResponse);
+                Map<Integer, List<WriteTable>> writeTableMap = getExcelWriterTable(excelResponse);
+                writeData(excelWriter, writeSheetList, writeTableMap, data);
+            } finally {
+                excelWriter.finish();
+            }
+        }
 
-        // 创建ExcelWriter
-        ExcelWriter excelWriter = getExcelWriter(outputStream, excelResponse);
-        // 获取Sheet
-        List<WriteSheet> writeSheetList = getExcelWriterSheet(excelResponse);
-        // 获取Table
-        Map<Integer, List<WriteTable>> writeTableMap = getExcelWriterTable(excelResponse);
-        // 写入数据
-        writeData(excelWriter, writeSheetList, writeTableMap, data);
-        // 完成
-        excelWriter.finish();
-
-        // 设置请求已处理
         mavContainer.setRequestHandled(true);
     }
 
     /**
-     * 写入数据
+     * 校验返回值类型
      *
-     * @param excelWriter    ExcelWriter
-     * @param writeSheetList WriteSheet列表
-     * @param writeTableMap  WriteTableMap
-     * @param data           数据
+     * @throws IllegalArgumentException 当返回值不是List类型或数据为空时
+     */
+    private void validateReturnType(MethodParameter returnType, Object returnValue) {
+        if (!List.class.isAssignableFrom(returnType.getParameterType())) {
+            throw new IllegalArgumentException(ERROR_PREFIX + "@ExcelResponse只支持List类型返回值");
+        }
+        if (returnValue == null || ((List<?>) returnValue).isEmpty()) {
+            throw new IllegalArgumentException(ERROR_PREFIX + "数据不能为空");
+        }
+    }
+
+    /**
+     * 写入Excel数据
+     * <p>
+     * 支持多sheet、多table的数据写入，自动处理数据分组
      */
     private void writeData(ExcelWriter excelWriter, List<WriteSheet> writeSheetList, Map<Integer, List<WriteTable>> writeTableMap, List<?> data) {
-        // 写入数据
-        for (WriteSheet writeSheet : writeSheetList) {
-            List<?> sheetData;
-            if (writeSheetList.size() == 1) {
-                sheetData = data;
-            } else {
-                sheetData = (List<?>) data.get(writeSheet.getSheetNo());
+        writeSheetList.forEach(writeSheet -> {
+            List<?> sheetData = getSheetData(writeSheet, data, writeSheetList.size());
+            if (sheetData.isEmpty()) {
+                return;
             }
 
             List<WriteTable> writeTableList = writeTableMap.get(writeSheet.getSheetNo());
-
             if (CollUtil.isNotEmpty(writeTableList)) {
-                for (WriteTable writeTable : writeTableList) {
-                    List<?> tableData = (List<?>) sheetData.get(writeTable.getTableNo());
-                    writeTable.setClazz(tableData.getFirst().getClass());
-                    excelWriter.write(tableData, writeSheet, writeTable);
-                }
+                writeTableData(excelWriter, writeSheet, writeTableList, sheetData);
             } else {
-                writeSheet.setClazz(sheetData.getFirst().getClass());
-                excelWriter.write(sheetData, writeSheet);
+                writeSheetData(excelWriter, writeSheet, sheetData);
             }
-        }
+        });
+    }
+
+    /**
+     * 获取sheet数据
+     *
+     * @param sheetCount 为1时返回全部数据，否则返回对应sheet序号的数据
+     */
+    private List<?> getSheetData(WriteSheet writeSheet, List<?> data, int sheetCount) {
+        return sheetCount == 1 ? data : (List<?>) data.get(writeSheet.getSheetNo());
+    }
+
+    /**
+     * 写入table数据
+     * <p>
+     * 处理单个sheet中的多个table数据写入
+     */
+    private void writeTableData(ExcelWriter excelWriter, WriteSheet writeSheet, List<WriteTable> writeTableList, List<?> sheetData) {
+        writeTableList.forEach(writeTable -> {
+            List<?> tableData = (List<?>) sheetData.get(writeTable.getTableNo());
+            if (!tableData.isEmpty()) {
+                writeTable.setClazz(tableData.getFirst().getClass());
+                excelWriter.write(tableData, writeSheet, writeTable);
+            }
+        });
+    }
+
+    /**
+     * 写入sheet数据
+     * <p>
+     * 处理单个sheet的数据写入
+     */
+    private void writeSheetData(ExcelWriter excelWriter, WriteSheet writeSheet, List<?> sheetData) {
+        writeSheet.setClazz(sheetData.getFirst().getClass());
+        excelWriter.write(sheetData, writeSheet);
     }
 
     /**
@@ -154,11 +193,9 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
     }
 
     /**
-     * 获取ExcelWriter
-     *
-     * @param outputStream  输出流
-     * @param excelResponse Excel响应
-     * @return ExcelWriter
+     * 构建Excel写入器
+     * <p>
+     * 根据注解配置创建ExcelWriter实例
      */
     private ExcelWriter getExcelWriter(OutputStream outputStream, ExcelResponse excelResponse) {
         ExcelWriterBuilder excelWriterBuilder = EasyExcel.write(outputStream);
@@ -167,39 +204,29 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         return excelWriterBuilder.build();
     }
 
-    /**
-     * 获取Excel响应注解
-     *
-     * @param returnType 返回类型
-     * @return Excel响应注解
-     */
     private ExcelResponse getExcelResponse(MethodParameter returnType) {
-        ExcelResponse excelResponse = returnType.getMethodAnnotation(ExcelResponse.class);
-        if (excelResponse == null) {
-            throw new IllegalArgumentException("Excel响应处理器错误, @ExcelResponse注解为空");
-        }
-        return excelResponse;
+        return returnType.getMethodAnnotation(ExcelResponse.class);
     }
 
     /**
-     * 获取OutputStream
+     * 获取输出流
+     * <p>
+     * 设置响应头信息并返回输出流
      *
-     * @param webRequest    web请求
-     * @param excelResponse Excel响应
-     * @return OutputStream
-     * @throws IOException IO异常
+     * @throws IOException 获取输出流失败时抛出
      */
     private OutputStream getOutputStream(NativeWebRequest webRequest, ExcelResponse excelResponse) throws IOException {
         HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
         if (response == null) {
-            throw new IllegalArgumentException("Excel响应处理器错误, HttpServletResponse为空");
+            throw new IllegalArgumentException(ERROR_PREFIX + "HttpServletResponse为空");
         }
-        // 设置响应头
-        response.setContentType("application/vnd.ms-excel");
-        response.setCharacterEncoding("utf-8");
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + URLUtil.encode(excelResponse.filename(), StandardCharsets.UTF_8) + excelResponse.excelType().getValue());
+
+        response.setContentType(EXCEL_CONTENT_TYPE);
+        response.setCharacterEncoding(UTF_8);
+        String filename = URLUtil.encode(excelResponse.filename(), StandardCharsets.UTF_8) + excelResponse.excelType().getValue();
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + filename);
         response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
-        // 获取OutputStream
+
         return response.getOutputStream();
     }
 }
