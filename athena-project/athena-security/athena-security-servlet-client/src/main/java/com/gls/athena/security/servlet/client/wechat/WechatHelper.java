@@ -11,200 +11,177 @@ import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 小程序助手
+ * 微信服务工具类
+ * 集成微信小程序、公众号及企业微信API调用功能
+ * 包含访问令牌管理、用户信息获取等核心功能
  *
  * @author george
  */
 @UtilityClass
 public class WechatHelper {
     /**
-     * 微信小程序accessToken缓存名
+     * Redis缓存键前缀 - 小程序访问令牌
      */
-    private static final String WECHAT_MINI_ACCESS_TOKEN_CACHE_NAME = "wechat_mini:access_token";
+    private static final String CACHE_PREFIX_MINI = "wechat_mini:access_token";
     /**
-     * 企业微信accessToken缓存名
+     * Redis缓存键前缀 - 企业微信访问令牌
      */
-    private static final String WECHAT_WORK_ACCESS_TOKEN_CACHE_NAME = "wechat_work:access_token";
+    private static final String CACHE_PREFIX_WORK = "wechat_work:access_token";
 
     /**
-     * 获取 RestTemplate
-     *
-     * @return RestTemplate
+     * 初始化RestTemplate，添加微信专用消息转换器
      */
-    private RestTemplate getRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        // 添加消息转换器
-        restTemplate.getMessageConverters().add(new WechatHttpMessageConverter());
-        return restTemplate;
+    private RestTemplate createRestTemplate() {
+        RestTemplate template = new RestTemplate();
+        template.getMessageConverters().add(new WechatHttpMessageConverter());
+        return template;
     }
 
     /**
-     * 获取小程序访问令牌
+     * 执行GET请求并处理响应
      *
-     * @param appId     小程序 ID
-     * @param appSecret 小程序密钥
-     * @return 小程序访问令牌
+     * @param uri          目标URI
+     * @param responseType 期望的响应类型
+     * @return 响应对象
+     */
+    private <T> T executeGet(URI uri, Class<T> responseType) {
+        return createRestTemplate()
+                .exchange(RequestEntity.get(uri).build(), responseType)
+                .getBody();
+    }
+
+    /**
+     * 获取小程序访问令牌（优先从缓存获取）
+     *
+     * @param appId             小程序APPID
+     * @param appSecret         小程序密钥
+     * @param appAccessTokenUri 获取令牌的API地址
+     * @return 访问令牌响应对象
      */
     public MiniAccessTokenResponse getMiniAccessToken(String appId, String appSecret, String appAccessTokenUri) {
-        // 从缓存中获取小程序访问令牌
-        MiniAccessTokenResponse response = RedisUtil.getCacheValue(WECHAT_MINI_ACCESS_TOKEN_CACHE_NAME, appId, MiniAccessTokenResponse.class);
+        // 尝试从缓存获取
+        MiniAccessTokenResponse response = RedisUtil.getCacheValue(CACHE_PREFIX_MINI, appId, MiniAccessTokenResponse.class);
         if (response != null) {
             return response;
         }
-        // 请求小程序访问令牌
-        MiniAccessTokenRequest request = new MiniAccessTokenRequest();
-        request.setAppid(appId);
-        request.setSecret(appSecret);
-        request.setGrantType("client_credential");
-        // 获取小程序访问令牌
-        response = getMiniAccessToken(request, appAccessTokenUri);
-        // 缓存小程序访问令牌
-        if (response != null) {
-            RedisUtil.setCacheValue(WECHAT_MINI_ACCESS_TOKEN_CACHE_NAME, appId, response, response.getExpiresIn(), TimeUnit.SECONDS);
-            return response;
-        }
-        // 返回空
-        return null;
-    }
 
-    /**
-     * 获取小程序访问令牌
-     *
-     * @param request 请求
-     * @return 小程序访问令牌
-     */
-    private MiniAccessTokenResponse getMiniAccessToken(MiniAccessTokenRequest request, String appAccessTokenUri) {
-        RestTemplate restTemplate = getRestTemplate();
+        // 构建请求参数
         URI uri = UriComponentsBuilder.fromUriString(appAccessTokenUri)
-                .queryParam("appid", request.getAppid())
-                .queryParam("secret", request.getSecret())
-                .queryParam("grant_type", request.getGrantType())
+                .queryParam("appid", appId)
+                .queryParam("secret", appSecret)
+                .queryParam("grant_type", "client_credential")
                 .build().toUri();
-        RequestEntity<?> requestEntity = RequestEntity.get(uri).build();
-        return restTemplate.exchange(requestEntity, MiniAccessTokenResponse.class).getBody();
+
+        // 发起请求并缓存结果
+        response = executeGet(uri, MiniAccessTokenResponse.class);
+        if (response != null) {
+            RedisUtil.setCacheValue(CACHE_PREFIX_MINI, appId, response,
+                    response.getExpiresIn(), TimeUnit.SECONDS);
+        }
+        return response;
     }
 
     /**
-     * 小程序登录
+     * 小程序用户登录
      *
-     * @param request 请求
-     * @return 小程序登录
+     * @param request     包含code、appId等登录参数的请求对象
+     * @param userInfoUri 登录验证API地址
+     * @return 用户信息响应对象
      */
     public MiniUserInfoResponse getMiniUserInfo(MiniUserInfoRequest request, String userInfoUri) {
-        RestTemplate restTemplate = getRestTemplate();
         URI uri = UriComponentsBuilder.fromUriString(userInfoUri)
                 .queryParam("appid", request.getAppId())
                 .queryParam("secret", request.getSecret())
                 .queryParam("js_code", request.getJsCode())
                 .queryParam("grant_type", request.getGrantType())
                 .build().toUri();
-        RequestEntity<?> requestEntity = RequestEntity.get(uri).build();
-        return restTemplate.exchange(requestEntity, MiniUserInfoResponse.class).getBody();
+        return executeGet(uri, MiniUserInfoResponse.class);
     }
 
     /**
-     * 获取微信访问令牌
+     * 获取微信公众号访问令牌
      *
-     * @param request 请求
-     * @return 微信访问令牌
+     * @param request        包含授权码等参数的请求对象
+     * @param accessTokenUri 获取令牌的API地址
+     * @return 访问令牌响应对象
      */
     public WechatAccessTokenResponse getWechatAccessToken(WechatAccessTokenRequest request, String accessTokenUri) {
-        RestTemplate restTemplate = getRestTemplate();
         URI uri = UriComponentsBuilder.fromUriString(accessTokenUri)
                 .queryParam("appid", request.getAppid())
                 .queryParam("secret", request.getSecret())
                 .queryParam("code", request.getCode())
                 .queryParam("grant_type", request.getGrantType())
                 .build().toUri();
-        RequestEntity<?> requestEntity = RequestEntity.get(uri).build();
-        return restTemplate.exchange(requestEntity, WechatAccessTokenResponse.class).getBody();
+        return executeGet(uri, WechatAccessTokenResponse.class);
     }
 
     /**
-     * 获取微信用户
+     * 获取微信公众号用户信息
      *
-     * @param request 请求
-     * @return 微信用户
+     * @param request     包含access_token和openid的请求对象
+     * @param userInfoUri 用户信息API地址
+     * @return 用户信息响应对象
      */
     public WechatUserInfoResponse getWechatUserInfo(WechatUserInfoRequest request, String userInfoUri) {
-        RestTemplate restTemplate = getRestTemplate();
         URI uri = UriComponentsBuilder.fromUriString(userInfoUri)
                 .queryParam("access_token", request.getAccessToken())
                 .queryParam("openid", request.getOpenid())
                 .queryParam("lang", request.getLang())
                 .build().toUri();
-        RequestEntity<?> requestEntity = RequestEntity.get(uri).build();
-        return restTemplate.exchange(requestEntity, WechatUserInfoResponse.class).getBody();
+        return executeGet(uri, WechatUserInfoResponse.class);
     }
 
     /**
-     * 获取企业微信访问令牌
+     * 获取企业微信访问令牌（优先从缓存获取）
      *
-     * @param corpid     企业 ID
-     * @param corpsecret 企业密钥
-     * @return 企业微信访问令牌
+     * @param corpid         企业微信ID
+     * @param corpsecret     应用密钥
+     * @param accessTokenUri 获取令牌的API地址
+     * @return 访问令牌响应对象
      */
     public WorkAccessTokenResponse getWorkAccessToken(String corpid, String corpsecret, String accessTokenUri) {
-        WorkAccessTokenResponse response = RedisUtil.getCacheValue(WECHAT_WORK_ACCESS_TOKEN_CACHE_NAME, corpid, WorkAccessTokenResponse.class);
+        WorkAccessTokenResponse response = RedisUtil.getCacheValue(CACHE_PREFIX_WORK, corpid, WorkAccessTokenResponse.class);
         if (response != null) {
             return response;
         }
-        WorkAccessTokenRequest request = new WorkAccessTokenRequest();
-        request.setCorpid(corpid);
-        request.setCorpsecret(corpsecret);
-        response = getWorkAccessToken(request, accessTokenUri);
-        if (response != null) {
-            RedisUtil.setCacheValue(WECHAT_WORK_ACCESS_TOKEN_CACHE_NAME, corpid, response, response.getExpiresIn(), TimeUnit.SECONDS);
-            return response;
-        }
-        return null;
-    }
-
-    /**
-     * 获取企业微信访问令牌
-     *
-     * @param request 请求
-     * @return 企业微信访问令牌
-     */
-    private WorkAccessTokenResponse getWorkAccessToken(WorkAccessTokenRequest request, String accessTokenUri) {
-        RestTemplate restTemplate = getRestTemplate();
         URI uri = UriComponentsBuilder.fromUriString(accessTokenUri)
-                .queryParam("corpid", request.getCorpid())
-                .queryParam("corpsecret", request.getCorpsecret())
+                .queryParam("corpid", corpid)
+                .queryParam("corpsecret", corpsecret)
                 .build().toUri();
-        RequestEntity<?> requestEntity = RequestEntity.get(uri).build();
-        return restTemplate.exchange(requestEntity, WorkAccessTokenResponse.class).getBody();
+        response = executeGet(uri, WorkAccessTokenResponse.class);
+        if (response != null) {
+            RedisUtil.setCacheValue(CACHE_PREFIX_WORK, corpid, response, response.getExpiresIn(), TimeUnit.SECONDS);
+        }
+        return response;
     }
 
     /**
-     * 获取企业微信用户登录身份
+     * 企业微信扫码登录身份验证
      *
-     * @param request 请求
-     * @return 企业微信用户登录身份
+     * @param request      包含临时授权码的请求对象
+     * @param userLoginUri 身份验证API地址
+     * @return 登录身份响应对象
      */
     public WorkUserLoginResponse getWorkUserLogin(WorkUserLoginRequest request, String userLoginUri) {
-        RestTemplate restTemplate = getRestTemplate();
         URI uri = UriComponentsBuilder.fromUriString(userLoginUri)
                 .queryParam("access_token", request.getAccessToken())
                 .queryParam("code", request.getCode())
                 .build().toUri();
-        RequestEntity<?> requestEntity = RequestEntity.get(uri).build();
-        return restTemplate.exchange(requestEntity, WorkUserLoginResponse.class).getBody();
+        return executeGet(uri, WorkUserLoginResponse.class);
     }
 
     /**
-     * 获取企业微信用户信息
+     * 获取企业微信用户详细信息
      *
-     * @param request 请求
-     * @return 企业微信用户信息
+     * @param request     包含access_token和userid的请求对象
+     * @param userInfoUri 用户信息API地址
+     * @return 用户信息响应对象
      */
     public WorkUserInfoResponse getWorkUserInfo(WorkUserInfoRequest request, String userInfoUri) {
-        RestTemplate restTemplate = getRestTemplate();
         URI uri = UriComponentsBuilder.fromUriString(userInfoUri)
                 .queryParam("access_token", request.getAccessToken())
                 .queryParam("userid", request.getUserid())
                 .build().toUri();
-        RequestEntity<?> requestEntity = RequestEntity.get(uri).build();
-        return restTemplate.exchange(requestEntity, WorkUserInfoResponse.class).getBody();
+        return executeGet(uri, WorkUserInfoResponse.class);
     }
 }

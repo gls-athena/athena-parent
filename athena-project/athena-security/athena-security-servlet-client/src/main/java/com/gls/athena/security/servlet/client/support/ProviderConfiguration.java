@@ -19,7 +19,7 @@ import java.util.Set;
  * - 授权方式
  * - 端点URL
  * - 授权范围等
- * 
+ *
  * @author george
  */
 @Data
@@ -101,7 +101,7 @@ public class ProviderConfiguration {
 
     /**
      * 创建OAuth2客户端注册构建器
-     * 
+     *
      * @param registrationId 客户端注册ID,用于唯一标识一个OAuth2客户端注册
      * @return 预配置的ClientRegistration.Builder实例
      */

@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * OAuth2认证服务提供者枚举
  * 包含各主流认证平台的配置信息，如微信开放平台、微信公众号、企业微信、飞书等
- *
+ * <p>
  * 每个枚举值代表一个具体的OAuth2认证服务提供者，通过实现getConfig方法来提供具体的配置信息。
  * 配置信息包括：
  * - providerId: 提供者唯一标识
@@ -24,7 +24,7 @@ import java.util.Set;
  * - userNameAttributeName: 用户标识属性名
  * - scopes: 授权范围
  * - metadata: 额外的元数据信息
- * 
+ *
  * @author george
  */
 @RequiredArgsConstructor
@@ -32,7 +32,7 @@ public enum DefaultOAuth2Provider {
     /**
      * 微信开放平台
      * 用于网站应用扫码登录，适用于PC端网站
-     * 
+     * <p>
      * 主要特点：
      * - 使用QR码扫描方式登录
      * - 返回用户openid和基本信息
@@ -58,7 +58,7 @@ public enum DefaultOAuth2Provider {
     /**
      * 微信公众平台
      * 用于微信内H5网页授权登录，适用于微信浏览器内访问
-     * 
+     * <p>
      * 主要特点：
      * - 仅支持微信内访问
      * - 支持静默授权和用户信息授权
@@ -84,7 +84,7 @@ public enum DefaultOAuth2Provider {
     /**
      * 微信小程序
      * 用于小程序登录，支持code换取session_key和openid
-     * 
+     * <p>
      * 主要特点：
      * - 专用于微信小程序
      * - 使用code换取session_key
@@ -106,7 +106,7 @@ public enum DefaultOAuth2Provider {
     /**
      * 企业微信
      * 支持企业微信内部应用和第三方应用的身份认证
-     * 
+     * <p>
      * 主要特点：
      * - 支持扫码登录和企业微信内打开两种方式
      * - 可配置登录类型和应用ID
@@ -135,7 +135,7 @@ public enum DefaultOAuth2Provider {
     /**
      * 飞书
      * 支持飞书应用的身份认证
-     * 
+     * <p>
      * 主要特点：
      * - 支持网页和移动应用场景
      * - 使用unionId作为用户标识
@@ -157,7 +157,7 @@ public enum DefaultOAuth2Provider {
 
     /**
      * 创建OAuth2服务提供者配置
-     * 
+     *
      * @param registrationId 客户端注册ID，用于区分同一类型下的不同应用配置
      * @return ProviderConfiguration 包含完整OAuth2提供者配置信息的对象
      */
@@ -165,7 +165,7 @@ public enum DefaultOAuth2Provider {
 
     /**
      * 获取OAuth2客户端注册构建器
-     * 
+     *
      * @param registrationId 客户端注册ID，用于区分同一类型下的不同应用配置
      * @return ClientRegistration.Builder 用于构建OAuth2客户端注册信息的构建器
      * @see org.springframework.security.oauth2.client.registration.ClientRegistration
