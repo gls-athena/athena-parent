@@ -14,48 +14,59 @@ import org.springframework.stereotype.Component;
 
 /**
  * 社交用户绑定监听器
- * 用于处理社交用户与系统用户的绑定关系
- *
+ * <p>
+ * 监听用户登录成功事件，处理社交账号与系统账号的绑定关系：
+ * - 仅处理用户名密码方式的登录
+ * - 检查会话中是否存在未绑定的社交账号
+ * - 自动完成账号绑定
+ * </p>
+ * 
  * @author george
  * @since 1.0.0
  */
 @Slf4j
 @Component
 public class SocialUserBindListener {
-    /**
-     * 社交用户服务接口，用于处理社交用户的相关操作
-     */
+    /** 社交用户服务 */
     @Resource
     private ISocialUserService socialUserService;
 
-    /**
-     * HTTP会话对象，用于存储社交用户临时信息
-     */
+    /** 会话存储 */
     @Resource
     private HttpSession session;
 
     /**
-     * 处理认证成功事件，完成社交用户与系统用户的绑定
-     *
-     * @param event 认证成功事件，包含认证成功的用户信息
-     * @see AuthenticationSuccessEvent
-     * @see UsernamePasswordAuthenticationToken
+     * 处理认证成功事件
+     * <p>
+     * 检查并处理待绑定的社交账号，仅在以下条件都满足时执行绑定：
+     * - 使用用户名密码方式登录成功
+     * - 会话中存在未绑定的社交账号
+     * </p>
      */
     @EventListener(AuthenticationSuccessEvent.class)
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
-        log.info("开始处理社交用户绑定事件");
         Authentication authentication = event.getAuthentication();
-        if (authentication instanceof UsernamePasswordAuthenticationToken) {
+        if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
+            return;
+        }
+
+        SocialUser socialUser = (SocialUser) session.getAttribute(IClientConstants.SOCIAL_USER_SESSION_KEY);
+        if (socialUser == null || socialUser.isBindStatus()) {
+            return;
+        }
+
+        try {
             User user = (User) authentication.getPrincipal();
-            SocialUser socialUser = (SocialUser) session.getAttribute(IClientConstants.SOCIAL_USER_SESSION_KEY);
-            if (socialUser != null) {
-                // 绑定社交用户
-                socialUser.setUser(user);
-                socialUser.setBindStatus(true);
-                socialUserService.saveSocialUser(socialUser);
-                session.removeAttribute(IClientConstants.SOCIAL_USER_SESSION_KEY);
-                log.info("社交用户绑定成功");
-            }
+            log.info("正在绑定社交用户，系统用户ID: {}, 社交平台: {}", user.getId(), socialUser.getRegistrationId());
+            
+            socialUser.setUser(user);
+            socialUser.setBindStatus(true);
+            socialUserService.saveSocialUser(socialUser);
+            
+            session.removeAttribute(IClientConstants.SOCIAL_USER_SESSION_KEY);
+            log.info("社交用户绑定成功，用户ID: {}", user.getId());
+        } catch (Exception e) {
+            log.error("社交用户绑定失败", e);
         }
     }
 }
