@@ -19,38 +19,42 @@ import java.util.HashSet;
 import java.util.Map;
 
 /**
- * 委托 OAuth2 用户信息服务
+ * OAuth2用户信息服务委托类
+ * 负责处理OAuth2认证流程中的用户信息加载、转换和社交用户绑定逻辑
  *
  * @author george
  */
 @Component
 public class DelegateOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
     /**
-     * 默认 OAuth2 用户信息服务
+     * OAuth2用户信息服务默认实现
      */
     private static final DefaultOAuth2UserService DEFAULT = new DefaultOAuth2UserService();
+
     /**
-     * 社交用户仓库
+     * 社交用户服务接口，用于处理社交用户的持久化操作
      */
     @Resource
     private ISocialUserService socialUserService;
+
     /**
-     * OAuth2UserService 定制器提供者
+     * OAuth2用户服务适配器提供者，用于支持不同社交平台的用户信息适配
      */
     @Resource
     private ObjectProvider<IOAuth2UserServiceAdapter> adapters;
+
     /**
-     * 会话
+     * HTTP会话对象，用于存储社交用户信息
      */
     @Resource
     private HttpSession session;
 
     /**
-     * 加载用户
+     * 加载OAuth2用户信息
      *
-     * @param userRequest 用户请求
-     * @return 用户
-     * @throws OAuth2AuthenticationException OAuth2 认证异常
+     * @param userRequest OAuth2用户请求对象，包含客户端注册信息和授权信息
+     * @return OAuth2User 已加载的用户信息
+     * @throws OAuth2AuthenticationException 当用户未绑定或认证失败时抛出
      */
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -79,11 +83,11 @@ public class DelegateOAuth2UserService implements OAuth2UserService<OAuth2UserRe
     }
 
     /**
-     * 转换为社交用户
+     * 将OAuth2User转换为系统的SocialUser对象
      *
-     * @param oauth2User     用户
-     * @param registrationId 注册 ID
-     * @return 社交用户
+     * @param oauth2User     OAuth2用户对象
+     * @param registrationId 客户端注册ID，用于标识社交平台
+     * @return SocialUser 转换后的社交用户对象
      */
     private SocialUser convetToSocialUser(OAuth2User oauth2User, String registrationId) {
         SocialUser socialUser = socialUserService.loadSocialUser(registrationId, oauth2User.getName());

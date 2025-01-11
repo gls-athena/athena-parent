@@ -11,7 +11,8 @@ import org.springframework.security.config.annotation.web.configurers.oauth2.cli
 import org.springframework.stereotype.Component;
 
 /**
- * OAuth2 登录自定义器
+ * OAuth2 登录配置自定义器
+ * 用于自定义 OAuth2 登录流程中的各个环节，包括授权、令牌获取和用户信息获取等过程
  *
  * @author george
  */
@@ -37,9 +38,10 @@ public class OAuth2LoginCustomizer implements Customizer<OAuth2LoginConfigurer<H
     private DelegateOAuth2UserService oauth2UserService;
 
     /**
-     * 自定义 OAuth2 登录配置
+     * 配置 OAuth2 登录流程
+     * 包括登录页面、授权端点、重定向端点、令牌端点和用户信息端点的自定义配置
      *
-     * @param configurer 配置器
+     * @param configurer OAuth2 登录配置器
      */
     @Override
     public void customize(OAuth2LoginConfigurer<HttpSecurity> configurer) {
@@ -56,9 +58,10 @@ public class OAuth2LoginCustomizer implements Customizer<OAuth2LoginConfigurer<H
     }
 
     /**
-     * 自定义 OAuth2 授权端点配置
+     * 配置 OAuth2 授权端点
+     * 设置自定义的授权请求解析器，用于处理授权请求的生成和解析
      *
-     * @param config 配置器
+     * @param config 授权端点配置器
      */
     private void authorizationEndpoint(OAuth2LoginConfigurer<HttpSecurity>.AuthorizationEndpointConfig config) {
         // 自定义 OAuth2 授权请求解析器
@@ -66,17 +69,19 @@ public class OAuth2LoginCustomizer implements Customizer<OAuth2LoginConfigurer<H
     }
 
     /**
-     * 重定向端点自定义器
+     * 配置 OAuth2 重定向端点
+     * 处理授权服务器回调的配置
      *
-     * @param config 配置器
+     * @param config 重定向端点配置器
      */
     private void redirectionEndpoint(OAuth2LoginConfigurer<HttpSecurity>.RedirectionEndpointConfig config) {
     }
 
     /**
-     * 自定义 OAuth2 令牌端点配置
+     * 配置 OAuth2 令牌端点
+     * 设置自定义的令牌响应客户端，用于处理访问令牌的请求和响应
      *
-     * @param config 配置器
+     * @param config 令牌端点配置器
      */
     private void tokenEndpoint(OAuth2LoginConfigurer<HttpSecurity>.TokenEndpointConfig config) {
         // 自定义 OAuth2 授权码令牌响应客户端
@@ -84,9 +89,10 @@ public class OAuth2LoginCustomizer implements Customizer<OAuth2LoginConfigurer<H
     }
 
     /**
-     * 自定义 OAuth2 用户信息端点配置
+     * 配置 OAuth2 用户信息端点
+     * 设置自定义的用户信息服务，用于获取和处理用户详细信息
      *
-     * @param config 配置器
+     * @param config 用户信息端点配置器
      */
     private void userInfoEndpoint(OAuth2LoginConfigurer<HttpSecurity>.UserInfoEndpointConfig config) {
         // 自定义 OAuth2 用户信息服务

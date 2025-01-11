@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 客户端安全属性配置
- * Client security properties configuration
+ * 客户端安全配置属性类
+ * Client security configuration properties class
  *
  * @author george
  */
@@ -21,98 +21,123 @@ import java.util.Map;
 @ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + ".security.client")
 public class ClientSecurityProperties extends BaseProperties {
     /**
-     * 客户端注册信息库类型
+     * 客户端注册信息存储类型
+     * Client registration repository type
      */
     private ClientRegistrationRepositoryType type = ClientRegistrationRepositoryType.IN_MEMORY;
+
     /**
-     * 微信配置
+     * 微信公众平台配置映射
+     * WeChat MP configuration mapping
      */
     private Map<String, WechatMp> wechatMp = new HashMap<>();
+
     /**
-     * 微信开放平台
+     * 微信开放平台配置映射
+     * WeChat Open Platform configuration mapping
      */
     private Map<String, WechatOpen> wechatOpen = new HashMap<>();
+
     /**
-     * 企业微信
+     * 企业微信配置映射
+     * WeChat Work configuration mapping
      */
     private Map<String, WechatWork> wechatWork = new HashMap<>();
 
     /**
-     * 客户端注册信息库
+     * 客户端注册信息存储类型枚举
+     * Client registration repository type enumeration
      */
     public enum ClientRegistrationRepositoryType {
         /**
-         * 内存
+         * 内存存储方式
+         * In-memory storage
          */
         IN_MEMORY,
+
         /**
-         * JDBC
+         * JDBC存储方式
+         * JDBC storage
          */
         JDBC
     }
 
     /**
-     * 登录类型
+     * 微信登录类型枚举
+     * WeChat login type enumeration
      */
     @Getter
     public enum LoginType {
         /**
-         * 服务商登录
+         * 服务商登录模式
+         * Service provider login mode
          */
         SERVICE_APP("ServiceApp"),
+
         /**
-         * 企业自建/代开发应用登录
+         * 企业自建应用/代开发应用登录模式
+         * Corporate self-built/agency development application login mode
          */
-        CORP_APP("CorpApp"),
-        ;
+        CORP_APP("CorpApp");
+
         /**
-         * 值
+         * 登录类型值
+         * Login type value
          */
         private final String value;
 
         LoginType(String value) {
             this.value = value;
         }
-
     }
 
     /**
-     * 微信公众平台
+     * 微信公众平台配置类
+     * WeChat MP configuration class
      */
     @Data
     public static class WechatMp {
         /**
-         * 语言
+         * 语言设置，默认简体中文
+         * Language setting, default is Simplified Chinese
          */
         private String lang = "zh_CN";
     }
 
     /**
-     * 微信开放平台
+     * 微信开放平台配置类
+     * WeChat Open Platform configuration class
      */
     @Data
     public static class WechatOpen {
         /**
-         * 语言
+         * 语言设置，默认简体中文
+         * Language setting, default is Simplified Chinese
          */
         private String lang = "zh_CN";
     }
 
     /**
-     * 企业微信
+     * 企业微信配置类
+     * WeChat Work configuration class
      */
     @Data
     public static class WechatWork {
         /**
-         * 语言
+         * 语言设置，默认简体中文
+         * Language setting, default is Simplified Chinese
          */
         private String lang = "zh";
+
         /**
-         * 企业自建应用/服务商代开发应用 AgentID，当login_type=CorpApp时填写
+         * 企业应用ID，仅在loginType=CorpApp时需要
+         * Corporate application ID, required only when loginType=CorpApp
          */
         private String agentId = "1000002";
+
         /**
-         * 登录类型
+         * 登录类型，默认为企业自建应用登录
+         * Login type, default is corporate self-built application login
          */
         private LoginType loginType = LoginType.CORP_APP;
     }
