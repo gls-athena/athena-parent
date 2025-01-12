@@ -63,6 +63,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.gls.athena.sdk.wechat</groupId>
+                <artifactId>athena-sdk-wechat</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.gls.athena.sdk.xxl.job</groupId>
                 <artifactId>athena-sdk-xxl-job</artifactId>
                 <version>${project.version}</version>
