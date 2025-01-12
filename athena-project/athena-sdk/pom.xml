@@ -19,6 +19,7 @@
         <module>athena-sdk-feishu</module>
         <module>athena-sdk-log</module>
         <module>athena-sdk-message</module>
+        <module>athena-sdk-wechat</module>
         <module>athena-sdk-xxl-job</module>
     </modules>
 

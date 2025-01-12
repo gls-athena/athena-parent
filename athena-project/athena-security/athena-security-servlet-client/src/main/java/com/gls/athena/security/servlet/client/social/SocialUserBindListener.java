@@ -20,18 +20,22 @@ import org.springframework.stereotype.Component;
  * - 检查会话中是否存在未绑定的社交账号
  * - 自动完成账号绑定
  * </p>
- * 
+ *
  * @author george
  * @since 1.0.0
  */
 @Slf4j
 @Component
 public class SocialUserBindListener {
-    /** 社交用户服务 */
+    /**
+     * 社交用户服务
+     */
     @Resource
     private ISocialUserService socialUserService;
 
-    /** 会话存储 */
+    /**
+     * 会话存储
+     */
     @Resource
     private HttpSession session;
 
@@ -58,11 +62,11 @@ public class SocialUserBindListener {
         try {
             User user = (User) authentication.getPrincipal();
             log.info("正在绑定社交用户，系统用户ID: {}, 社交平台: {}", user.getId(), socialUser.getRegistrationId());
-            
+
             socialUser.setUser(user);
             socialUser.setBindStatus(true);
             socialUserService.saveSocialUser(socialUser);
-            
+
             session.removeAttribute(IClientConstants.SOCIAL_USER_SESSION_KEY);
             log.info("社交用户绑定成功，用户ID: {}", user.getId());
         } catch (Exception e) {
