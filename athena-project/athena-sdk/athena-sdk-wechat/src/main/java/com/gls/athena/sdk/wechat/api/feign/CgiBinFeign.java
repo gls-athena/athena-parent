@@ -22,7 +22,7 @@ public interface CgiBinFeign {
 
     /**
      * 获取全局接口调用凭据access_token
-     * 
+     *
      * @param request 包含appid和secret的请求参数
      * @return TokenResponse 包含access_token和有效期的响应结果
      * @apiNote 该接口调用有效期为2小时，需要定时刷新
@@ -32,7 +32,7 @@ public interface CgiBinFeign {
 
     /**
      * 重置API调用频率限制
-     * 
+     *
      * @param request 包含appid的请求参数
      * @return ClearQuotaResponse 清除限制的响应结果
      * @apiNote 每个账号每月只能调用10次，请谨慎使用

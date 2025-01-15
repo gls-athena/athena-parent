@@ -30,7 +30,7 @@ public class BaseEntityHandler implements MetaObjectHandler {
         // 获取当前用户 ID
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
         // 获取当前用户昵称
-        String userName = LoginUserHelper.getCurrentUserNickName().orElse(IConstants.DEFAULT_USER_USERNAME);
+        String userName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
         // 获取当前时间
         Date now = new Date();
         // 严格插入填充
@@ -55,7 +55,7 @@ public class BaseEntityHandler implements MetaObjectHandler {
         // 获取当前用户 ID
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
         // 获取当前用户昵称
-        String userName = LoginUserHelper.getCurrentUserNickName().orElse(IConstants.DEFAULT_USER_USERNAME);
+        String userName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
         // 获取当前时间
         Date now = new Date();
         // 严格更新填充
