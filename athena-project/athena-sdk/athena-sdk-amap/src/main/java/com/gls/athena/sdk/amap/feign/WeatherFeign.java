@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "athena-sdk-amap", contextId = "amap-weather", path = "/weather")
-public interface AmapWeatherFeign {
+@FeignClient(name = "athena-sdk-amap", contextId = "weather", path = "/weather")
+public interface WeatherFeign {
     /**
      * 天气查询
      *

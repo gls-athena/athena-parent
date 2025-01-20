@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "athena-sdk-amap", contextId = "amap-direction", path = "/direction")
-public interface AmapDirectionFeign {
+@FeignClient(name = "athena-sdk-amap", contextId = "direction", path = "/direction")
+public interface DirectionFeign {
 
     /**
      * 步行路径规划

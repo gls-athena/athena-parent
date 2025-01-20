@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "athena-sdk-amap", contextId = "amap-assistant", path = "/assistant")
-public interface AmapAssistantFeign {
+@FeignClient(name = "athena-sdk-amap", contextId = "assistant", path = "/assistant")
+public interface AssistantFeign {
     /**
      * 坐标转换
      *
