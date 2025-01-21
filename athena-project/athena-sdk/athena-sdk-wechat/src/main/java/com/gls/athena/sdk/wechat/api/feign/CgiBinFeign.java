@@ -1,9 +1,6 @@
 package com.gls.athena.sdk.wechat.api.feign;
 
-import com.gls.athena.sdk.wechat.api.domain.ClearQuotaRequest;
-import com.gls.athena.sdk.wechat.api.domain.ClearQuotaResponse;
-import com.gls.athena.sdk.wechat.api.domain.TokenRequest;
-import com.gls.athena.sdk.wechat.api.domain.TokenResponse;
+import com.gls.athena.sdk.wechat.api.domain.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,4 +36,14 @@ public interface CgiBinFeign {
      */
     @PostMapping("/clear_quota")
     ClearQuotaResponse clearQuota(@RequestBody ClearQuotaRequest request);
+
+    /**
+     * 查询API调用额度
+     *
+     * @param request 包含access_token和cgi_path的请求参数
+     * @return GetQuotaResponse API调用额度的响应结果
+     * @see <a href="https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/openApi-mgnt/getApiQuota.html">查询API调用额度</a>
+     */
+    @PostMapping("/openapi/quota/get")
+    GetQuotaResponse getQuota(@RequestBody GetQuotaRequest request);
 }
