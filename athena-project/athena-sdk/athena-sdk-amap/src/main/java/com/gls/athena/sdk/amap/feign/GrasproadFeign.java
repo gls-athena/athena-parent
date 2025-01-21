@@ -1,7 +1,7 @@
 package com.gls.athena.sdk.amap.feign;
 
-import com.gls.athena.sdk.amap.domain.DrivingV4Request;
-import com.gls.athena.sdk.amap.domain.DrivingV4Response;
+import com.gls.athena.sdk.amap.domain.v4.DrivingV4Request;
+import com.gls.athena.sdk.amap.domain.v4.DrivingV4Response;
 import com.gls.athena.sdk.amap.support.AmapVersion;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;

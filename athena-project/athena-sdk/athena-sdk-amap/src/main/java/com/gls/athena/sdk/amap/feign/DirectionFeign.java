@@ -1,6 +1,9 @@
 package com.gls.athena.sdk.amap.feign;
 
-import com.gls.athena.sdk.amap.domain.*;
+import com.gls.athena.sdk.amap.domain.v3.*;
+import com.gls.athena.sdk.amap.domain.v4.BicyclingV4Request;
+import com.gls.athena.sdk.amap.domain.v4.BicyclingV4Response;
+import com.gls.athena.sdk.amap.domain.v5.*;
 import com.gls.athena.sdk.amap.support.AmapVersion;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;

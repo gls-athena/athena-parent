@@ -1,9 +1,9 @@
 package com.gls.athena.sdk.amap.feign;
 
-import com.gls.athena.sdk.amap.domain.GeoV3Request;
-import com.gls.athena.sdk.amap.domain.GeoV3Response;
-import com.gls.athena.sdk.amap.domain.ReGeoV3Request;
-import com.gls.athena.sdk.amap.domain.ReGeoV3Response;
+import com.gls.athena.sdk.amap.domain.v3.GeoV3Request;
+import com.gls.athena.sdk.amap.domain.v3.GeoV3Response;
+import com.gls.athena.sdk.amap.domain.v3.ReGeoV3Request;
+import com.gls.athena.sdk.amap.domain.v3.ReGeoV3Response;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;

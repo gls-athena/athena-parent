@@ -1,7 +1,7 @@
 package com.gls.athena.sdk.amap.feign;
 
-import com.gls.athena.sdk.amap.domain.IpV3Request;
-import com.gls.athena.sdk.amap.domain.IpV3Response;
+import com.gls.athena.sdk.amap.domain.v3.IpV3Request;
+import com.gls.athena.sdk.amap.domain.v3.IpV3Response;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
