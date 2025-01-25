@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * 定时任务配置
+ * 定时任务配置类，用于配置和初始化XXL-JOB执行器
  *
  * @author george
  */
@@ -65,7 +65,7 @@ public class XxlJobConfig {
     }
 
     /**
-     * 获取调度中心地址
+     * 获取调度中心地址的方法，优先从服务发现客户端获取，否则从配置文件中获取
      *
      * @return 调度中心地址
      */
