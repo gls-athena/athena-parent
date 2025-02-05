@@ -28,6 +28,7 @@ import java.util.*;
  * 5. 错误信息收集
  *
  * @param <T> 数据对象类型
+ * @author george
  */
 @Slf4j
 @Getter

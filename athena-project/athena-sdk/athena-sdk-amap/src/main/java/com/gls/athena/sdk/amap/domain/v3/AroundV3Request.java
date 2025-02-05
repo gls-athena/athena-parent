@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * 高德地图周边搜索V3请求参数
  *
- * @author lizy19
+ * @author george
  */
 @Data
 public class AroundV3Request {

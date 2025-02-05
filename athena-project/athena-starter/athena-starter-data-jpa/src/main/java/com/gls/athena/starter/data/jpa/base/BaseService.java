@@ -22,6 +22,7 @@ import java.util.Objects;
  * @param <E> 实体对象类型，需继承 BaseEntity
  * @param <C> 对象转换器类型，用于 VO 和实体对象的互相转换
  * @param <R> 数据访问仓库类型，用于实体的持久化操作
+ * @author george
  */
 public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
         C extends IConverter<V, E>, R extends IRepository<E>> implements IService<V> {
