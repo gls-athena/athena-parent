@@ -2,6 +2,7 @@ package com.gls.athena.sdk.amap.domain.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -11,7 +12,8 @@ import java.util.List;
  * @author george
  */
 @Data
-public class TextV3Response {
+@EqualsAndHashCode(callSuper = true)
+public class TextV3Response extends BaseV3Response {
     /**
      * 建议提示信息
      */
@@ -20,22 +22,11 @@ public class TextV3Response {
      * 返回结果总数目
      */
     private String count;
-    /**
-     * 返回状态说明,10000代表正确
-     */
-    private String infocode;
+
     /**
      * POI信息列表
      */
     private List<Poi> pois;
-    /**
-     * 返回状态值
-     */
-    private String status;
-    /**
-     * 返回结果说明
-     */
-    private String info;
 
     @Data
     public static class Suggestion {

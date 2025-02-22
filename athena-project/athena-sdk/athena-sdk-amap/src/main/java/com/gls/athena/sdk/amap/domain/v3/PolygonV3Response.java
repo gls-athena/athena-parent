@@ -2,6 +2,7 @@ package com.gls.athena.sdk.amap.domain.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -11,7 +12,8 @@ import java.util.List;
  * @author george
  */
 @Data
-public class PolygonV3Response {
+@EqualsAndHashCode(callSuper = true)
+public class PolygonV3Response extends BaseV3Response {
     /**
      * 建议检索关键词
      */
@@ -20,22 +22,11 @@ public class PolygonV3Response {
      * 返回结果数目
      */
     private String count;
-    /**
-     * 返回状态码
-     */
-    private String infocode;
+
     /**
      * POI信息列表
      */
     private List<Poi> pois;
-    /**
-     * 返回结果状态值
-     */
-    private String status;
-    /**
-     * 返回结果描述
-     */
-    private String info;
 
     /**
      * 建议检索关键词结构

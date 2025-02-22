@@ -2,6 +2,7 @@ package com.gls.athena.sdk.amap.domain.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -12,7 +13,8 @@ import java.util.List;
  * @see <a href="https://lbs.amap.com/api/webservice/guide/api/search">周边搜索API文档</a>
  */
 @Data
-public class AroundV3Response {
+@EqualsAndHashCode(callSuper = true)
+public class AroundV3Response extends BaseV3Response {
     /**
      * 搜索建议对象
      */
@@ -22,21 +24,9 @@ public class AroundV3Response {
      */
     private String count;
     /**
-     * 返回状态码
-     */
-    private String infocode;
-    /**
      * POI信息列表
      */
     private List<POI> pois;
-    /**
-     * 返回状态值
-     */
-    private String status;
-    /**
-     * 返回结果说明
-     */
-    private String info;
 
     /**
      * 搜索建议信息

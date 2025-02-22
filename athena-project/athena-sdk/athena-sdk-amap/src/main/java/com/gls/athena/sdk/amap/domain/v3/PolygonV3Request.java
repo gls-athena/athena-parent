@@ -1,6 +1,8 @@
 package com.gls.athena.sdk.amap.domain.v3;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 /**
  * 高德地图多边形搜索V3请求参数
@@ -8,12 +10,9 @@ import lombok.Data;
  * @author george
  */
 @Data
-public class PolygonV3Request {
-    /**
-     * 用户在高德地图官网申请Web服务API类型KEY（必填）
-     */
-    private String key;
-
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+public class PolygonV3Request extends BaseV3Request {
     /**
      * 经纬度坐标对（必填）
      * 规则：经度和纬度用","分割，经度在前，纬度在后，坐标对用"|"分割
@@ -55,15 +54,4 @@ public class PolygonV3Request {
      * 默认值：base
      */
     private String extensions;
-
-    /**
-     * 数字签名（可选）
-     */
-    private String sig;
-
-    /**
-     * 回调函数（可选）
-     * 仅在output=JSON时有效
-     */
-    private String callback;
 }
