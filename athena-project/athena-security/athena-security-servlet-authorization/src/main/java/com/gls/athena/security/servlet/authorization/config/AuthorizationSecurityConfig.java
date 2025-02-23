@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -33,7 +32,6 @@ public class AuthorizationSecurityConfig {
      *
      * @param http                          Http安全
      * @param authorizationServerCustomizer OAuth2授权服务器自定义器
-     * @param resourceServerCustomizer      OAuth2资源服务器自定义器
      * @param exceptionHandlingCustomizer   异常处理自定义器
      * @return SecurityFilterChain 安全过滤器链
      * @throws Exception 异常
@@ -42,14 +40,13 @@ public class AuthorizationSecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authorizationSecurityFilterChain(HttpSecurity http,
                                                                 AuthorizationServerCustomizer authorizationServerCustomizer,
-                                                                ResourceServerCustomizer resourceServerCustomizer,
                                                                 ExceptionHandlingCustomizer exceptionHandlingCustomizer) throws Exception {
+        // OAuth2授权服务器配置
+        OAuth2AuthorizationServerConfigurer authorizationServer = OAuth2AuthorizationServerConfigurer.authorizationServer();
+        // 授权服务器安全匹配
+        http.securityMatcher(authorizationServer.getEndpointsMatcher());
         // 默认安全配置
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-        // 自定义安全配置
-        authorizationServerCustomizer.customize(http.getConfigurer(OAuth2AuthorizationServerConfigurer.class));
-        // 资源服务器
-        http.oauth2ResourceServer(resourceServerCustomizer);
+        http.with(authorizationServer, authorizationServerCustomizer);
         // 异常处理
         http.exceptionHandling(exceptionHandlingCustomizer);
         // 构建
