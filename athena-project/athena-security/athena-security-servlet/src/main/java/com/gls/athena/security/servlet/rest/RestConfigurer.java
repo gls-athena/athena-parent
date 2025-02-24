@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.AuthenticationConverter;
@@ -56,6 +57,15 @@ public final class RestConfigurer<H extends HttpSecurityBuilder<H>> extends
      */
     public RestConfigurer() {
         super(new RestAuthenticationFilter(), null);
+    }
+
+    /**
+     * REST 自定义器
+     *
+     * @return REST 自定义器
+     */
+    public static RestConfigurer<HttpSecurity> rest() {
+        return new RestConfigurer<>();
     }
 
     /**

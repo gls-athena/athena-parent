@@ -76,9 +76,9 @@ public class AuthorizationSecurityConfig {
                                                           ResourceServerCustomizer resourceServerCustomizer,
                                                           CsrfCustomizer csrfCustomizer) throws Exception {
         // REST 登录
-        http.with(new RestConfigurer<>(), restCustomizer);
+        http.with(RestConfigurer.rest(), restCustomizer);
         // 验证码
-        http.with(new CaptchaConfigurer<>(), captchaCustomizer);
+        http.with(CaptchaConfigurer.captcha(), captchaCustomizer);
         // OAuth2 登录
         http.oauth2Login(oauth2LoginCustomizer);
         // 资源服务器

@@ -10,6 +10,7 @@ import com.gls.athena.security.servlet.handler.DefaultAuthenticationFailureHandl
 import lombok.Getter;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -64,6 +65,15 @@ public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
         this.authenticationFailureHandler = new DefaultAuthenticationFailureHandler();
         this.providersCustomizer = Customizer.withDefaults();
         this.captchaProperties = new CaptchaProperties();
+    }
+
+    /**
+     * 静态工厂方法，创建验证码配置器
+     *
+     * @return 验证码配置器实例
+     */
+    public static CaptchaConfigurer<HttpSecurity> captcha() {
+        return new CaptchaConfigurer<>();
     }
 
     /**
