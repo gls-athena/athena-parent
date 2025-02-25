@@ -5,6 +5,7 @@ import com.gls.athena.common.core.constant.IConstants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.HashMap;
@@ -67,6 +68,7 @@ public class ClientSecurityProperties extends BaseProperties {
      * WeChat login type enumeration
      */
     @Getter
+    @RequiredArgsConstructor
     public enum LoginType {
         /**
          * 服务商登录模式
@@ -86,9 +88,6 @@ public class ClientSecurityProperties extends BaseProperties {
          */
         private final String value;
 
-        LoginType(String value) {
-            this.value = value;
-        }
     }
 
     /**
