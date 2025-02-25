@@ -6,7 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 
 /**
- * Jackson 配置
+ * Spring Security Jackson序列化配置
+ * <p>
+ * 用于配置Spring Security相关对象的JSON序列化和反序列化
  *
  * @author george
  */
@@ -14,9 +16,12 @@ import org.springframework.security.jackson2.SecurityJackson2Modules;
 public class SecurityJacksonConfig {
 
     /**
-     * Redis对象映射器自定义
+     * 配置Redis的ObjectMapper，注册Security相关的序列化模块
+     * <p>
+     * 1. 注册标准的Spring Security序列化模块
+     * 2. 注册自定义的核心安全模块
      *
-     * @return RedisObjectMapperCustomizer
+     * @return Redis对象映射器的自定义配置
      */
     @Bean
     public RedisObjectMapperCustomizer securityRedisObjectMapperCustomizer() {
