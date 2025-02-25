@@ -7,21 +7,22 @@ import com.gls.athena.starter.data.redis.support.RedisUtil;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 基于 Redis 的验证码存取器
+ * Redis验证码存储实现
+ * 基于Redis实现验证码的存储、获取和删除操作
  *
  * @author george
  */
 public class RedisCaptchaRepository implements ICaptchaRepository {
     /**
-     * 缓存名称
+     * Redis缓存键前缀
      */
     private static final String CACHE_NAME = "captcha";
 
     /**
-     * 保存验证码
+     * 将验证码保存到Redis中
      *
-     * @param key     验证码标识
-     * @param captcha 验证码
+     * @param key     验证码唯一标识
+     * @param captcha 验证码对象
      */
     @Override
     public void save(String key, BaseCaptcha captcha) {
@@ -29,10 +30,10 @@ public class RedisCaptchaRepository implements ICaptchaRepository {
     }
 
     /**
-     * 获取验证码
+     * 从Redis中获取验证码
      *
-     * @param key 验证码标识
-     * @return 验证码
+     * @param key 验证码唯一标识
+     * @return 验证码对象，如果不存在则返回null
      */
     @Override
     public BaseCaptcha get(String key) {
@@ -40,9 +41,9 @@ public class RedisCaptchaRepository implements ICaptchaRepository {
     }
 
     /**
-     * 移除验证码
+     * 从Redis中删除指定的验证码
      *
-     * @param key 验证码标识
+     * @param key 验证码唯一标识
      */
     @Override
     public void remove(String key) {
@@ -50,10 +51,11 @@ public class RedisCaptchaRepository implements ICaptchaRepository {
     }
 
     /**
-     * 构建缓存键
+     * 构建Redis缓存键
+     * 使用 CACHE_NAME 作为前缀，确保键的唯一性
      *
-     * @param key 键
-     * @return 缓存键
+     * @param key 验证码标识
+     * @return 完整的Redis缓存键
      */
     private String buildKey(String key) {
         return CACHE_NAME + RedisUtil.SEPARATOR + key;

@@ -15,9 +15,7 @@ import java.util.Map;
 /**
  * 短信验证码发送器
  * <p>
- * 负责发送短信验证码并处理发送结果的响应。
- * 使用指定的短信模板发送验证码，并将发送结果以JSON格式返回给客户端。
- * </p>
+ * 负责发送短信验证码并处理响应结果，使用指定模板发送验证码并返回JSON格式结果
  *
  * @author george
  * @see ICaptchaSender
@@ -34,22 +32,16 @@ public class SmsCaptchaSender implements ICaptchaSender<SmsCaptcha> {
 
     /**
      * 短信模板编号
-     * <p>
-     * 用于指定发送验证码时使用的短信模板，模板中应包含验证码占位符
-     * </p>
+     * 用于指定发送验证码的短信模板
      */
     private final String templateCode;
 
     /**
      * 发送短信验证码
-     * <p>
-     * 向指定手机号发送验证码，并将发送结果写入HTTP响应。
-     * 如果发送过程中发生异常，将返回错误响应。
-     * </p>
      *
      * @param target     接收验证码的手机号
      * @param smsCaptcha 待发送的验证码对象
-     * @param response   HTTP响应对象，用于返回发送结果
+     * @param response   HTTP响应对象
      */
     @Override
     public void send(String target, SmsCaptcha smsCaptcha, HttpServletResponse response) {
@@ -67,13 +59,10 @@ public class SmsCaptchaSender implements ICaptchaSender<SmsCaptcha> {
 
     /**
      * 执行短信发送操作
-     * <p>
-     * 构建短信参数并调用消息服务发送验证码
-     * </p>
      *
      * @param target     接收验证码的手机号
      * @param smsCaptcha 待发送的验证码对象
-     * @throws RuntimeException 如果短信发送失败
+     * @throws RuntimeException 短信发送失败时抛出
      */
     private void doSendSms(String target, SmsCaptcha smsCaptcha) {
         Map<String, Object> params = Map.of(
@@ -86,12 +75,9 @@ public class SmsCaptchaSender implements ICaptchaSender<SmsCaptcha> {
 
     /**
      * 写入成功响应
-     * <p>
-     * 将发送成功的结果写入HTTP响应
-     * </p>
      *
      * @param response HTTP响应对象
-     * @throws IOException 如果写入响应失败
+     * @throws IOException 写入响应失败时抛出
      */
     private void writeSuccessResponse(HttpServletResponse response) throws IOException {
         Result<String> result = ResultStatus.SUCCESS.toResult("短信验证码发送成功");
@@ -100,9 +86,6 @@ public class SmsCaptchaSender implements ICaptchaSender<SmsCaptcha> {
 
     /**
      * 写入错误响应
-     * <p>
-     * 将发送失败的结果写入HTTP响应
-     * </p>
      *
      * @param response HTTP响应对象
      */
@@ -117,13 +100,10 @@ public class SmsCaptchaSender implements ICaptchaSender<SmsCaptcha> {
 
     /**
      * 写入HTTP响应
-     * <p>
-     * 设置响应的Content-Type并将结果写入响应体
-     * </p>
      *
      * @param response HTTP响应对象
      * @param result   要写入的结果对象
-     * @throws IOException 如果写入响应失败
+     * @throws IOException 写入响应失败时抛出
      */
     private void writeResponse(HttpServletResponse response, Result<String> result) throws IOException {
         response.setContentType(CONTENT_TYPE);

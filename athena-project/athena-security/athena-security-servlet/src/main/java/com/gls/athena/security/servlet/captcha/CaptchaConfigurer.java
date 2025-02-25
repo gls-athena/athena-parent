@@ -20,39 +20,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 验证码配置器
- * 用于配置Spring Security中的验证码功能，支持图形验证码和短信验证码
- * 可以通过链式调用配置各种参数，如验证码存储、失败处理、自定义提供器等
+ * 验证码配置类
+ * 集成Spring Security, 支持图形验证码和短信验证码的配置
  *
- * @param <H> HttpSecurityBuilder类型参数
- * @author george
+ * @param <H> HttpSecurityBuilder类型
  */
 @Getter
 public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
         extends AbstractHttpConfigurer<CaptchaConfigurer<H>, H> {
 
     /**
-     * 验证码提供器列表，支持自定义扩展
+     * 验证码提供器列表
      */
     private final List<CaptchaProvider<?>> providers;
 
     /**
-     * 验证码存储仓库，默认使用Redis实现
+     * 验证码存储仓库
      */
     private ICaptchaRepository captchaRepository;
 
     /**
-     * 认证失败处理器，处理验证码校验失败的情况
+     * 认证失败处理器
      */
     private AuthenticationFailureHandler authenticationFailureHandler;
 
     /**
-     * 验证码提供器的自定义配置接口
+     * 验证码提供器配置接口
      */
     private Customizer<List<CaptchaProvider<?>>> providersCustomizer;
 
     /**
-     * 验证码相关配置属性
+     * 验证码配置属性
      */
     private CaptchaProperties captchaProperties;
 
@@ -68,20 +66,14 @@ public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
     }
 
     /**
-     * 静态工厂方法，创建验证码配置器
-     *
-     * @return 验证码配置器实例
+     * 创建验证码配置器实例
      */
     public static CaptchaConfigurer<HttpSecurity> captcha() {
         return new CaptchaConfigurer<>();
     }
 
     /**
-     * 配置验证码存储器
-     *
-     * @param captchaRepository 自定义的验证码存储实现
-     * @return 当前配置器实例，支持链式调用
-     * @throws IllegalArgumentException 如果参数为null
+     * 设置验证码存储器
      */
     public CaptchaConfigurer<H> captchaRepository(ICaptchaRepository captchaRepository) {
         Assert.notNull(captchaRepository, "captchaRepository cannot be null");
@@ -90,7 +82,7 @@ public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
     }
 
     /**
-     * 配置认证失败处理器
+     * 设置认证失败处理器
      */
     public CaptchaConfigurer<H> failureHandler(AuthenticationFailureHandler failureHandler) {
         Assert.notNull(failureHandler, "failureHandler cannot be null");
@@ -99,7 +91,7 @@ public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
     }
 
     /**
-     * 配置验证码提供器定制器
+     * 设置验证码提供器配置
      */
     public CaptchaConfigurer<H> providersCustomizer(Customizer<List<CaptchaProvider<?>>> providersCustomizer) {
         Assert.notNull(providersCustomizer, "providersCustomizer cannot be null");
@@ -108,7 +100,7 @@ public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
     }
 
     /**
-     * 配置验证码属性
+     * 设置验证码属性
      */
     public CaptchaConfigurer<H> properties(CaptchaProperties properties) {
         Assert.notNull(properties, "properties cannot be null");
@@ -126,10 +118,7 @@ public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
     }
 
     /**
-     * Spring Security配置方法
-     * 完成验证码过滤器的创建和注册
-     *
-     * @param builder HttpSecurity构建器
+     * 配置验证码过滤器
      */
     @Override
     public void configure(H builder) {
@@ -142,10 +131,7 @@ public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
     }
 
     /**
-     * 创建所有验证码提供器
-     * 包括自定义提供器和默认的图形、短信验证码提供器
-     *
-     * @return 所有验证码提供器的列表
+     * 初始化验证码提供器
      */
     private List<CaptchaProvider<?>> createProviders() {
         List<CaptchaProvider<?>> allProviders = new ArrayList<>(providers);
@@ -156,9 +142,6 @@ public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
 
     /**
      * 创建短信验证码提供器
-     * 根据配置属性初始化短信验证码的生成器和发送器
-     *
-     * @return 短信验证码提供器实例
      */
     private CaptchaProvider<?> createSmsCaptchaProvider() {
         CaptchaProperties.Sms sms = captchaProperties.getSms();
@@ -177,9 +160,6 @@ public final class CaptchaConfigurer<H extends HttpSecurityBuilder<H>>
 
     /**
      * 创建图形验证码提供器
-     * 根据配置属性初始化图形验证码的生成器和发送器
-     *
-     * @return 图形验证码提供器实例
      */
     private CaptchaProvider<?> createImageCaptchaProvider() {
         CaptchaProperties.Image image = captchaProperties.getImage();
