@@ -20,7 +20,7 @@ public class ResourceSecurityConfig {
      * 资源安全过滤器链
      *
      * @param http                            Http安全
-     * @param oauth2ResourceServerCustomizer  OAuth2资源服务器自定义器
+     * @param resourceServerCustomizer  OAuth2资源服务器自定义器
      * @param authorizeHttpRequestsCustomizer 请求授权自定义器
      * @param csrfCustomizer                  CSRF自定义器
      * @return SecurityFilterChain 安全过滤器链
@@ -28,11 +28,11 @@ public class ResourceSecurityConfig {
      */
     @Bean
     public SecurityFilterChain resourceSecurityFilterChain(HttpSecurity http,
-                                                           ResourceServerCustomizer oauth2ResourceServerCustomizer,
+                                                           ResourceServerCustomizer resourceServerCustomizer,
                                                            AuthorizeHttpRequestsCustomizer authorizeHttpRequestsCustomizer,
                                                            CsrfCustomizer csrfCustomizer) throws Exception {
         // 资源服务器
-        http.oauth2ResourceServer(oauth2ResourceServerCustomizer);
+        http.oauth2ResourceServer(resourceServerCustomizer);
         // 配置请求授权
         http.authorizeHttpRequests(authorizeHttpRequestsCustomizer);
         // CSRF
