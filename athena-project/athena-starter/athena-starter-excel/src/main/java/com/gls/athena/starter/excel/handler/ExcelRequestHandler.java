@@ -3,6 +3,7 @@ package com.gls.athena.starter.excel.handler;
 import com.alibaba.excel.EasyExcel;
 import com.gls.athena.starter.excel.annotation.ExcelRequest;
 import com.gls.athena.starter.excel.listener.IReadListener;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
@@ -30,10 +31,12 @@ import java.util.List;
  *
  * @author george
  */
+@Slf4j
 public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
+        log.debug("解析Excel文件参数：{}", parameter);
         return parameter.hasParameterAnnotation(ExcelRequest.class);
     }
 
@@ -58,6 +61,7 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
 
         try (InputStream inputStream = getInputStream(webRequest, excelRequest.fileName())) {
             if (inputStream == null) {
+                log.error("未找到上传的Excel文件: {}", excelRequest.fileName());
                 throw new IllegalArgumentException("未找到上传的Excel文件: " + excelRequest.fileName());
             }
 

@@ -20,7 +20,7 @@ public class ResourceSecurityConfig {
      * 资源安全过滤器链
      *
      * @param http                            Http安全
-     * @param resourceServerCustomizer  OAuth2资源服务器自定义器
+     * @param resourceServerCustomizer        OAuth2资源服务器自定义器
      * @param authorizeHttpRequestsCustomizer 请求授权自定义器
      * @param csrfCustomizer                  CSRF自定义器
      * @return SecurityFilterChain 安全过滤器链
