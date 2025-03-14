@@ -22,6 +22,9 @@ public class JacksonUtilTest {
         nodeFactory = JsonNodeFactory.instance;
     }
 
+    /**
+     * 测试当所有字段都存在时，反序列化BaseVo对象应正确设置所有字段。
+     */
     @Test
     public void deserializeBaseVo_AllFieldsPresent_ShouldSetAllFields() {
         ObjectNode jsonNode = nodeFactory.objectNode();
@@ -52,6 +55,9 @@ public class JacksonUtilTest {
         assertNotNull(baseVo.getUpdateTime());
     }
 
+    /**
+     * 测试当某些字段缺失时，反序列化BaseVo对象应设置默认值（null）。
+     */
     @Test
     public void deserializeBaseVo_MissingFields_ShouldSetDefaults() {
         ObjectNode jsonNode = nodeFactory.objectNode();
@@ -74,6 +80,9 @@ public class JacksonUtilTest {
         assertNull(baseVo.getUpdateTime());
     }
 
+    /**
+     * 测试当字段数据类型无效时，反序列化BaseVo对象应抛出IllegalArgumentException异常。
+     */
     @Test
     public void deserializeBaseVo_InvalidDataTypes_ShouldThrowException() {
         ObjectNode jsonNode = nodeFactory.objectNode();
