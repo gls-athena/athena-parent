@@ -73,26 +73,35 @@ public interface IUser<R extends IRole<P>, P extends IPermission, O extends IOrg
     String getTimeZone();
 
     /**
-     * 获取当前角色
+     * 获取当前默认角色。
+     * 该方法首先检查当前角色列表是否为空，如果为空则返回null。
+     * 如果角色列表不为空，则遍历角色列表，查找并返回第一个标记为默认角色的角色对象。
+     * 如果没有找到默认角色，则返回null。
      *
-     * @return 角色
+     * @return 默认角色对象，如果不存在则返回null
      */
     default R getRole() {
+        // 检查角色列表是否为空
         if (CollUtil.isEmpty(this.getRoles())) {
             return null;
         }
+        // 遍历角色列表，查找并返回第一个默认角色
         return this.getRoles().stream().filter(IRole::getDefaultRole).findFirst().orElse(null);
     }
 
     /**
-     * 获取当前组织机构
+     * 获取当前默认的组织机构。
+     * 该方法首先检查组织机构列表是否为空，如果为空则返回null。
+     * 否则，从组织机构列表中筛选出默认的组织机构并返回。
      *
-     * @return 组织机构
+     * @return 默认的组织机构，如果不存在则返回null
      */
     default O getOrganization() {
+        // 检查组织机构列表是否为空
         if (CollUtil.isEmpty(this.getOrganizations())) {
             return null;
         }
+        // 从组织机构列表中筛选出默认的组织机构并返回
         return this.getOrganizations().stream().filter(IOrganization::getDefaultOrganization).findFirst().orElse(null);
     }
 
@@ -111,9 +120,11 @@ public interface IUser<R extends IRole<P>, P extends IPermission, O extends IOrg
     List<O> getOrganizations();
 
     /**
-     * 获取权限列表
+     * 获取当前用户的权限列表。
+     * 该方法是接口的默认实现，返回当前用户所拥有的角色列表。
+     * 角色列表中的每个角色都实现了 {@link IRole} 接口，并且与权限 {@link P} 相关联。
      *
-     * @return 权限列表
+     * @return 返回一个包含 {@link IRole} 对象的集合，表示当前用户的所有角色。
      */
     @Override
     default Collection<? extends IRole<P>> getAuthorities() {

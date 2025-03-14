@@ -18,36 +18,46 @@ public class JacksonUtil {
 
     /**
      * 反序列化基础实体
+     * <p>
+     * 该函数从给定的JsonNode中提取数据，并将其设置到BaseVo对象的相应属性中。
+     * 使用ObjectMapper进行JSON解析，支持提取多种类型的数据，包括Long、Integer、Boolean、String和Date。
      *
-     * @param mapper ObjectMapper用于JSON解析
-     * @param node   JsonNode包含要解析的数据
-     * @param baseVo 基础实体对象，将从JsonNode中获取数据并设置到该对象中
+     * @param mapper ObjectMapper对象，用于JSON解析和类型转换
+     * @param node   JsonNode对象，包含要解析的JSON数据
+     * @param baseVo BaseVo对象，将从JsonNode中提取的数据设置到该对象的属性中
      */
     public void deserializeBaseVo(ObjectMapper mapper, JsonNode node, BaseVo baseVo) {
-        // 从JsonNode中提取字段值并分配给BaseVo对象相应的属性
-
-        // 提取主键ID
+        // 从JsonNode中提取主键ID并设置到BaseVo对象中
         Optional.ofNullable(node.get("id")).map(JsonNode::asLong).ifPresent(baseVo::setId);
-        // 提取租户ID
+
+        // 从JsonNode中提取租户ID并设置到BaseVo对象中
         Optional.ofNullable(node.get("tenantId")).map(JsonNode::asLong).ifPresent(baseVo::setTenantId);
-        // 提取版本号
+
+        // 从JsonNode中提取版本号并设置到BaseVo对象中
         Optional.ofNullable(node.get("version")).map(JsonNode::asInt).ifPresent(baseVo::setVersion);
-        // 提取删除标记
+
+        // 从JsonNode中提取删除标记并设置到BaseVo对象中
         Optional.ofNullable(node.get("deleted")).map(JsonNode::asBoolean).ifPresent(baseVo::setDeleted);
-        // 提取创建人ID
+
+        // 从JsonNode中提取创建人ID并设置到BaseVo对象中
         Optional.ofNullable(node.get("createUserId")).map(JsonNode::asLong).ifPresent(baseVo::setCreateUserId);
-        // 提取创建人姓名
+
+        // 从JsonNode中提取创建人姓名并设置到BaseVo对象中
         Optional.ofNullable(node.get("createUserName")).map(JsonNode::asText).ifPresent(baseVo::setCreateUserName);
-        // 提取创建时间
+
+        // 从JsonNode中提取创建时间并设置到BaseVo对象中，使用ObjectMapper进行日期类型转换
         Optional.ofNullable(node.get("createTime")).map(date -> mapper.convertValue(date, Date.class))
                 .ifPresent(baseVo::setCreateTime);
-        // 提取更新人ID
+
+        // 从JsonNode中提取更新人ID并设置到BaseVo对象中
         Optional.ofNullable(node.get("updateUserId")).map(JsonNode::asLong).ifPresent(baseVo::setUpdateUserId);
-        // 提取更新人姓名
+
+        // 从JsonNode中提取更新人姓名并设置到BaseVo对象中
         Optional.ofNullable(node.get("updateUserName")).map(JsonNode::asText).ifPresent(baseVo::setUpdateUserName);
-        // 提取更新时间
+
+        // 从JsonNode中提取更新时间并设置到BaseVo对象中，使用ObjectMapper进行日期类型转换
         Optional.ofNullable(node.get("updateTime")).map(date -> mapper.convertValue(date, Date.class))
                 .ifPresent(baseVo::setUpdateTime);
-
     }
+
 }
