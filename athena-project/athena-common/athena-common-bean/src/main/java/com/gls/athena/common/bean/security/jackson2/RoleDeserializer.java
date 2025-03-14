@@ -11,6 +11,7 @@ import com.gls.athena.common.bean.security.Role;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 角色反序列化
@@ -32,41 +33,27 @@ public class RoleDeserializer extends JsonDeserializer<Role> {
         ObjectMapper mapper = (ObjectMapper) parser.getCodec();
         // 获取JsonNode
         JsonNode node = mapper.readTree(parser);
-        // 名称
-        String name = node.get("name").asText();
-        // 编码
-        String code = node.get("code").asText();
-        // 描述
-        String description = node.get("description").asText();
-        // 类型
-        String type = node.get("type").asText();
-        // 父角色ID
-        Long parentId = node.get("parentId").asLong();
-        // 排序
-        Integer sort = node.get("sort").asInt();
-        // 是否默认角色
-        Boolean defaultRole = node.get("defaultRole").asBoolean();
-        // 权限列表
-        List<Permission> permissions = mapper.convertValue(node.get("permissions"), new TypeReference<>() {
-        });
         // 创建Role对象
         Role role = new Role();
-        // 设置名称
-        role.setName(name);
-        // 设置编码
-        role.setCode(code);
-        // 设置描述
-        role.setDescription(description);
-        // 设置类型
-        role.setType(type);
-        // 设置父角色ID
-        role.setParentId(parentId);
-        // 设置排序
-        role.setSort(sort);
-        // 设置是否默认角色
-        role.setDefaultRole(defaultRole);
-        // 设置权限列表
-        role.setPermissions(permissions);
+        // 名称
+        Optional.ofNullable(node.get("name")).map(JsonNode::asText).ifPresent(role::setName);
+        // 编码
+        Optional.ofNullable(node.get("code")).map(JsonNode::asText).ifPresent(role::setCode);
+        // 描述
+        Optional.ofNullable(node.get("description")).map(JsonNode::asText).ifPresent(role::setDescription);
+        // 类型
+        Optional.ofNullable(node.get("type")).map(JsonNode::asText).ifPresent(role::setType);
+        // 父角色ID
+        Optional.ofNullable(node.get("parentId")).map(JsonNode::asLong).ifPresent(role::setParentId);
+        // 排序
+        Optional.ofNullable(node.get("sort")).map(JsonNode::asInt).ifPresent(role::setSort);
+        // 是否默认角色
+        Optional.ofNullable(node.get("defaultRole")).map(JsonNode::asBoolean).ifPresent(role::setDefaultRole);
+        // 权限列表
+        Optional.ofNullable(node.get("permissions"))
+                .map(permissionsNode -> mapper.<List<Permission>>convertValue(permissionsNode, new TypeReference<>() {
+                })).ifPresent(role::setPermissions);
+
         // 设置基础实体字段值
         JacksonUtil.deserializeBaseVo(mapper, node, role);
         return role;
