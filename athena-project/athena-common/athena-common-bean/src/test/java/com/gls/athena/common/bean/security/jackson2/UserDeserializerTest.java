@@ -16,6 +16,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * 测试类，用于验证 UserDeserializer 类的功能。
+ */
 class UserDeserializerTest {
 
     private UserDeserializer userDeserializer;
@@ -24,6 +27,9 @@ class UserDeserializerTest {
     private ObjectMapper mockMapper;
     private JsonNode mockNode;
 
+    /**
+     * 在每个测试方法执行前初始化测试环境。
+     */
     @BeforeEach
     void setUp() {
         userDeserializer = new UserDeserializer();
@@ -33,6 +39,11 @@ class UserDeserializerTest {
         mockNode = mock(JsonNode.class);
     }
 
+    /**
+     * 测试反序列化方法，当所有字段都存在时的场景。
+     *
+     * @throws IOException 如果反序列化过程中发生IO异常
+     */
     @Test
     void testDeserialize_AllFieldsPresent() throws IOException {
         // 模拟 JsonParser 返回 ObjectMapper 和 JsonNode
@@ -86,6 +97,11 @@ class UserDeserializerTest {
         assertNotNull(user.getOrganizations());
     }
 
+    /**
+     * 测试反序列化方法，当部分字段缺失时的场景。
+     *
+     * @throws IOException 如果反序列化过程中发生IO异常
+     */
     @Test
     void testDeserialize_SomeFieldsMissing() throws IOException {
         // 模拟 JsonParser 返回 ObjectMapper 和 JsonNode
@@ -116,6 +132,11 @@ class UserDeserializerTest {
         assertNull(user.getOrganizations());
     }
 
+    /**
+     * 测试反序列化方法，当角色列表为空时的场景。
+     *
+     * @throws IOException 如果反序列化过程中发生IO异常
+     */
     @Test
     void testDeserialize_RolesEmpty() throws IOException {
         // 模拟 JsonParser 返回 ObjectMapper 和 JsonNode
@@ -137,6 +158,11 @@ class UserDeserializerTest {
         assertNull(user.getRoles());
     }
 
+    /**
+     * 测试反序列化方法，当组织列表为空时的场景。
+     *
+     * @throws IOException 如果反序列化过程中发生IO异常
+     */
     @Test
     void testDeserialize_OrganizationsEmpty() throws IOException {
         // 模拟 JsonParser 返回 ObjectMapper 和 JsonNode
