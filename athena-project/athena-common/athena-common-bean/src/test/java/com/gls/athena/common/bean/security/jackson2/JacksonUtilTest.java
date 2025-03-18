@@ -11,11 +11,17 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * 测试JacksonUtil类的功能。
+ */
 public class JacksonUtilTest {
 
     private ObjectMapper mapper;
     private JsonNodeFactory nodeFactory;
 
+    /**
+     * 在测试开始前，初始化Object
+     */
     @BeforeEach
     public void setUp() {
         mapper = new ObjectMapper();

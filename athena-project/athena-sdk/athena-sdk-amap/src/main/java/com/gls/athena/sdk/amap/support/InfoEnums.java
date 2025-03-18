@@ -235,26 +235,29 @@ public enum InfoEnums implements IEnum<String> {
     /**
      * 根据状态值获取对应的枚举实例
      *
-     * <p>遍历所有枚举值，返回与给定状态值匹配的枚举实例。
+     * <p>该方法通过遍历所有枚举值，返回与给定状态值匹配的枚举实例。
      * 如果未找到匹配的枚举值，则返回null。</p>
      *
      * @param info 状态值（英文标识）
      * @return 匹配的枚举实例，如果未找到则返回null
      */
     public static InfoEnums getByValue(String info) {
+        // 调用IEnum.fromName方法，根据传入的状态值查找对应的枚举实例
         return IEnum.fromName(InfoEnums.class, info, false);
     }
 
     /**
      * 根据状态码获取对应的枚举实例
      *
-     * <p>遍历所有枚举值，返回与给定状态码匹配的枚举实例。
+     * <p>该方法通过遍历所有枚举值，返回与给定状态码匹配的枚举实例。
      * 如果未找到匹配的枚举值，则返回null。</p>
      *
-     * @param code 状态码
+     * @param code 状态码，用于匹配枚举实例
      * @return 匹配的枚举实例，如果未找到则返回null
      */
     public static InfoEnums getByCode(String code) {
+        // 使用IEnum工具类根据状态码获取对应的枚举实例
         return IEnum.of(InfoEnums.class, code);
     }
+
 }

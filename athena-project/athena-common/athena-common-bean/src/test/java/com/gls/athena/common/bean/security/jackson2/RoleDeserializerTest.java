@@ -19,6 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * RoleDeserializerTest 是一个用于测试 RoleDeserializer 类的单元测试类。
+ */
 public class RoleDeserializerTest {
 
     @Mock
