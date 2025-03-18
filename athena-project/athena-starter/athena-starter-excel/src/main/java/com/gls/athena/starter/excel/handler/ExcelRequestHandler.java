@@ -42,44 +42,58 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
 
     /**
      * 解析上传的Excel文件并转换为对象列表
+     * <p>
+     * 该方法用于处理上传的Excel文件，将其解析为指定类型的对象列表。首先会验证参数类型，然后根据参数信息获取目标类型和Excel请求配置。
+     * 接着，通过读取Excel文件流，使用指定的读取监听器处理文件内容，并将解析结果绑定到Spring MVC的模型视图容器中。
+     * 最终返回解析后的对象列表。
      *
      * @param parameter     方法参数信息，包含参数类型和注解信息
-     * @param mavContainer  Spring MVC的模型视图容器
-     * @param webRequest    当前Web请求对象
-     * @param binderFactory 数据绑定工厂
+     * @param mavContainer  Spring MVC的模型视图容器，用于存储模型数据和视图信息
+     * @param webRequest    当前Web请求对象，用于获取请求相关信息
+     * @param binderFactory 数据绑定工厂，用于创建数据绑定器
      * @return 解析后的对象列表
-     * @throws Exception 解析过程中的异常
+     * @throws Exception 解析过程中的异常，如文件未找到、解析错误等
      */
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+        // 验证参数类型是否合法
         validateParameterType(parameter);
 
+        // 获取目标类型和Excel请求配置
         Class<?> targetType = getTargetType(parameter);
         ExcelRequest excelRequest = getExcelRequest(parameter);
         IReadListener<?> readListener = createReadListener(excelRequest);
 
+        // 获取上传的Excel文件流并处理
         try (InputStream inputStream = getInputStream(webRequest, excelRequest.fileName())) {
             if (inputStream == null) {
                 log.error("未找到上传的Excel文件: {}", excelRequest.fileName());
                 throw new IllegalArgumentException("未找到上传的Excel文件: " + excelRequest.fileName());
             }
 
+            // 处理Excel文件内容，并将解析结果绑定到模型视图容器中
             processExcelFile(inputStream, targetType, readListener, excelRequest);
             bindValidationResult(mavContainer, webRequest, binderFactory, readListener);
 
+            // 返回解析后的对象列表
             return readListener.getList();
         }
     }
 
     /**
-     * 验证参数类型是否为List类型
+     * 验证方法参数的类型是否为List类型。
+     * <p>
+     * 该函数用于检查传入的方法参数是否为List类型。如果参数类型不是List，则抛出IllegalArgumentException异常，
+     * 并附带错误信息，说明期望的类型和实际类型。
      *
-     * @param parameter 方法参数信息
-     * @throws IllegalArgumentException 当参数类型不是List时抛出
+     * @param parameter 方法参数信息，包含参数的类型等元数据。
+     * @throws IllegalArgumentException 当参数类型不是List时抛出，异常信息包含期望的类型和实际类型。
      */
     private void validateParameterType(MethodParameter parameter) {
+        // 检查参数类型是否为List或其子类
         if (!List.class.isAssignableFrom(parameter.getParameterType())) {
+            // 如果类型不匹配，抛出异常并附带错误信息
             throw new IllegalArgumentException(
                     String.format("Excel解析错误：参数类型必须是List，当前类型：%s", parameter.getParameterType().getName())
             );

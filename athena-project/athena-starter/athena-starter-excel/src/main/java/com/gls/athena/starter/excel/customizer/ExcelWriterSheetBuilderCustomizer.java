@@ -30,14 +30,19 @@ public class ExcelWriterSheetBuilderCustomizer extends ExcelWriterParameterBuild
 
     /**
      * 自定义配置Sheet构建器
-     * 设置sheet编号和名称等参数
+     * 该方法用于设置Excel工作表的编号和名称等参数。
+     * 首先调用父类的customize方法进行基础配置，然后通过传入的Sheet构建器实例设置工作表的编号和名称。
      *
-     * @param builder Sheet构建器实例
+     * @param builder ExcelWriterSheetBuilder实例，用于构建和配置Excel工作表
      */
     @Override
     public void customize(final ExcelWriterSheetBuilder builder) {
+        // 调用父类的customize方法进行基础配置
         super.customize(builder);
+
+        // 设置工作表的编号和名称
         builder.sheetNo(excelSheet.sheetNo())
                 .sheetName(excelSheet.sheetName());
     }
+
 }
