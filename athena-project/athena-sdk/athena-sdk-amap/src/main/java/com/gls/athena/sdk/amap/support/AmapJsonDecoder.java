@@ -1,16 +1,15 @@
 package com.gls.athena.sdk.amap.support;
 
+import cn.hutool.core.io.IoUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
 import feign.codec.Decoder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.util.stream.Collectors;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 高德地图API响应JSON解码器
@@ -45,7 +44,7 @@ public class AmapJsonDecoder implements Decoder {
     @Override
     public Object decode(Response response, Type type) throws IOException {
         // 将响应体读取为字符串，便于后续处理
-        String body = convertInputStreamToString(response.body().asInputStream());
+        String body = getBody(response);
         log.debug("AmapJsonDecoder body: {}", body);
 
         // 处理高德地图API返回的特殊空数组格式，将其替换为null
@@ -57,20 +56,20 @@ public class AmapJsonDecoder implements Decoder {
     }
 
     /**
-     * 将输入流转换为字符串
-     * <p>
-     * 该方法使用BufferedReader和Stream API高效地读取输入流内容，并将其转换为字符串。
-     * 通过使用try-with-resources语句，确保BufferedReader在使用完毕后自动关闭，避免资源泄漏。
+     * 从HTTP响应中获取响应体内容并转换为字符串
      *
-     * @param inputStream HTTP响应体输入流，需要被转换为字符串的输入流
-     * @return 转换后的字符串内容，包含输入流中的所有数据
-     * @throws IOException 当读取输入流失败时抛出，可能是由于输入流不可读或读取过程中发生错误
+     * @param response HTTP响应对象，包含需要读取的响应体
+     * @return 响应体的字符串形式，使用UTF-8编码解析
+     * @throws IOException 当读取响应体内容过程中发生I/O异常时抛出
      */
-    private String convertInputStreamToString(InputStream inputStream) throws IOException {
-        // 使用BufferedReader和Stream API读取输入流内容，并将其转换为字符串
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            // 使用Stream API将输入流中的每一行连接成一个字符串，行与行之间使用系统默认的行分隔符分隔
-            return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+    private String getBody(Response response) throws IOException {
+        try {
+            // 将响应体转换为输入流，并通过工具类读取流内容
+            InputStream inputStream = response.body().asInputStream();
+            return IoUtil.read(inputStream, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            // 统一将异常封装为IOException抛出
+            throw new IOException(e);
         }
     }
 
