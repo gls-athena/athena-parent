@@ -41,11 +41,15 @@ public class CacheConfig implements CachingConfigurer {
      * 该方法实现自{@link CachingConfigurer}接口，用于为Spring Cache提供缓存解析策略。
      * 缓存解析器负责在运行时解析缓存操作和确定目标缓存。
      * </p>
+     * <p>
+     * 该方法返回默认的缓存解析器实例，该实例通常由Spring框架自动配置或通过自定义配置提供。
+     * </p>
      *
-     * @return {@link CacheResolver} 缓存解析器实例
+     * @return {@link CacheResolver} 缓存解析器实例，用于解析缓存操作并确定目标缓存
      */
     @Override
     public CacheResolver cacheResolver() {
         return defaultCacheResolver;
     }
+
 }
