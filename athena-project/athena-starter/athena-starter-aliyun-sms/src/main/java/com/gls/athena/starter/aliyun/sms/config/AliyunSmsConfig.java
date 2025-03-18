@@ -16,13 +16,18 @@ public class AliyunSmsConfig {
 
     /**
      * 创建短信客户端
+     * <p>
+     * 该方法用于根据阿里云短信配置创建一个短信客户端实例。如果Spring容器中不存在名为 "smsAcsClient" 的Bean，
+     * 则会调用该方法创建并注册该Bean。
      *
-     * @param aliyunSmsProperties 短信配置
-     * @return IAcsClient
+     * @param aliyunSmsProperties 阿里云短信配置，包含访问阿里云短信服务所需的必要信息，如AccessKey、SecretKey等。
+     * @return IAcsClient 返回一个实现了IAcsClient接口的短信客户端实例，用于与阿里云短信服务进行交互。
      */
     @Bean
     @ConditionalOnMissingBean(name = "smsAcsClient")
     public IAcsClient smsAcsClient(AliyunSmsProperties aliyunSmsProperties) {
+        // 调用AliyunHelper工具类的方法，根据配置创建并返回一个短信客户端实例
         return AliyunHelper.createAcsClient(aliyunSmsProperties);
     }
+
 }
