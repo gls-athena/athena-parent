@@ -36,34 +36,42 @@ public class JacksonConfig {
      * Jackson 全局配置
      *
      * <p>
-     * Jackson 是 spring boot 的默认 JSON 序列化与反序列化工具,
-     * 通过该配置,可以对 Jackson 的行为进行设置。
+     * Jackson 是 Spring Boot 默认的 JSON 序列化与反序列化工具。
+     * 通过该配置函数，可以对 Jackson 的行为进行全局设置，包括地区、时区、日期格式、未知属性处理以及空值处理等。
      * </p>
      *
-     * @return Jackson2ObjectMapperBuilderCustomizer
+     * <p>
+     * 该函数返回一个 {@link Jackson2ObjectMapperBuilderCustomizer} 实例，用于自定义 Jackson 的 ObjectMapper 配置。
+     * </p>
+     *
+     * @return {@link Jackson2ObjectMapperBuilderCustomizer} 返回一个自定义的 Jackson 配置器，用于全局配置 Jackson 的行为。
      */
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> {
-            // 设置 Jackson 的全局地区
+            // 配置 Jackson 的全局地区为中国
             builder.locale(Locale.CHINA);
-            // 设置 Jackson 的全局时区
+
+            // 配置 Jackson 的全局时区为系统默认时区
             builder.timeZone(TimeZone.getTimeZone(ZoneId.systemDefault()));
-            // 设置 Jackson 的全局日期格式
+
+            // 配置 Jackson 的全局日期格式为默认日期格式
             builder.dateFormat(new DefaultDateFormat());
-            // 在反序列化时,忽略未知的属性,因此,在反序列化时,如果 JSON 中存在未知的字段,
-            // Jackson 将忽略该字段,而不是抛出异常。
+
+            // 配置 Jackson 在反序列化时忽略未知属性，避免抛出异常
             builder.failOnUnknownProperties(false);
-            // 序列化时,忽略值为 null 的字段,因此,在序列化时,如果对象中存在值为 null 的字段,
-            // Jackson 将忽略该字段,而不是将其序列化为 null。
+
+            // 配置 Jackson 在序列化时始终包含所有字段，即使字段值为 null
             builder.serializationInclusion(JsonInclude.Include.ALWAYS);
         };
     }
 
     /**
-     * Java 8 时间序列化与反序列化规则
+     * 配置并返回一个 JavaTimeModule 实例，用于处理 Java 8 时间类型的序列化与反序列化规则。
+     * 该模块定义了 LocalDateTime、LocalDate 和 LocalTime 的序列化与反序列化格式，
+     * 并添加了异常类的序列化与反序列化规则。
      *
-     * @return JavaTimeModule
+     * @return JavaTimeModule 实例，包含配置好的时间序列化与反序列化规则。
      */
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -71,26 +79,26 @@ public class JacksonConfig {
         JavaTimeModule javaTimeModule = new JavaTimeModule();
 
         // ======================= 时间序列化规则 ===============================
-        // yyyy-MM-dd HH:mm:ss
+        // 配置 LocalDateTime 的序列化格式为 "yyyy-MM-dd HH:mm:ss"
         javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DatePattern.NORM_DATETIME_FORMATTER));
-        // yyyy-MM-dd
+        // 配置 LocalDate 的序列化格式为 "yyyy-MM-dd"
         javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(DatePattern.NORM_DATE_FORMATTER));
-        // HH:mm:ss
+        // 配置 LocalTime 的序列化格式为 "HH:mm:ss"
         javaTimeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(DatePattern.NORM_TIME_FORMATTER));
 
         // ======================= 时间反序列化规则 ==============================
-        // yyyy-MM-dd HH:mm:ss
+        // 配置 LocalDateTime 的反序列化格式为 "yyyy-MM-dd HH:mm:ss"
         javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DatePattern.NORM_DATETIME_FORMATTER));
-        // yyyy-MM-dd
+        // 配置 LocalDate 的反序列化格式为 "yyyy-MM-dd"
         javaTimeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(DatePattern.NORM_DATE_FORMATTER));
-        // HH:mm:ss
+        // 配置 LocalTime 的反序列化格式为 "HH:mm:ss"
         javaTimeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DatePattern.NORM_TIME_FORMATTER));
 
         // ======================= 异常序列化与反序列化规则 ========================
+        // 配置 Exception 类的序列化与反序列化规则，使用 GenericExceptionMixin 类来处理
         javaTimeModule.setMixInAnnotation(Exception.class, GenericExceptionMixin.class);
 
-        // 该 Mixin 将在反序列化时,将 JSON 中的 message, type, stackTrace 三个字段反序列化为
-        // Exception 对象的 message, className, stackTrace 三个字段
+        // 返回配置好的 JavaTimeModule 实例
         return javaTimeModule;
     }
 
