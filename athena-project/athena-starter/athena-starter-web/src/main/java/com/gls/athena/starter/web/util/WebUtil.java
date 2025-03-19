@@ -1,6 +1,5 @@
 package com.gls.athena.starter.web.util;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.servlet.JakartaServletUtil;
 import cn.hutool.json.JSONUtil;
@@ -9,11 +8,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.WebUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -25,17 +25,27 @@ import java.util.Optional;
 public class WebUtil {
 
     /**
-     * 获取请求参数
+     * 将HttpServletRequest中的请求参数转换为MultiValueMap结构
      *
-     * @param request 请求
-     * @return 请求参数
+     * @param request HttpServletRequest对象，包含客户端请求的参数
+     * @return LinkedMultiValueMap<String, String> 保持参数顺序的MultiValueMap结构，
+     * 其中键为参数名，值为参数值列表（支持多值参数）
+     * <p>
+     * 实现逻辑：
+     * 1. 通过request.getParameterMap()获取原始参数映射
+     * 2. 将每个参数值数组转换为ArrayList，以适配MultiValueMap的值类型要求
+     * 3. 使用Linked结构保持参数原始顺序
      */
     public MultiValueMap<String, String> getParameterMap(HttpServletRequest request) {
-        // 创建参数映射
+        // 创建保持插入顺序的MultiValueMap实例
         MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
-        // 遍历请求参数
-        request.getParameterMap().forEach((key, value) -> parameterMap.put(key, CollUtil.newArrayList(value)));
-        // 返回参数映射
+
+        // 遍历处理所有请求参数：将String[]转换为List<String>
+        // 兼容Servlet规范中参数多值的存储格式
+        request.getParameterMap().forEach((key, values) ->
+                parameterMap.put(key, new ArrayList<>(Arrays.asList(values)))
+        );
+
         return parameterMap;
     }
 
@@ -45,15 +55,10 @@ public class WebUtil {
      * @return 请求
      */
     public Optional<HttpServletRequest> getRequest() {
-        // 获取请求属性
-        RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
-        // 如果是Servlet请求属性
-        if (requestAttributes instanceof ServletRequestAttributes servletRequestAttributes) {
-            // 返回请求
-            return Optional.of(servletRequestAttributes.getRequest());
-        }
-        // 返回空
-        return Optional.empty();
+        return Optional.of(RequestContextHolder.currentRequestAttributes())
+                .filter(ServletRequestAttributes.class::isInstance)
+                .map(ServletRequestAttributes.class::cast)
+                .map(ServletRequestAttributes::getRequest);
     }
 
     /**
@@ -62,15 +67,10 @@ public class WebUtil {
      * @return 响应
      */
     public Optional<HttpServletResponse> getResponse() {
-        // 获取请求属性
-        RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
-        // 如果是Servlet请求属性
-        if (requestAttributes instanceof ServletRequestAttributes servletRequestAttributes) {
-            // 返回响应
-            return Optional.ofNullable(servletRequestAttributes.getResponse());
-        }
-        // 返回空
-        return Optional.empty();
+        return Optional.of(RequestContextHolder.currentRequestAttributes())
+                .filter(ServletRequestAttributes.class::isInstance)
+                .map(ServletRequestAttributes.class::cast)
+                .map(ServletRequestAttributes::getResponse);
     }
 
     /**
