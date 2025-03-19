@@ -34,10 +34,11 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     protected C converter;
 
     /**
-     * 插入一条记录
+     * 插入一条记录。
      *
-     * @param vo 视图对象
-     * @return 插入后的视图对象，如果插入失败则返回null
+     * @param vo 要插入的视图对象，不能为null
+     * @return 插入成功后的视图对象，如果插入失败则返回null
+     * @throws IllegalArgumentException 如果传入的vo为null
      */
     @Override
     public V insert(V vo) {
@@ -62,10 +63,11 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     }
 
     /**
-     * 更新一条记录
+     * 更新一条记录。
      *
-     * @param vo 视图对象
-     * @return 更新后的视图对象，如果更新失败则返回null
+     * @param vo 要更新的视图对象，不能为null
+     * @return 更新成功后的视图对象，如果更新失败则返回null
+     * @throws IllegalArgumentException 如果传入的vo或转换器为null
      */
     @Override
     public V update(V vo) {
@@ -89,10 +91,11 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     }
 
     /**
-     * 删除一条记录
+     * 根据主键ID删除一条记录。
      *
-     * @param id 主键ID
-     * @return 删除是否成功
+     * @param id 要删除记录的主键ID，必须大于0
+     * @return 删除成功返回true，否则返回false
+     * @throws IllegalArgumentException 如果传入的id为null或小于等于0
      */
     @Override
     public Boolean delete(Long id) {
@@ -111,10 +114,11 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     }
 
     /**
-     * 根据主键ID获取对应实体视图对象
+     * 根据主键ID获取对应的视图对象。
      *
-     * @param id 主键ID
-     * @return 视图对象，如果获取失败则返回null
+     * @param id 要查询记录的主键ID，必须大于0
+     * @return 查询到的视图对象，如果查询失败则返回null
+     * @throws IllegalArgumentException 如果传入的id为null或小于等于0
      */
     @Override
     public V get(Long id) {
@@ -132,10 +136,11 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     }
 
     /**
-     * 根据查询条件获取VO对象列表
+     * 根据查询条件获取视图对象列表。
      *
-     * @param vo 查询条件对象
-     * @return VO对象列表，如果获取失败则返回null
+     * @param vo 查询条件对象，不能为null
+     * @return 查询到的视图对象列表，如果查询失败则返回null
+     * @throws IllegalArgumentException 如果传入的vo或转换器为null
      */
     @Override
     public List<V> list(V vo) {
@@ -160,10 +165,11 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     }
 
     /**
-     * 分页查询
+     * 执行分页查询。
      *
-     * @param pageRequest 分页请求对象
+     * @param pageRequest 分页请求对象，不能为null
      * @return 分页响应对象，如果查询失败则返回null
+     * @throws IllegalArgumentException 如果传入的pageRequest为null
      */
     @Override
     public PageResponse<V> page(PageRequest<V> pageRequest) {
@@ -193,14 +199,24 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     }
 
     /**
-     * 批量插入
+     * 批量插入视图对象列表。
      *
-     * @param vs VO列表
-     * @return 是否成功
+     * @param vs 要插入的视图对象列表，不能为null或空列表
+     * @return 批量插入成功返回true，否则返回false
+     * @throws IllegalArgumentException 如果传入的vs为null或空列表
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean saveBatch(List<V> vs) {
-        return saveBatch(converter.convertList(vs));
+        if (vs == null || vs.isEmpty()) {
+            log.error("批量插入失败，传入的VO列表为空或为空列表");
+            return false;
+        }
+        try {
+            return saveBatch(converter.convertList(vs));
+        } catch (Exception e) {
+            log.error("批量插入失败", e);
+            return false;
+        }
     }
 }
