@@ -15,7 +15,7 @@ import org.springframework.core.annotation.Order;
 import java.util.List;
 
 /**
- * Mybatis配置
+ * MyBatis配置类，用于配置MyBatis Plus的拦截器和插件。
  *
  * @author george
  */
@@ -23,7 +23,9 @@ import java.util.List;
 public class MybatisConfig {
 
     /**
-     * 乐观锁插件
+     * 创建并配置MyBatis乐观锁拦截器。
+     *
+     * @return 返回乐观锁拦截器实例
      */
     @Bean
     @Order(1)
@@ -33,7 +35,10 @@ public class MybatisConfig {
     }
 
     /**
-     * 租户插件
+     * 创建并配置租户插件拦截器。
+     *
+     * @param tenantLineHandler 租户处理器
+     * @return 返回租户插件拦截器实例
      */
     @Bean
     @Order(2)
@@ -44,7 +49,10 @@ public class MybatisConfig {
     }
 
     /**
-     * 数据权限插件
+     * 创建并配置数据权限拦截器。
+     *
+     * @param dataPermissionHandler 数据权限处理器
+     * @return 返回数据权限拦截器实例
      */
     @Bean
     @Order(3)
@@ -55,7 +63,10 @@ public class MybatisConfig {
     }
 
     /**
-     * 分页插件
+     * 创建并配置分页插件。
+     *
+     * @param mybatisProperties MyBatis配置属性
+     * @return 返回分页插件实例
      */
     @Bean
     @Order(4)
@@ -65,7 +76,10 @@ public class MybatisConfig {
     }
 
     /**
-     * 插件配置
+     * 配置MyBatis Plus拦截器。
+     *
+     * @param innerInterceptors 内部拦截器列表
+     * @return 返回配置好的MyBatis Plus拦截器实例
      */
     @Bean
     @ConditionalOnBean(InnerInterceptor.class)
@@ -76,7 +90,10 @@ public class MybatisConfig {
     }
 
     /**
-     * 自定义SqlSessionFactoryBean
+     * 自定义SqlSessionFactoryBean。
+     *
+     * @param typeHandlers 类型处理器列表
+     * @return 返回自定义的SqlSessionFactoryBean实例
      */
     @Bean
     @ConditionalOnBean(TypeHandler.class)
