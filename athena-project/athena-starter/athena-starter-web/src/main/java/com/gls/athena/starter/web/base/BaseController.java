@@ -163,15 +163,17 @@ public abstract class BaseController<Vo extends BaseVo, S extends IService<Vo>> 
     }
 
     /**
-     * 导出
+     * 执行数据导出操作并生成Excel文件
      *
-     * @param vo 查询对象
-     * @return 导出结果
+     * @param vo 包含导出查询条件的参数对象，需符合预定义的校验规则
+     * @return 符合查询条件的业务数据集合，该结果集将通过ExcelResponse处理器转换为Excel格式文件
      */
     @Operation(summary = "导出", description = "导出")
     @PostMapping(value = "/export")
     @ExcelResponse(filename = "导出数据")
     public List<Vo> exportExcel(@RequestBody @Validated Vo vo) {
+        // 调用服务层获取符合条件的数据集合
         return service.list(vo);
     }
+
 }
