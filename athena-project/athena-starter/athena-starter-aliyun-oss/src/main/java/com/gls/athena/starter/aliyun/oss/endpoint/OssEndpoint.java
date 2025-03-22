@@ -12,7 +12,8 @@ import java.util.Map;
 
 /**
  * 阿里云OSS监控端点
- * 用于监控和展示OSS客户端的配置信息和运行状态
+ * <p>
+ * 用于监控和展示OSS客户端的配置信息和运行状态。
  *
  * @author george
  */
@@ -23,21 +24,16 @@ public class OssEndpoint {
     private ApplicationContext applicationContext;
 
     /**
-     * 获取OSS客户端配置和状态信息
+     * 获取OSS客户端配置和状态信息。
      * <p>
-     * 该方法通过Spring应用上下文获取所有OSSClient实例，并聚合以下核心信息：
+     * 通过Spring应用上下文获取所有OSSClient实例，并聚合以下信息：
      * - 客户端在Spring容器中的注册名称
      * - 服务端节点地址
      * - 完整的客户端配置对象
      * - 身份凭证信息
      * - 当前账户下所有存储桶的名称列表
      *
-     * @return 返回嵌套的字典结构，外层字典的key为bean名称，value为对应客户端的详细信息字典：
-     * - beanName: 在Spring容器中的注册名称
-     * - endpoint: OSS服务接入点地址
-     * - clientConfiguration: 包含网络超时、重试策略等完整配置
-     * - credentials: 包含accessKeyId等敏感信息的认证凭证
-     * - bucketList: 当前账户下所有存储桶的名称数组
+     * @return 返回嵌套的字典结构，外层字典的key为bean名称，value为对应客户端的详细信息字典。
      */
     @ReadOperation
     public Map<String, Object> invoke() {
@@ -63,5 +59,4 @@ public class OssEndpoint {
 
         return clientsInfo;
     }
-
 }
