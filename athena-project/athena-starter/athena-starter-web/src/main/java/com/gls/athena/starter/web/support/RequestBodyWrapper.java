@@ -38,14 +38,22 @@ public class RequestBodyWrapper extends HttpServletRequestWrapper {
     private final Map<String, String[]> parameterMap;
 
     /**
-     * 构造函数
+     * 构造函数，用于封装HTTP请求体。
+     * 该构造函数初始化了请求体包装器，解析请求参数并将其存储在内部映射中。
      *
-     * @param request 请求
+     * @param request HTTP请求对象，包含客户端发送的请求信息
      */
     public RequestBodyWrapper(HttpServletRequest request) {
+        // 调用父类构造函数，初始化请求对象
         super(request);
+
+        // 初始化参数映射，用于存储请求参数
         this.parameterMap = new HashMap<>();
+
+        // 获取请求体内容并存储在body字段中
         this.body = getBodyString(request);
+
+        // 解析请求体，将参数存储到parameterMap中
         parseRequestBody(request);
     }
 
@@ -219,8 +227,16 @@ public class RequestBodyWrapper extends HttpServletRequestWrapper {
         return values != null && values.length > 0 ? values[0] : super.getParameter(name);
     }
 
+    /**
+     * 获取请求参数的映射表。
+     * 如果当前对象的 `parameterMap` 为空，则调用父类的 `getParameterMap()` 方法获取参数映射表；
+     * 否则，直接返回当前对象的 `parameterMap`。
+     *
+     * @return 包含请求参数的映射表，键为参数名，值为参数值的字符串数组。
+     */
     @Override
     public Map<String, String[]> getParameterMap() {
+        // 如果当前对象的 parameterMap 为空，则调用父类的方法；否则返回当前对象的 parameterMap。
         return parameterMap.isEmpty() ? super.getParameterMap() : parameterMap;
     }
 
