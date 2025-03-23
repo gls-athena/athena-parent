@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * web工具类
+ * Web工具类，提供与HTTP请求和响应相关的实用方法。
  *
  * @author george
  */
@@ -25,34 +25,29 @@ import java.util.Optional;
 public class WebUtil {
 
     /**
-     * 将HttpServletRequest中的请求参数转换为MultiValueMap结构
+     * 将HttpServletRequest中的请求参数转换为MultiValueMap结构。
      *
-     * @param request HttpServletRequest对象，包含客户端请求的参数
+     * @param request HttpServletRequest对象，包含客户端请求的参数。
      * @return LinkedMultiValueMap<String, String> 保持参数顺序的MultiValueMap结构，
-     * 其中键为参数名，值为参数值列表（支持多值参数）
+     * 其中键为参数名，值为参数值列表（支持多值参数）。
      * <p>
      * 实现逻辑：
-     * 1. 通过request.getParameterMap()获取原始参数映射
-     * 2. 将每个参数值数组转换为ArrayList，以适配MultiValueMap的值类型要求
-     * 3. 使用Linked结构保持参数原始顺序
+     * 1. 通过request.getParameterMap()获取原始参数映射。
+     * 2. 将每个参数值数组转换为ArrayList，以适配MultiValueMap的值类型要求。
+     * 3. 使用Linked结构保持参数原始顺序。
      */
     public MultiValueMap<String, String> getParameterMap(HttpServletRequest request) {
-        // 创建保持插入顺序的MultiValueMap实例
         MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
-
-        // 遍历处理所有请求参数：将String[]转换为List<String>
-        // 兼容Servlet规范中参数多值的存储格式
         request.getParameterMap().forEach((key, values) ->
                 parameterMap.put(key, new ArrayList<>(Arrays.asList(values)))
         );
-
         return parameterMap;
     }
 
     /**
-     * 获取请求
+     * 获取当前线程绑定的HttpServletRequest对象。
      *
-     * @return 请求
+     * @return Optional<HttpServletRequest> 包含当前请求的Optional对象，如果不存在则返回空Optional。
      */
     public Optional<HttpServletRequest> getRequest() {
         return Optional.of(RequestContextHolder.currentRequestAttributes())
@@ -62,9 +57,9 @@ public class WebUtil {
     }
 
     /**
-     * 获取响应
+     * 获取当前线程绑定的HttpServletResponse对象。
      *
-     * @return 响应
+     * @return Optional<HttpServletResponse> 包含当前响应的Optional对象，如果不存在则返回空Optional。
      */
     public Optional<HttpServletResponse> getResponse() {
         return Optional.of(RequestContextHolder.currentRequestAttributes())
@@ -74,40 +69,32 @@ public class WebUtil {
     }
 
     /**
-     * 获取请求参数
+     * 获取指定名称的请求参数值。首先从URL参数中查找，如果未找到，则从请求体中查找。
      *
-     * @param request       请求
-     * @param parameterName 参数名称
-     * @return 请求参数
+     * @param request       HttpServletRequest对象，包含客户端请求的参数。
+     * @param parameterName 参数名称。
+     * @return String 请求参数的值，如果未找到则返回null。
      */
     public String getParameter(HttpServletRequest request, String parameterName) {
-        // 获取请求参数
         String parameter = WebUtils.findParameterValue(request, parameterName);
-        // 如果请求参数不为空
         if (StrUtil.isNotBlank(parameter)) {
-            // 返回请求参数
             return parameter;
         }
-        // 返回请求体中的参数
         return getParameterByBody(request, parameterName);
     }
 
     /**
-     * 获取请求体中的参数
+     * 从请求体中获取指定名称的参数值。如果请求体是JSON格式，则解析JSON并获取指定参数。
      *
-     * @param request       请求
-     * @param parameterName 参数名称
-     * @return 请求参数
+     * @param request       HttpServletRequest对象，包含客户端请求的参数。
+     * @param parameterName 参数名称。
+     * @return String 请求体中的参数值，如果未找到或请求体不是JSON格式则返回null。
      */
     public String getParameterByBody(HttpServletRequest request, String parameterName) {
-        // 获取请求体
         String body = JakartaServletUtil.getBody(request);
-        // 如果请求体不为空
         if (StrUtil.isNotBlank(body) && JSONUtil.isTypeJSON(body)) {
-            // 返回请求体中的参数
             return JSONUtil.parseObj(body).getStr(parameterName);
         }
-        // 返回空
         return null;
     }
 }
