@@ -115,10 +115,10 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
                                   IReadListener<?> readListener, ExcelRequest excelRequest) {
         // 使用EasyExcel框架读取Excel文件，并配置读取参数
         EasyExcel.read(inputStream, targetType, readListener)
-                .headRowNumber(excelRequest.headRowNumber())  // 设置表头行号
-                .ignoreEmptyRow(excelRequest.ignoreEmptyRow())  // 设置是否忽略空行
-                .sheet()  // 选择默认的工作表
-                .doRead();  // 执行读取操作
+                .headRowNumber(excelRequest.headRowNumber())
+                .ignoreEmptyRow(excelRequest.ignoreEmptyRow())
+                .sheet()
+                .doRead();
     }
 
     /**

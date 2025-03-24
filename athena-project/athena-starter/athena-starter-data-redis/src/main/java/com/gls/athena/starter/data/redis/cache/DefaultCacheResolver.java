@@ -1,6 +1,7 @@
 package com.gls.athena.starter.data.redis.cache;
 
 import cn.hutool.core.util.StrUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.AnnotationCacheOperationSource;
 import org.springframework.cache.interceptor.AbstractCacheResolver;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
  *
  * @author george
  */
+@Slf4j
 @Component
 public class DefaultCacheResolver extends AbstractCacheResolver {
 
@@ -55,13 +57,14 @@ public class DefaultCacheResolver extends AbstractCacheResolver {
         // 获取与目标方法相关的缓存操作，并处理缓存名称
         return Optional.ofNullable(operationSource.getCacheOperations(method, beanClass))
                 .map(operations -> operations.stream()
-                        .map(CacheOperation::getCacheNames) // 提取每个缓存操作的缓存名称
-                        .flatMap(Collection::stream) // 将嵌套的集合扁平化
-                        .distinct() // 去重
-                        .map(name -> normalizedClassName + CACHE_KEY_SEPARATOR + name) // 格式化缓存名称
-                        .collect(Collectors.toList())) // 收集为列表
-                .orElseGet(() -> Collections.singletonList(
-                        normalizedClassName + CACHE_KEY_SEPARATOR + DEFAULT_CACHE_NAME)); // 若没有缓存操作，返回默认缓存名称
+                        .map(CacheOperation::getCacheNames)
+                        .flatMap(Collection::stream)
+                        .distinct()
+                        .map(name -> normalizedClassName + CACHE_KEY_SEPARATOR + name)
+                        .collect(Collectors.toList()))
+                .filter(list -> !list.isEmpty())
+                .orElse(Collections.singletonList(
+                        normalizedClassName + CACHE_KEY_SEPARATOR + DEFAULT_CACHE_NAME));
     }
 
     /**
@@ -75,6 +78,8 @@ public class DefaultCacheResolver extends AbstractCacheResolver {
     @Override
     protected Collection<String> getCacheNames(CacheOperationInvocationContext<?> context) {
         // 通过目标类和方法获取缓存名称集合
-        return getCacheNames(context.getTarget().getClass(), context.getMethod());
+        List<String> cacheNames = getCacheNames(context.getTarget().getClass(), context.getMethod());
+        log.info("缓存名称：{}", cacheNames);
+        return cacheNames;
     }
 }

@@ -54,7 +54,7 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
             // 保存实体对象
             save(entity);
             // 将保存后的实体对象转换回VO对象并返回
-            return converter.reverse(entity);
+            return converter.reverse(getById(entity.getId()));
         } catch (Exception e) {
             // 记录日志或抛出自定义异常
             log.error("插入操作失败", e);
