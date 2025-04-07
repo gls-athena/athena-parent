@@ -1,7 +1,6 @@
 package com.gls.athena.sdk.log.method;
 
-import cn.hutool.extra.spring.SpringUtil;
-import com.gls.athena.sdk.log.domain.MethodDto;
+import jakarta.annotation.Resource;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -13,6 +12,8 @@ import org.springframework.util.ReflectionUtils;
  */
 @Component
 public class MethodManager {
+    @Resource
+    private MethodEventSender methodEventSender;
 
     /**
      * 监听应用上下文刷新事件，扫描所有Bean中的方法，查找带有@MethodLog注解的方法，
@@ -41,17 +42,11 @@ public class MethodManager {
                 if (method.isAnnotationPresent(MethodLog.class)) {
                     // 获取@MethodLog注解的详细信息
                     MethodLog methodLog = method.getAnnotation(MethodLog.class);
+                    String applicationName = applicationContext.getApplicationName();
                     String className = method.getDeclaringClass().getName();
                     String methodName = method.getName();
-
-                    // 发布方法日志事件
-                    SpringUtil.publishEvent(new MethodDto()
-                            .setCode(methodLog.code())
-                            .setName(methodLog.name())
-                            .setDescription(methodLog.description())
-                            .setApplicationName(applicationContext.getApplicationName())
-                            .setClassName(className)
-                            .setMethodName(methodName));
+                    // 发送方法日志事件
+                    methodEventSender.sendMethodEvent(applicationName, className, methodName, methodLog);
                 }
             });
         }
