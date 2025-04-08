@@ -232,10 +232,10 @@ public class DefaultReadListener<T> implements IReadListener<T> {
 
         // 根据单元格的数据类型返回相应的值
         return switch (readCellData.getType()) {
-            case STRING -> readCellData.getStringValue(); // 返回字符串值
-            case BOOLEAN -> readCellData.getBooleanValue(); // 返回布尔值
-            case NUMBER -> readCellData.getNumberValue(); // 返回数值
-            default -> readCellData.getData(); // 对于其他类型，返回原始数据
+            case STRING -> readCellData.getStringValue();
+            case BOOLEAN -> readCellData.getBooleanValue();
+            case NUMBER -> readCellData.getNumberValue();
+            default -> readCellData.getData();
         };
     }
 
