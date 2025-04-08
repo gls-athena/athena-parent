@@ -38,12 +38,12 @@ public class AsyncTaskDto {
     /**
      * 任务类型
      */
-    private Integer type;
+    private AsyncTaskType type;
 
     /**
      * 任务状态
      */
-    private Integer status;
+    private AsyncTaskStatus status;
 
     /**
      * 任务参数，以键值对形式存储

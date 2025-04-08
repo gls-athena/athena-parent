@@ -36,4 +36,11 @@ public @interface AsyncTask {
      * @return 任务描述
      */
     String description() default "";
+
+    /**
+     * 任务类型
+     *
+     * @return 任务类型
+     */
+    AsyncTaskType type() default AsyncTaskType.OTHER;
 }

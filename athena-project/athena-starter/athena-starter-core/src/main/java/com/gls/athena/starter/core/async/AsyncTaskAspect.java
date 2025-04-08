@@ -55,7 +55,7 @@ public class AsyncTaskAspect {
                 });
             } else {
                 // 如果返回值不是CompletableFuture，则直接发送失败事件，表示任务未返回预期的异步结果
-                asyncTaskEventSender.sendAsyncTaskErrorEvent(taskId, point, asyncTask, new RuntimeException("Task did not return CompletableFuture"));
+                asyncTaskEventSender.sendAsyncTaskErrorEvent(taskId, point, asyncTask, new RuntimeException("返回的结果不是CompletableFuture"));
             }
 
             // 返回目标方法的执行结果

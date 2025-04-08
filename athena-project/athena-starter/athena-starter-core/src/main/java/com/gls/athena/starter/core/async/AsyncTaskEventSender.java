@@ -16,14 +16,18 @@ public class AsyncTaskEventSender {
     /**
      * 发送异步任务开始事件。
      * 该函数用于创建一个异步任务的数据传输对象（DTO），并通过Spring事件机制发布该事件。
+     * 通过此函数，可以通知系统某个异步任务已经开始执行，并传递任务的相关信息。
      *
-     * @param taskId    异步任务的唯一标识符，用于标识当前任务。
-     * @param point     ProceedingJoinPoint对象，表示当前正在执行的方法连接点，通常用于获取方法执行的上下文信息。
-     * @param asyncTask 异步任务对象，包含任务的具体信息和执行逻辑。
+     * @param taskId    异步任务的唯一标识符，用于标识当前任务。该标识符通常由系统生成，确保唯一性。
+     * @param point     ProceedingJoinPoint对象，表示当前正在执行的方法连接点。通过该对象可以获取方法执行的上下文信息，如方法参数、方法名等。
+     * @param asyncTask 异步任务对象，包含任务的具体信息和执行逻辑。该对象通常由调用方提供，用于描述任务的属性和行为。
      */
     public void sendAsyncTaskStartEvent(String taskId, ProceedingJoinPoint point, AsyncTask asyncTask) {
         // 创建异步任务的DTO对象，包含任务的相关信息
         AsyncTaskDto asyncTaskDto = createAsyncTaskDto(taskId, point, asyncTask);
+
+        // 设置任务类型为执行中，状态为待执行
+        asyncTaskDto.setStatus(AsyncTaskStatus.EXECUTING);
 
         // 通过Spring事件机制发布异步任务开始事件
         SpringUtil.publishEvent(asyncTaskDto);
@@ -47,13 +51,13 @@ public class AsyncTaskEventSender {
         asyncTaskDto.setCode(asyncTask.code());
         asyncTaskDto.setName(asyncTask.name());
         asyncTaskDto.setDescription(asyncTask.description());
+        asyncTaskDto.setType(asyncTask.type());
 
         // 从切点对象中获取方法参数并设置到异步任务对象中
         asyncTaskDto.setParams(AspectUtil.getParams(point));
 
         // 设置异步任务的类型和初始状态
-        asyncTaskDto.setType(1);
-        asyncTaskDto.setStatus(0);
+        asyncTaskDto.setStatus(AsyncTaskStatus.WAITING);
 
         return asyncTaskDto;
     }
@@ -72,8 +76,7 @@ public class AsyncTaskEventSender {
         AsyncTaskDto asyncTaskDto = createAsyncTaskDto(taskId, point, asyncTask);
 
         // 设置任务类型为错误类型，状态为失败，并记录错误信息
-        asyncTaskDto.setType(2);
-        asyncTaskDto.setStatus(1);
+        asyncTaskDto.setStatus(AsyncTaskStatus.FAIL);
         asyncTaskDto.setError(throwable.getMessage());
 
         // 发布异步任务错误事件
@@ -95,8 +98,7 @@ public class AsyncTaskEventSender {
         AsyncTaskDto asyncTaskDto = createAsyncTaskDto(taskId, point, asyncTask);
 
         // 设置任务类型为成功类型，状态为完成，并记录执行结果
-        asyncTaskDto.setType(2);
-        asyncTaskDto.setStatus(2);
+        asyncTaskDto.setStatus(AsyncTaskStatus.SUCCESS);
         asyncTaskDto.setResult(res);
 
         // 发布异步任务成功事件
