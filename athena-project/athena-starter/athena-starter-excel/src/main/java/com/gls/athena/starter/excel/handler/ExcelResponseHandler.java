@@ -1,6 +1,5 @@
 package com.gls.athena.starter.excel.handler;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.URLUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
@@ -14,6 +13,7 @@ import com.gls.athena.starter.excel.annotation.ExcelSheet;
 import com.gls.athena.starter.excel.customizer.ExcelWriterBuilderCustomizer;
 import com.gls.athena.starter.excel.customizer.ExcelWriterSheetBuilderCustomizer;
 import com.gls.athena.starter.excel.customizer.ExcelWriterTableBuilderCustomizer;
+import com.gls.athena.starter.excel.support.ExcelUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -100,7 +100,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
                 List<WriteSheet> writeSheetList = getExcelWriterSheet(excelResponse);
                 Map<Integer, List<WriteTable>> writeTableMap = getExcelWriterTable(excelResponse);
                 // 将数据写入Excel文件
-                writeData(excelWriter, writeSheetList, writeTableMap, data);
+                ExcelUtil.writeData(excelWriter, writeSheetList, writeTableMap, data);
             } finally {
                 // 确保Excel写入器完成写入操作
                 excelWriter.finish();
@@ -131,91 +131,6 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         if (returnValue == null || ((List<?>) returnValue).isEmpty()) {
             throw new IllegalArgumentException(ERROR_PREFIX + "数据不能为空");
         }
-    }
-
-    /**
-     * 写入Excel数据
-     * <p>
-     * 该方法用于将数据写入Excel文件，支持多sheet和多table的数据写入，并自动处理数据分组。
-     * 根据传入的WriteSheet列表和WriteTable映射，将数据写入对应的sheet和table中。
-     *
-     * @param excelWriter    ExcelWriter对象，用于执行Excel写入操作
-     * @param writeSheetList WriteSheet列表，包含所有需要写入的sheet信息
-     * @param writeTableMap  WriteTable映射，key为sheet编号，value为该sheet下的WriteTable列表
-     * @param data           待写入的数据列表
-     */
-    private void writeData(ExcelWriter excelWriter, List<WriteSheet> writeSheetList, Map<Integer, List<WriteTable>> writeTableMap, List<?> data) {
-        // 遍历所有WriteSheet，逐个处理每个sheet的数据写入
-        writeSheetList.forEach(writeSheet -> {
-            // 获取当前sheet对应的数据
-            List<?> sheetData = getSheetData(writeSheet, data, writeSheetList.size());
-            if (sheetData.isEmpty()) {
-                return;
-            }
-
-            // 获取当前sheet对应的WriteTable列表
-            List<WriteTable> writeTableList = writeTableMap.get(writeSheet.getSheetNo());
-            if (CollUtil.isNotEmpty(writeTableList)) {
-                // 如果存在WriteTable列表，则将数据写入对应的table中
-                writeTableData(excelWriter, writeSheet, writeTableList, sheetData);
-            } else {
-                // 如果不存在WriteTable列表，则将数据直接写入sheet中
-                writeSheetData(excelWriter, writeSheet, sheetData);
-            }
-        });
-    }
-
-    /**
-     * 获取sheet数据
-     *
-     * @param writeSheet 包含sheet信息的对象，用于获取sheet的序号
-     * @param data       包含所有sheet数据的列表，每个元素可能是一个列表，表示单个sheet的数据
-     * @param sheetCount 指定返回数据的sheet数量。如果为1，则返回全部数据；否则返回对应sheet序号的数据
-     * @return 返回指定sheet的数据列表。如果sheetCount为1，则返回整个数据列表；否则返回对应sheet序号的数据列表
-     */
-    private List<?> getSheetData(WriteSheet writeSheet, List<?> data, int sheetCount) {
-        // 根据sheetCount的值决定返回全部数据还是指定sheet的数据
-        return sheetCount == 1 ? data : (List<?>) data.get(writeSheet.getSheetNo());
-    }
-
-    /**
-     * 写入table数据
-     * <p>
-     * 该方法用于处理单个sheet中的多个table数据写入。通过遍历writeTableList，将每个table对应的数据写入到指定的sheet中。
-     *
-     * @param excelWriter    ExcelWriter对象，用于执行写入操作
-     * @param writeSheet     WriteSheet对象，表示要写入的sheet
-     * @param writeTableList List<WriteTable>对象，包含所有要写入的table信息
-     * @param sheetData      List<?>对象，包含所有sheet中的数据，每个元素对应一个table的数据
-     */
-    private void writeTableData(ExcelWriter excelWriter, WriteSheet writeSheet, List<WriteTable> writeTableList, List<?> sheetData) {
-        // 遍历writeTableList，处理每个table的数据写入
-        writeTableList.forEach(writeTable -> {
-            // 获取当前table对应的数据
-            List<?> tableData = (List<?>) sheetData.get(writeTable.getTableNo());
-            // 如果数据不为空，则设置table的class类型并执行写入操作
-            if (!tableData.isEmpty()) {
-                writeTable.setClazz(tableData.getFirst().getClass());
-                excelWriter.write(tableData, writeSheet, writeTable);
-            }
-        });
-    }
-
-    /**
-     * 写入sheet数据
-     * <p>
-     * 该方法用于将数据写入Excel的单个sheet中。首先设置sheet的数据类型，然后将数据写入指定的sheet。
-     *
-     * @param excelWriter Excel写入器，用于执行实际的写入操作。
-     * @param writeSheet  要写入的sheet对象，包含sheet的配置信息。
-     * @param sheetData   要写入的数据列表，列表中的元素类型应与sheet的数据类型一致。
-     */
-    private void writeSheetData(ExcelWriter excelWriter, WriteSheet writeSheet, List<?> sheetData) {
-        // 设置sheet的数据类型为列表中第一个元素的类型
-        writeSheet.setClazz(sheetData.getFirst().getClass());
-
-        // 将数据写入指定的sheet
-        excelWriter.write(sheetData, writeSheet);
     }
 
     /**
