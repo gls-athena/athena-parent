@@ -27,26 +27,26 @@ public class AsyncTaskAspect {
      * 环绕通知方法，用于处理带有@AsyncTask注解的方法。
      * 该方法会在目标方法执行前后执行，允许在方法执行前后添加自定义逻辑。
      *
-     * @param point     ProceedingJoinPoint对象，用于获取目标方法的相关信息，并控制目标方法的执行。
-     * @param asyncTask AsyncTask注解对象，包含注解中定义的属性值。
-     * @return Object 目标方法的返回值，如果目标方法有返回值，则返回该值；否则返回null。
-     * @throws Throwable 如果目标方法执行过程中抛出异常，则抛出该异常。
+     * @param point     连接点对象，用于获取目标方法上下文并控制方法执行流程
+     * @param asyncTask 标注在方法上的异步任务注解，包含任务配置元数据
+     * @return 目标方法的原始返回值，对CompletableFuture类型会附加回调处理
+     * @throws Throwable 传播目标方法执行过程中抛出的任何异常
      */
     @Around("@annotation(asyncTask)")
     public Object aroundAsyncTask(ProceedingJoinPoint point, AsyncTask asyncTask) throws Throwable {
-        // 创建任务ID
+        // 生成全局唯一任务标识
         String taskId = IdUtil.fastUUID();
         try {
-
-            // 发送异步任务开始事件，通知任务已开始执行
+            // 前置处理：发送任务启动事件，记录任务初始化状态
             asyncTaskEventSender.sendAsyncTaskStartEvent(taskId, point, asyncTask);
 
-            // 执行目标方法，并获取其返回值
+            // 执行目标业务方法并获取原始返回值
             Object result = point.proceed();
 
-            // 如果返回值是CompletableFuture，则等待其完成，并根据完成情况发送成功或失败事件
+            // 异步结果处理：对CompletableFuture类型结果注册完成回调
             if (result instanceof CompletableFuture<?> future) {
                 future.whenComplete((res, throwable) -> {
+                    // 后置处理：根据异步任务完成状态发送对应事件
                     if (throwable != null) {
                         asyncTaskEventSender.sendAsyncTaskErrorEvent(taskId, point, asyncTask, throwable);
                     } else {
@@ -54,17 +54,16 @@ public class AsyncTaskAspect {
                     }
                 });
             } else {
-                // 如果返回值不是CompletableFuture，则直接发送失败事件，表示任务未返回预期的异步结果
-                asyncTaskEventSender.sendAsyncTaskErrorEvent(taskId, point, asyncTask, new RuntimeException("返回的结果不是CompletableFuture"));
+                // 同步结果异常处理：不符合异步结果约定时发送错误通知
+                asyncTaskEventSender.sendAsyncTaskErrorEvent(taskId, point, asyncTask,
+                        new RuntimeException("返回的结果不是CompletableFuture"));
             }
 
-            // 返回目标方法的执行结果
             return result;
         } catch (Throwable e) {
-            // 如果目标方法执行过程中抛出异常，则发送失败事件，并重新抛出异常
+            // 异常处理：捕获执行过程中的异常并发送错误事件
             asyncTaskEventSender.sendAsyncTaskErrorEvent(taskId, point, asyncTask, e);
             throw e;
         }
     }
-
 }

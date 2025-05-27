@@ -8,44 +8,48 @@ import org.springframework.stereotype.Component;
 /**
  * 异步任务事件发送者
  *
+ * <p>负责异步任务生命周期事件（开始/成功/错误）的标准化事件封装与发布，
+ * 通过Spring事件机制实现业务解耦。</p>
+ *
  * @author george
  */
 @Component
 public class AsyncTaskEventSender {
 
     /**
-     * 发送异步任务开始事件。
-     * 该函数用于创建一个异步任务的数据传输对象（DTO），并通过Spring事件机制发布该事件。
-     * 通过此函数，可以通知系统某个异步任务已经开始执行，并传递任务的相关信息。
+     * 发送异步任务开始事件
      *
-     * @param taskId    异步任务的唯一标识符，用于标识当前任务。该标识符通常由系统生成，确保唯一性。
-     * @param point     ProceedingJoinPoint对象，表示当前正在执行的方法连接点。通过该对象可以获取方法执行的上下文信息，如方法参数、方法名等。
-     * @param asyncTask 异步任务对象，包含任务的具体信息和执行逻辑。该对象通常由调用方提供，用于描述任务的属性和行为。
+     * <p>在任务执行前触发，创建包含任务基础信息的传输对象并设置初始状态，
+     * 通过Spring事件机制广播事件。</p>
+     *
+     * @param taskId    任务唯一标识符，需保证全局唯一性
+     * @param point     方法执行上下文，用于获取切点参数信息
+     * @param asyncTask 任务注解实例，包含任务元数据配置
      */
     public void sendAsyncTaskStartEvent(String taskId, ProceedingJoinPoint point, AsyncTask asyncTask) {
-        // 创建异步任务的DTO对象，包含任务的相关信息
+        // 基础信息封装（复用创建逻辑）
         AsyncTaskDto asyncTaskDto = createAsyncTaskDto(taskId, point, asyncTask);
 
-        // 设置任务类型为执行中，状态为待执行
+        // 状态机切换：执行中状态
         asyncTaskDto.setStatus(AsyncTaskStatus.EXECUTING);
 
-        // 通过Spring事件机制发布异步任务开始事件
+        // 事件发布
         SpringUtil.publishEvent(asyncTaskDto);
     }
 
     /**
-     * 创建异步任务数据传输对象（AsyncTaskDto）。
-     * <p>
-     * 该函数根据传入的任务ID、切点对象和异步任务注解，构建并返回一个异步任务数据传输对象。
-     * 该对象包含了任务的基本信息、参数、类型和状态等。
+     * 构建异步任务数据传输对象
      *
-     * @param taskId    异步任务的唯一标识符
-     * @param point     切点对象，用于获取方法执行的上下文信息
-     * @param asyncTask 异步任务注解，包含任务的代码、名称和描述等信息
-     * @return AsyncTaskDto 返回构建好的异步任务数据传输对象
+     * <p>封装标准化的事件数据格式，包含任务元数据、执行参数和初始状态，
+     * 为不同事件类型提供统一的数据基础。</p>
+     *
+     * @param taskId    任务唯一标识符
+     * @param point     方法执行上下文，用于参数提取
+     * @param asyncTask 任务注解实例，包含code/name等元数据
+     * @return 标准化数据传输对象，已初始化等待状态
      */
     private AsyncTaskDto createAsyncTaskDto(String taskId, ProceedingJoinPoint point, AsyncTask asyncTask) {
-        // 创建异步任务对象并设置基本信息
+        // 基础元数据封装
         AsyncTaskDto asyncTaskDto = new AsyncTaskDto();
         asyncTaskDto.setTaskId(taskId);
         asyncTaskDto.setCode(asyncTask.code());
@@ -53,55 +57,58 @@ public class AsyncTaskEventSender {
         asyncTaskDto.setDescription(asyncTask.description());
         asyncTaskDto.setType(asyncTask.type());
 
-        // 从切点对象中获取方法参数并设置到异步任务对象中
+        // 动态参数注入
         asyncTaskDto.setParams(AspectUtil.getParams(point));
 
-        // 设置异步任务的类型和初始状态
+        // 初始状态设置
         asyncTaskDto.setStatus(AsyncTaskStatus.WAITING);
 
         return asyncTaskDto;
     }
 
     /**
-     * 发送异步任务错误事件。
-     * 该函数用于在异步任务执行过程中发生错误时，创建并发布一个异步任务错误事件。
+     * 发送异步任务错误事件
      *
-     * @param taskId    异步任务的唯一标识符，用于标识具体的任务。
-     * @param point     ProceedingJoinPoint对象，表示当前执行的连接点，通常用于获取方法执行的上下文信息。
-     * @param asyncTask 异步任务对象，包含任务的具体信息和状态。
-     * @param throwable 抛出的异常对象，包含错误的具体信息。
+     * <p>在任务执行异常时触发，记录错误堆栈信息并更新任务状态，
+     * 提供完整的错误上下文供监听方处理。</p>
+     *
+     * @param taskId    任务唯一标识符
+     * @param point     方法执行上下文
+     * @param asyncTask 任务注解实例
+     * @param throwable 具体异常对象，包含错误堆栈信息
      */
     public void sendAsyncTaskErrorEvent(String taskId, ProceedingJoinPoint point, AsyncTask asyncTask, Throwable throwable) {
-        // 创建异步任务DTO对象，并设置任务的基本信息
+        // 基础信息封装
         AsyncTaskDto asyncTaskDto = createAsyncTaskDto(taskId, point, asyncTask);
 
-        // 设置任务类型为错误类型，状态为失败，并记录错误信息
+        // 状态机切换：失败状态+错误记录
         asyncTaskDto.setStatus(AsyncTaskStatus.FAIL);
         asyncTaskDto.setError(throwable.getMessage());
 
-        // 发布异步任务错误事件
+        // 事件发布
         SpringUtil.publishEvent(asyncTaskDto);
     }
 
     /**
-     * 发送异步任务成功事件。
-     * 该函数用于在异步任务成功执行后，创建一个异步任务数据传输对象（AsyncTaskDto），
-     * 并设置其类型、状态和结果，最后通过Spring事件机制发布该事件。
+     * 发送异步任务成功事件
      *
-     * @param taskId    异步任务的唯一标识符，用于标识具体的异步任务。
-     * @param point     ProceedingJoinPoint对象，用于获取方法执行的上下文信息。
-     * @param asyncTask 异步任务对象，包含任务的相关信息。
-     * @param res       异步任务的执行结果，将作为事件的一部分进行传递。
+     * <p>在任务正常完成后触发，携带任务执行结果数据，
+     * 完成状态机终态切换。</p>
+     *
+     * @param taskId    任务唯一标识符
+     * @param point     方法执行上下文
+     * @param asyncTask 任务注解实例
+     * @param res       任务执行结果对象，需可序列化
      */
     public void sendAsyncTaskSuccessEvent(String taskId, ProceedingJoinPoint point, AsyncTask asyncTask, Object res) {
-        // 创建异步任务数据传输对象，并设置任务的基本信息
+        // 基础信息封装
         AsyncTaskDto asyncTaskDto = createAsyncTaskDto(taskId, point, asyncTask);
 
-        // 设置任务类型为成功类型，状态为完成，并记录执行结果
+        // 状态机切换：成功状态+结果绑定
         asyncTaskDto.setStatus(AsyncTaskStatus.SUCCESS);
         asyncTaskDto.setResult(res);
 
-        // 发布异步任务成功事件
+        // 事件发布
         SpringUtil.publishEvent(asyncTaskDto);
     }
 
