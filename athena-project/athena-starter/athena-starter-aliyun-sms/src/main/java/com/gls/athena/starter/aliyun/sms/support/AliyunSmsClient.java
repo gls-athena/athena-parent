@@ -1,13 +1,13 @@
 package com.gls.athena.starter.aliyun.sms.support;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.gls.athena.starter.aliyun.sms.config.AliyunSmsProperties;
-import lombok.experimental.UtilityClass;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * 阿里云短信工具类
@@ -15,8 +15,14 @@ import lombok.extern.slf4j.Slf4j;
  * @author george
  */
 @Slf4j
-@UtilityClass
-public class AliyunSmsHelper {
+@Component
+public class AliyunSmsClient {
+
+    @Resource
+    private IAcsClient acsClient;
+
+    @Resource
+    private AliyunSmsProperties aliyunSmsProperties;
 
     /**
      * 发送短信
@@ -27,14 +33,11 @@ public class AliyunSmsHelper {
      * @throws ClientException 如果短信发送失败，抛出此异常，包含错误信息
      */
     public void sendSms(String phone, String templateCode, String params) throws ClientException {
-        // 获取阿里云短信服务的客户端实例和配置属性
-        IAcsClient acsClient = SpringUtil.getBean("smsAcsClient");
-        AliyunSmsProperties properties = SpringUtil.getBean(AliyunSmsProperties.class);
 
         // 创建短信发送请求对象，并设置相关参数
         SendSmsRequest request = new SendSmsRequest();
         request.setPhoneNumbers(phone);
-        request.setSignName(properties.getSignName());
+        request.setSignName(aliyunSmsProperties.getSignName());
         request.setTemplateCode(templateCode);
         request.setTemplateParam(params);
 
