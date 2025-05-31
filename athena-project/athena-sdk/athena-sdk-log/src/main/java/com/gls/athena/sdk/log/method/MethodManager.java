@@ -1,6 +1,7 @@
 package com.gls.athena.sdk.log.method;
 
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -12,6 +13,9 @@ import org.springframework.util.ReflectionUtils;
  */
 @Component
 public class MethodManager {
+
+    @Value("${spring.application.name}")
+    private String applicationName;
     @Resource
     private MethodEventSender methodEventSender;
 
@@ -44,7 +48,6 @@ public class MethodManager {
                 if (method.isAnnotationPresent(MethodLog.class)) {
                     // 解析方法上的日志注解配置信息
                     MethodLog methodLog = method.getAnnotation(MethodLog.class);
-                    String applicationName = applicationContext.getApplicationName();
                     String className = method.getDeclaringClass().getName();
                     String methodName = method.getName();
 
