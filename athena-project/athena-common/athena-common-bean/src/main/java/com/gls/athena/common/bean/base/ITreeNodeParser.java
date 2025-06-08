@@ -30,11 +30,6 @@ public class ITreeNodeParser<T extends ITreeNode> implements NodeParser<T, Long>
         treeNode.setName(object.getName());
         treeNode.setWeight(object.getSort());
 
-        // 设置节点扩展属性
-        treeNode.putExtra("code", object.getCode());
-        treeNode.putExtra("description", object.getDescription());
-        treeNode.putExtra("type", object.getType());
-
         // 将源对象的所有属性复制到树节点的扩展属性中
         treeNode.putAll(BeanUtil.beanToMap(object));
     }

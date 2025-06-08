@@ -68,34 +68,6 @@ public interface ITreeNode {
     void setCode(String code);
 
     /**
-     * 获取节点类型
-     *
-     * @return 节点类型，用于区分不同业务类型的节点
-     */
-    String getType();
-
-    /**
-     * 设置节点类型
-     *
-     * @param type 节点类型，应当使用预定义的类型值
-     */
-    void setType(String type);
-
-    /**
-     * 获取节点描述信息
-     *
-     * @return 节点描述，用于补充说明节点信息
-     */
-    String getDescription();
-
-    /**
-     * 设置节点描述信息
-     *
-     * @param description 节点描述，可以为null
-     */
-    void setDescription(String description);
-
-    /**
      * 获取节点排序值
      *
      * @return 排序值，用于定义同级节点间的显示顺序
