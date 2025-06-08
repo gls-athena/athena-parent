@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.web.servlet.filter.OrderedFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.multipart.support.MultipartResolutionDelegate;
 
 import java.io.IOException;
 
@@ -31,8 +32,12 @@ public class RequestBodyFilter extends OncePerRequestFilter implements OrderedFi
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 将请求体包装为自定义的RequestBodyWrapper对象，并继续执行过滤器链
-        filterChain.doFilter(new RequestBodyWrapper(request), response);
+        // 跳过文件上传请求的包装
+        if (MultipartResolutionDelegate.isMultipartRequest(request)) {
+            filterChain.doFilter(request, response);
+        } else {
+            filterChain.doFilter(new RequestBodyWrapper(request), response);
+        }
     }
 
     /**
