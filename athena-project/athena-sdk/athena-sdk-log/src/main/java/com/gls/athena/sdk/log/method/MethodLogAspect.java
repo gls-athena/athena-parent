@@ -1,6 +1,8 @@
 package com.gls.athena.sdk.log.method;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.gls.athena.sdk.log.domain.MethodLogDto;
+import com.gls.athena.sdk.log.domain.MethodLogType;
 import com.gls.athena.starter.core.support.AspectUtil;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -12,7 +14,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.Map;
 
 /**
  * 系统日志切面
@@ -32,50 +33,48 @@ public class MethodLogAspect {
     private Tracer tracer;
 
     /**
-     * 方法事件发送器，用于发布方法执行成功/失败事件
-     */
-    @Resource
-    private MethodEventSender methodEventSender;
-
-    /**
-     * 环绕通知方法，拦截被@MethodLog注解标记的方法
+     * 方法环绕通知，用于记录方法执行的详细信息（入参、结果、耗时、异常等）
+     * 通过@Around注解匹配带有MethodLog注解的方法，进行日志记录和事件发布
      *
-     * @param point     连接点对象，包含被拦截方法的上下文信息（类实例、方法参数等）
-     * @param methodLog 方法日志注解对象，包含日志配置元数据（如日志级别、事件类型配置等）
-     * @return 被拦截方法的原始返回值，切面不会修改方法返回值
-     * @throws Throwable 传播被拦截方法抛出的原始异常，切面不会吞没异常
+     * @param point     连接点对象，包含目标方法上下文信息（类名、方法名、参数等）
+     * @param methodLog 方法上的注解对象，包含日志配置参数（业务编码、名称、描述等）
+     * @return Object 目标方法的执行结果（保持原有返回值）
+     * @throws Throwable 目标方法抛出的异常（保持原有异常抛出）
      */
     @Around("@annotation(methodLog)")
     public Object around(ProceedingJoinPoint point, MethodLog methodLog) throws Throwable {
-        // 构建基础追踪信息：获取分布式追踪ID和应用名称
-        String traceId = this.getTraceId();
-        String applicationName = SpringUtil.getApplicationName();
-
-        // 解析目标方法信息：获取完整类名和方法名称
-        String className = point.getTarget().getClass().getName();
-        String methodName = point.getSignature().getName();
-
-        // 准备方法调用上下文：提取方法参数并记录调用开始时间
-        Map<String, Object> args = AspectUtil.getParams(point);
-        Date startTime = new Date();
+        // 初始化日志传输对象并设置基础信息
+        MethodLogDto methodLogDto = new MethodLogDto();
+        methodLogDto.setCode(methodLog.code());
+        methodLogDto.setName(methodLog.name());
+        methodLogDto.setDescription(methodLog.description());
+        methodLogDto.setApplicationName(SpringUtil.getApplicationName());
+        methodLogDto.setClassName(point.getSignature().getDeclaringTypeName());
+        methodLogDto.setMethodName(point.getSignature().getName());
+        methodLogDto.setArgs(AspectUtil.getParams(point));
+        methodLogDto.setStartTime(new Date());
+        methodLogDto.setTraceId(getTraceId());
 
         try {
-            // 执行目标方法并获取返回结果
+            // 执行目标方法并记录正常结果
             Object result = point.proceed();
-
-            // 发送成功事件：包含完整调用上下文、执行结果和耗时信息
-            methodEventSender.sendSuccessEvent(traceId, args, startTime, result, methodLog,
-                    applicationName, className, methodName);
-
+            methodLogDto.setResult(result);
+            methodLogDto.setEndTime(new Date());
+            methodLogDto.setType(MethodLogType.NORMAL);
             return result;
         } catch (Throwable throwable) {
-            // 异常处理：记录错误日志并发送异常事件（包含异常堆栈信息）
+            // 捕获异常并记录错误信息
             log.error("方法执行异常：{}", throwable.getMessage(), throwable);
+            methodLogDto.setEndTime(new Date());
+            methodLogDto.setType(MethodLogType.ERROR);
+            methodLogDto.setErrorMessage(throwable.getMessage());
 
-            methodEventSender.sendErrorEvent(traceId, args, startTime, methodLog,
-                    applicationName, className, methodName, throwable);
-
+            // 记录完整异常堆栈（需添加异常处理工具类）
+            methodLogDto.setThrowable(AspectUtil.getStackTraceAsString(throwable));
             throw throwable;
+        } finally {
+            log.info("方法执行完毕：{}", methodLogDto);
+            SpringUtil.publishEvent(methodLogDto);
         }
     }
 
