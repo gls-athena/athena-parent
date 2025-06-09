@@ -65,12 +65,10 @@ public class MethodLogAspect {
         } catch (Throwable throwable) {
             // 捕获异常并记录错误信息
             log.error("方法执行异常：{}", throwable.getMessage(), throwable);
+            methodLogDto.setErrorMessage(throwable.getMessage());
+            methodLogDto.setThrowable(AspectUtil.getStackTraceAsString(throwable));
             methodLogDto.setEndTime(new Date());
             methodLogDto.setType(MethodLogType.ERROR);
-            methodLogDto.setErrorMessage(throwable.getMessage());
-
-            // 记录完整异常堆栈（需添加异常处理工具类）
-            methodLogDto.setThrowable(AspectUtil.getStackTraceAsString(throwable));
             throw throwable;
         } finally {
             log.info("方法执行完毕：{}", methodLogDto);
