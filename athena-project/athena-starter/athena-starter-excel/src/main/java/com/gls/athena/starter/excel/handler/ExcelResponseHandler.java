@@ -1,6 +1,7 @@
 package com.gls.athena.starter.excel.handler;
 
-import cn.hutool.core.util.URLUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.builder.ExcelWriterBuilder;
@@ -10,193 +11,214 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.WriteTable;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.annotation.ExcelSheet;
+import com.gls.athena.starter.excel.annotation.ExcelTable;
 import com.gls.athena.starter.excel.customizer.ExcelWriterBuilderCustomizer;
 import com.gls.athena.starter.excel.customizer.ExcelWriterSheetBuilderCustomizer;
 import com.gls.athena.starter.excel.customizer.ExcelWriterTableBuilderCustomizer;
 import com.gls.athena.starter.excel.support.ExcelUtil;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * Excel响应处理器
- * <p>
- * 处理带有 @ExcelResponse 注解的控制器方法返回值，将数据导出为Excel文件。
- * 支持多sheet、多table的导出，支持自定义导出样式。
- * <p>
- * 使用示例：
- * <pre>{@code
- * @GetMapping("/export")
- * @ExcelResponse(filename = "测试导出", sheets = {
- *     @ExcelSheet(sheetNo = 0, sheetName = "sheet1")
- * })
- * public List<UserDTO> export() {
- *     return userService.list();
- * }
- * }</pre>
+ * 处理带有@ExcelResponse注解的方法返回值，将数据写入Excel文件并返回给客户端。
  *
  * @author george
  */
 @Slf4j
 public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
 
-    private static final String EXCEL_CONTENT_TYPE = "application/vnd.ms-excel";
-    private static final String UTF_8 = "utf-8";
-    private static final String ERROR_PREFIX = "Excel响应处理器错误: ";
-
     /**
-     * 检查方法是否支持Excel响应处理
-     * <p>
-     * 该方法用于判断当前方法的返回类型是否支持Excel响应处理。通过检查方法是否带有@ExcelResponse注解来确定。
+     * 判断当前处理器是否支持给定的方法返回类型
      *
-     * @param returnType 方法的返回类型参数，包含方法的元数据信息
-     * @return 如果方法带有@ExcelResponse注解，则返回true，否则返回false
+     * @param returnType 方法返回类型参数对象，包含方法元数据信息
+     * @return boolean 返回true表示支持该返回类型（方法带有@ExcelResponse注解），否则返回false
      */
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {
-        // 检查方法是否带有@ExcelResponse注解
+        // 通过检查方法是否包含@ExcelResponse注解来确定是否支持该返回类型
         return returnType.hasMethodAnnotation(ExcelResponse.class);
     }
 
     /**
-     * 处理Excel导出响应
-     * <p>
-     * 将返回值转换为Excel文件并写入响应流。该方法首先验证返回值类型，然后将返回值转换为Excel格式，
-     * 并通过输出流将生成的Excel文件写入响应中。
+     * 处理Excel响应返回值，将数据写入Excel并输出到响应流中
      *
-     * @param returnValue  控制器方法的返回值，通常是一个列表，包含要导出到Excel的数据
-     * @param returnType   控制器方法的返回类型信息，用于确定如何生成Excel文件
-     * @param mavContainer 模型和视图容器，用于标记请求是否已处理
-     * @param webRequest   当前的Web请求，用于获取输出流
-     * @throws Exception 如果在处理过程中发生错误，抛出异常
+     * @param returnValue  控制器方法返回的数据对象
+     * @param returnType   方法参数信息，包含方法注解等元数据
+     * @param mavContainer ModelAndView容器，用于标记请求处理状态
+     * @param webRequest   原生Web请求对象，用于获取输出流
+     * @throws Exception 当Excel写入过程中发生错误时抛出
      */
     @Override
     public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-        // 验证返回值类型是否符合预期
-        validateReturnType(returnType, returnValue);
-
-        // 将返回值转换为列表形式，准备写入Excel
-        List<?> data = (List<?>) returnValue;
         // 获取Excel响应的配置信息
-        ExcelResponse excelResponse = getExcelResponse(returnType);
-
-        // 获取输出流并创建Excel写入器
-        try (OutputStream outputStream = getOutputStream(webRequest, excelResponse)) {
+        ExcelResponse excelResponse = returnType.getMethodAnnotation(ExcelResponse.class);
+        log.info("ExcelResponseHandler: {}", excelResponse);
+        // 创建Excel输出流并写入数据
+        try (OutputStream outputStream = ExcelUtil.getOutputStream(webRequest, excelResponse.filename(), excelResponse.excelType().getValue())) {
             ExcelWriter excelWriter = getExcelWriter(outputStream, excelResponse);
             try {
-                // 获取Excel工作表和表格的配置信息
-                List<WriteSheet> writeSheetList = getExcelWriterSheet(excelResponse);
-                Map<Integer, List<WriteTable>> writeTableMap = getExcelWriterTable(excelResponse);
-                // 将数据写入Excel文件
-                ExcelUtil.writeData(excelWriter, writeSheetList, writeTableMap, data);
+                // 根据是否使用模板选择不同的Excel写入方式
+                if (StrUtil.isEmpty(excelResponse.template())) {
+                    // 如果没有模板，则直接写入数据
+                    writeDataToExcel(returnValue, excelWriter, excelResponse);
+                } else {
+                    // 如果使用了模板，则填充数据
+                    fillDataToExcel(returnValue, excelWriter, excelResponse);
+                }
+            } catch (Exception e) {
+                log.error("Error writing Excel response", e);
+                throw e;
             } finally {
                 // 确保Excel写入器完成写入操作
                 excelWriter.finish();
             }
         }
-
         // 标记请求已处理
         mavContainer.setRequestHandled(true);
     }
 
     /**
-     * 校验返回值类型是否符合要求。
-     * <p>
-     * 该方法用于检查方法的返回值类型是否为List类型，并且返回值是否为空。
-     * 如果返回值类型不是List类型，或者返回值为空，则抛出IllegalArgumentException异常。
+     * 将数据填充到Excel工作表中
      *
-     * @param returnType  方法返回值的类型信息，包含返回值的Class类型等。
-     * @param returnValue 方法的实际返回值，需要校验其类型和内容。
-     * @throws IllegalArgumentException 当返回值类型不是List类型，或者返回值为空时抛出该异常。
+     * @param data          待填充的数据对象，可以是单个对象或对象列表
+     * @param excelWriter   Excel写入工具实例，用于操作Excel文件
+     * @param excelResponse Excel响应对象，包含工作表配置信息
      */
-    private void validateReturnType(MethodParameter returnType, Object returnValue) {
-        // 检查返回值类型是否为List类型
-        if (!List.class.isAssignableFrom(returnType.getParameterType())) {
-            throw new IllegalArgumentException(ERROR_PREFIX + "@ExcelResponse只支持List类型返回值");
+    private void fillDataToExcel(Object data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
+        ExcelSheet[] excelSheets = excelResponse.sheets();
+
+        // 单工作表处理：直接填充整个数据对象到唯一工作表
+        if (excelSheets.length == 1) {
+            ExcelSheet excelSheet = excelSheets[0];
+            fillSingleSheet(data, excelWriter, excelSheet);
+            return;
         }
 
-        // 检查返回值是否为空或空列表
-        if (returnValue == null || ((List<?>) returnValue).isEmpty()) {
-            throw new IllegalArgumentException(ERROR_PREFIX + "数据不能为空");
+        // 多工作表处理：将数据转换为列表后，按工作表编号分配对应数据
+        List<?> dataList = Convert.toList(data);
+        for (ExcelSheet excelSheet : excelSheets) {
+            Object sheetData = dataList.get(excelSheet.sheetNo());
+            fillSingleSheet(sheetData, excelWriter, excelSheet);
         }
     }
 
     /**
-     * 根据Excel响应对象生成一个包含所有表格的映射，其中键为工作表编号，值为该工作表中所有表格的列表。
+     * 填充单个Excel工作表的数据
      *
-     * @param excelResponse Excel响应对象，包含多个工作表及其表格信息。
-     * @return 一个Map，其中键为工作表的编号（Integer类型），值为该工作表中所有表格的列表（List<WriteTable>类型）。
+     * @param sheetData   要填充到工作表的数据对象，可以是POJO、Map或List等类型
+     * @param excelWriter Excel写入工具实例，用于执行实际的填充操作
+     * @param excelSheet  Excel工作表配置信息，包含工作表名称等参数
      */
-    private Map<Integer, List<WriteTable>> getExcelWriterTable(ExcelResponse excelResponse) {
-        // 遍历Excel响应中的所有工作表，并将其转换为一个Map，键为工作表编号，值为该工作表中所有表格的列表
-        return Arrays.stream(excelResponse.sheets()).collect(Collectors.toMap(ExcelSheet::sheetNo, excelSheet ->
-                // 遍历当前工作表中的所有表格，并将其转换为WriteTable对象
-                Arrays.stream(excelSheet.tables()).map(excelTable -> {
-                    // 创建ExcelWriterTableBuilder对象，用于构建WriteTable
-                    ExcelWriterTableBuilder excelWriterTableBuilder = EasyExcel.writerTable(excelTable.tableNo());
-                    // 创建ExcelWriterTableBuilderCustomizer对象，用于自定义表格构建过程
-                    ExcelWriterTableBuilderCustomizer excelWriterTableBuilderCustomizer = new ExcelWriterTableBuilderCustomizer(excelTable);
-                    // 应用自定义逻辑到表格构建器
-                    excelWriterTableBuilderCustomizer.customize(excelWriterTableBuilder);
-                    // 构建并返回WriteTable对象
-                    return excelWriterTableBuilder.build();
-                }).toList()));
+    private void fillSingleSheet(Object sheetData, ExcelWriter excelWriter, ExcelSheet excelSheet) {
+        // 根据配置创建EasyExcel所需的WriteSheet对象
+        WriteSheet writeSheet = getWriteSheet(excelSheet);
+
+        // 使用ExcelWriter将数据填充到指定工作表
+        excelWriter.fill(sheetData, writeSheet);
     }
 
     /**
-     * 根据Excel响应对象生成对应的WriteSheet列表。
-     * <p>
-     * 该方法接收一个ExcelResponse对象，遍历其中的所有sheet配置，为每个sheet生成一个WriteSheet对象。
-     * 每个WriteSheet对象通过EasyExcel的writerSheet方法创建，并使用自定义的ExcelWriterSheetBuilderCustomizer
-     * 进行配置。最终返回包含所有WriteSheet对象的列表。
+     * 将数据写入Excel文件
      *
-     * @param excelResponse 包含Excel sheet配置的响应对象，不能为null
-     * @return 返回一个包含所有WriteSheet对象的列表，列表中的每个WriteSheet对象对应一个Excel sheet
+     * @param data          要写入的数据对象，可以是单个对象或对象列表
+     * @param excelWriter   Excel写入工具实例，用于实际写入操作
+     * @param excelResponse Excel响应对象，包含工作表配置信息
      */
-    private List<WriteSheet> getExcelWriterSheet(ExcelResponse excelResponse) {
-        // 遍历excelResponse中的所有sheet配置，为每个sheet生成一个WriteSheet对象
-        return Arrays.stream(excelResponse.sheets()).map(excelSheet -> {
-            // 使用EasyExcel创建WriteSheetBuilder，并设置sheet编号和名称
-            ExcelWriterSheetBuilder excelWriterSheetBuilder = EasyExcel.writerSheet(excelSheet.sheetNo(), excelSheet.sheetName());
+    private void writeDataToExcel(Object data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
+        ExcelSheet[] excelSheets = excelResponse.sheets();
 
-            // 使用自定义的ExcelWriterSheetBuilderCustomizer对WriteSheetBuilder进行配置
-            ExcelWriterSheetBuilderCustomizer excelWriterSheetBuilderCustomizer = new ExcelWriterSheetBuilderCustomizer(excelSheet);
-            excelWriterSheetBuilderCustomizer.customize(excelWriterSheetBuilder);
+        // 处理单工作表情况
+        if (excelSheets.length == 1) {
+            ExcelSheet excelSheet = excelSheets[0];
+            writeSingleSheet(data, excelWriter, excelSheet);
+            return;
+        }
 
-            // 构建并返回WriteSheet对象
-            return excelWriterSheetBuilder.build();
-        }).toList();
+        // 处理多工作表情况：将数据转换为列表并按工作表编号分配数据
+        List<?> dataList = Convert.toList(data);
+        for (ExcelSheet excelSheet : excelSheets) {
+            Object sheetData = dataList.get(excelSheet.sheetNo());
+            writeSingleSheet(sheetData, excelWriter, excelSheet);
+        }
     }
 
     /**
-     * 构建Excel写入器
-     * <p>
-     * 根据注解配置创建ExcelWriter实例。该方法通过给定的输出流和Excel响应对象，配置并构建一个Excel写入器。
+     * 将数据写入单个Excel工作表
      *
-     * @param outputStream  输出流，用于指定Excel文件的写入位置。
-     * @param excelResponse Excel响应对象，包含Excel文件的配置信息。
-     * @return 返回一个配置好的ExcelWriter实例，用于写入Excel文件。
+     * @param data        待写入的数据对象，将被转换为List形式
+     * @param excelWriter Excel写入工具对象，用于执行实际的写入操作
+     * @param excelSheet  工作表配置对象，包含工作表名称等配置信息
+     */
+    private void writeSingleSheet(Object data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
+        // 将输入数据统一转换为List格式
+        List<?> dataList = Convert.toList(data);
+
+        // 获取工作表配置并生成写入对象
+        WriteSheet writeSheet = getWriteSheet(excelSheet);
+
+        // 获取表格配置并生成多个写入表格对象
+        List<WriteTable> writeTables = getWriteTables(excelSheet.tables());
+
+        // 执行实际的数据写入操作
+        ExcelUtil.writeSheetData(excelWriter, writeSheet, writeTables, dataList);
+    }
+
+    /**
+     * 根据ExcelTable配置构建WriteTable对象
+     *
+     * @param excelTable Excel表格配置对象，包含表格编号等配置信息
+     * @return WriteTable 可写入的表格对象，用于Excel写入操作
+     */
+    private WriteTable getWriteTable(ExcelTable excelTable) {
+        // 初始化表格构建器，设置基础表格编号
+        ExcelWriterTableBuilder excelWriterTableBuilder = EasyExcel.writerTable(excelTable.tableNo());
+
+        // 创建并应用表格构建自定义逻辑
+        ExcelWriterTableBuilderCustomizer excelWriterTableBuilderCustomizer = new ExcelWriterTableBuilderCustomizer(excelTable);
+        excelWriterTableBuilderCustomizer.customize(excelWriterTableBuilder);
+
+        return excelWriterTableBuilder.build();
+    }
+
+    /**
+     * 根据ExcelSheet配置创建并返回EasyExcel的WriteSheet对象
+     *
+     * @param excelSheet Excel表格配置对象，包含sheet编号和名称等信息
+     * @return WriteSheet 构建完成的EasyExcel写入表格对象
+     */
+    private WriteSheet getWriteSheet(ExcelSheet excelSheet) {
+        // 初始化EasyExcel的Sheet构建器，设置基础属性
+        ExcelWriterSheetBuilder excelWriterSheetBuilder = EasyExcel.writerSheet(excelSheet.sheetNo(), excelSheet.sheetName());
+
+        // 通过自定义配置器对Sheet构建器进行个性化配置
+        ExcelWriterSheetBuilderCustomizer excelWriterSheetBuilderCustomizer = new ExcelWriterSheetBuilderCustomizer(excelSheet);
+        excelWriterSheetBuilderCustomizer.customize(excelWriterSheetBuilder);
+
+        return excelWriterSheetBuilder.build();
+    }
+
+    /**
+     * 获取ExcelWriter对象用于写入Excel数据
+     *
+     * @param outputStream  输出流，用于指定Excel文件的输出位置
+     * @param excelResponse Excel响应对象，包含Excel的配置信息（如样式、表头等）
+     * @return ExcelWriter 实例，用于后续的Excel数据写入操作
      */
     private ExcelWriter getExcelWriter(OutputStream outputStream, ExcelResponse excelResponse) {
-        // 创建ExcelWriterBuilder实例，用于配置Excel写入器
+        // 创建ExcelWriterBuilder并初始化基础配置
         ExcelWriterBuilder excelWriterBuilder = EasyExcel.write(outputStream);
 
-        // 创建ExcelWriterBuilderCustomizer实例，用于根据excelResponse自定义ExcelWriterBuilder
+        // 应用自定义配置（如样式、表头等）
         ExcelWriterBuilderCustomizer excelWriterBuilderCustomizer = new ExcelWriterBuilderCustomizer(excelResponse);
-
-        // 自定义ExcelWriterBuilder配置
         excelWriterBuilderCustomizer.customize(excelWriterBuilder);
 
         // 构建并返回ExcelWriter实例
@@ -204,48 +226,13 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
     }
 
     /**
-     * 获取方法参数上的 {@link ExcelResponse} 注解。
-     * <p>
-     * 该方法通过传入的 {@link MethodParameter} 对象，获取该方法上的 {@link ExcelResponse} 注解。
-     * 如果该方法上没有该注解，则返回 null。
+     * 将ExcelTable数组转换为WriteTable列表
      *
-     * @param returnType 方法参数对象，表示要检查的方法参数
-     * @return 返回方法参数上的 {@link ExcelResponse} 注解，如果不存在则返回 null
+     * @param tables ExcelTable数组，包含需要转换的Excel表格数据
+     * @return List<WriteTable> 转换后的WriteTable列表，每个元素对应输入数组中的一个ExcelTable
      */
-    private ExcelResponse getExcelResponse(MethodParameter returnType) {
-        return returnType.getMethodAnnotation(ExcelResponse.class);
+    private List<WriteTable> getWriteTables(ExcelTable[] tables) {
+        // 使用流式处理将每个ExcelTable转换为WriteTable并收集为列表
+        return Arrays.stream(tables).map(this::getWriteTable).collect(Collectors.toList());
     }
-
-    /**
-     * 获取输出流
-     * <p>
-     * 该方法用于设置HTTP响应头信息，并返回输出流以便将Excel文件写入响应中。
-     * 方法首先从NativeWebRequest中获取HttpServletResponse对象，如果获取失败则抛出异常。
-     * 然后设置响应的内容类型、字符编码，并根据ExcelResponse对象生成文件名，设置Content-Disposition头信息，
-     * 最后返回响应对象的输出流。
-     *
-     * @param webRequest    NativeWebRequest对象，用于获取HttpServletResponse
-     * @param excelResponse ExcelResponse对象，包含文件名和Excel类型信息
-     * @return OutputStream 返回响应对象的输出流，用于写入Excel文件
-     * @throws IOException              如果获取输出流失败时抛出
-     * @throws IllegalArgumentException 如果HttpServletResponse为空时抛出
-     */
-    private OutputStream getOutputStream(NativeWebRequest webRequest, ExcelResponse excelResponse) throws IOException {
-        // 从NativeWebRequest中获取HttpServletResponse对象
-        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
-        if (response == null) {
-            throw new IllegalArgumentException(ERROR_PREFIX + "HttpServletResponse为空");
-        }
-
-        // 设置响应头信息
-        response.setContentType(EXCEL_CONTENT_TYPE);
-        response.setCharacterEncoding(UTF_8);
-        String filename = URLUtil.encode(excelResponse.filename(), StandardCharsets.UTF_8) + excelResponse.excelType().getValue();
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + filename);
-        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
-
-        // 返回响应对象的输出流
-        return response.getOutputStream();
-    }
-
 }

@@ -1,136 +1,137 @@
 package com.gls.athena.starter.excel.support;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.URLUtil;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.WriteTable;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.context.request.NativeWebRequest;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author lizy19
  */
+@Slf4j
 @UtilityClass
 public class ExcelUtil {
     /**
-     * 将数据写入Excel文件中的多个Sheet和Table。
-     *
-     * @param excelWriter    Excel写入工具，用于将数据写入Excel文件
-     * @param writeSheetList 需要写入的Sheet列表，每个Sheet对应一个WriteSheet对象
-     * @param writeTableMap  每个Sheet对应的Table列表，键为Sheet编号，值为WriteTable列表
-     * @param data           需要写入Excel的数据列表
+     * Excel文件内容类型
      */
-    public void writeData(ExcelWriter excelWriter, List<WriteSheet> writeSheetList, Map<Integer, List<WriteTable>> writeTableMap, List<?> data) {
-        // 遍历所有WriteSheet，逐个处理每个sheet的数据写入
-        for (WriteSheet writeSheet : writeSheetList) {
-            // 获取当前sheet对应的数据
-            List<?> sheetData = getSheetData(writeSheet, data, writeSheetList.size());
-            if (sheetData.isEmpty()) {
-                continue;
-            }
-
-            // 获取当前sheet对应的WriteTable列表
-            List<WriteTable> writeTableList = writeTableMap.get(writeSheet.getSheetNo());
-            if (CollUtil.isNotEmpty(writeTableList)) {
-                // 如果存在WriteTable列表，则将数据写入对应的table中
-                writeTableData(excelWriter, writeSheet, writeTableList, sheetData);
-            } else {
-                // 如果不存在WriteTable列表，则将数据直接写入sheet中
-                writeSheetData(excelWriter, writeSheet, sheetData);
-            }
-        }
-    }
-
-    /**
-     * 获取sheet数据
-     *
-     * @param writeSheet 包含sheet信息的对象，用于获取sheet的序号
-     * @param data       包含所有sheet数据的列表，每个元素可能是一个列表，表示单个sheet的数据
-     * @param sheetCount 指定返回数据的sheet数量。如果为1，则返回全部数据；否则返回对应sheet序号的数据
-     * @return 返回指定sheet的数据列表。如果sheetCount为1，则返回整个数据列表；否则返回对应sheet序号的数据列表
-     */
-    public List<?> getSheetData(WriteSheet writeSheet, List<?> data, int sheetCount) {
-        if (data == null) {
-            throw new IllegalArgumentException("数据列表不能为null");
-        }
-
-        if (sheetCount == 1) {
-            return data;
-        }
-
-        int sheetNo = writeSheet.getSheetNo();
-        if (sheetNo < 0 || sheetNo >= data.size()) {
-            throw new IllegalArgumentException("sheet序号超出范围");
-        }
-
-        Object sheetData = data.get(sheetNo);
-        if (!(sheetData instanceof List)) {
-            throw new IllegalArgumentException("指定sheet的数据不是列表类型");
-        }
-
-        return (List<?>) sheetData;
-    }
+    private static final String EXCEL_CONTENT_TYPE = "application/vnd.ms-excel";
 
     /**
      * 将表格数据写入Excel文件。
+     * <p>
+     * 该方法根据提供的表格信息列表和数据列表，将数据写入指定的Excel工作表。
+     * 处理逻辑如下：
+     * 1. 如果数据列表为空，则跳过写入操作；
+     * 2. 如果表格信息列表为空，则将所有数据作为一个表格写入；
+     * 3. 如果只有一个表格信息，则将所有数据写入该表格；
+     * 4. 如果有多个表格信息，则根据每个表格的编号从数据列表中获取对应数据并分别写入。
+     * </p>
      *
-     * @param excelWriter    Excel写入工具，用于执行实际的写入操作。
-     * @param writeSheet     写入的工作表对象，指定数据写入的目标工作表。
-     * @param writeTableList 包含所有需要写入的表格信息的列表，每个表格信息包括表格编号、样式等。
-     * @param sheetData      包含所有表格数据的列表，每个表格数据对应一个子列表。
+     * @param excelWriter    Excel写入工具实例，用于执行实际的写入操作
+     * @param writeSheet     目标工作表对象，指定数据写入的位置和样式
+     * @param writeTableList 表格信息列表，包含每个表格的编号、样式等配置信息
+     * @param sheetData      待写入的数据列表，每个元素可能对应一个子表格的数据
      */
-    public void writeTableData(ExcelWriter excelWriter, WriteSheet writeSheet, List<WriteTable> writeTableList, List<?> sheetData) {
-        // 遍历所有需要写入的表格信息
+    public void writeSheetData(ExcelWriter excelWriter, WriteSheet writeSheet, List<WriteTable> writeTableList, List<?> sheetData) {
+        // 检查数据列表是否为空
+        if (CollUtil.isEmpty(sheetData)) {
+            log.warn("写入Excel数据时，数据列表为空，跳过写入操作");
+            return;
+        }
+
+        // 处理无表格信息或单个表格信息的情况
+        if (CollUtil.isEmpty(writeTableList)) {
+            writeTableData(excelWriter, writeSheet, null, sheetData);
+            return;
+        }
+        if (writeTableList.size() == 1) {
+            writeTableData(excelWriter, writeSheet, writeTableList.getFirst(), sheetData);
+            return;
+        }
+
+        // 处理多个表格信息的情况：按表格编号分别写入对应数据
         for (WriteTable writeTable : writeTableList) {
-            // 获取当前表格的编号，并检查其有效性
-            int tableNo = writeTable.getTableNo();
-            if (tableNo < 0 || tableNo >= sheetData.size()) {
-                continue; // 如果表格编号无效，则跳过该表格
-            }
-
-            // 获取当前表格对应的数据
-            List<?> tableData = (List<?>) sheetData.get(tableNo);
-
-            // 如果表格数据不为空，则设置表格的类类型并执行写入操作
-            if (!tableData.isEmpty() && tableData.getFirst() != null) {
-                writeTable.setClazz(tableData.getFirst().getClass());
-                excelWriter.write(tableData, writeSheet, writeTable);
-            }
+            List<?> tableData = Convert.toList(sheetData.get(writeTable.getTableNo()));
+            writeTableData(excelWriter, writeSheet, writeTable, tableData);
         }
     }
 
     /**
-     * 写入sheet数据
-     * <p>
-     * 该方法用于将数据写入Excel的单个sheet中。首先设置sheet的数据类型，然后将数据写入指定的sheet。
+     * 将数据列表写入Excel表格
      *
-     * @param excelWriter Excel写入器，用于执行实际的写入操作。
-     * @param writeSheet  要写入的sheet对象，包含sheet的配置信息。
-     * @param sheetData   要写入的数据列表，列表中的元素类型应与sheet的数据类型一致。
+     * @param excelWriter Excel写入工具实例，用于执行实际的写入操作
+     * @param writeSheet  工作表配置对象，包含工作表级别的设置
+     * @param writeTable  表格配置对象（可选），包含表格级别的特殊设置，若为null则使用工作表配置
+     * @param data        要写入的数据列表，列表元素类型决定了Excel的字段映射
+     * @throws NullPointerException 如果data列表的第一个元素为null时抛出（通过日志警告而非异常）
      */
-    public void writeSheetData(ExcelWriter excelWriter, WriteSheet writeSheet, List<?> sheetData) {
-        // 检查sheetData是否为空
-        if (sheetData == null || sheetData.isEmpty()) {
-            throw new IllegalArgumentException("sheetData不能为空");
+    public void writeTableData(ExcelWriter excelWriter, WriteSheet writeSheet, WriteTable writeTable, List<?> data) {
+        // 空数据检查：跳过空列表或首元素为null的情况
+        if (CollUtil.isEmpty(data)) {
+            log.warn("写入Excel数据时，数据列表为空，跳过写入操作");
+            return;
+        }
+        if (data.getFirst() == null) {
+            log.warn("写入Excel数据时，数据列表的第一个元素为null，跳过写入操作");
+            return;
         }
 
-        // 获取第一个元素的类型
-        Class<?> clazz = sheetData.getFirst().getClass();
+        // 根据数据对象的类型动态设置写入配置
+        Class<?> clazz = data.getFirst().getClass();
+        if (writeTable != null) {
+            // 优先使用表格级配置写入
+            writeTable.setClazz(clazz);
+            excelWriter.write(data, writeSheet, writeTable);
+        } else {
+            // 无表格配置时使用工作表级配置写入
+            writeSheet.setClazz(clazz);
+            excelWriter.write(data, writeSheet);
+        }
+    }
 
-        // 检查sheetData中所有元素的类型是否一致
-        for (Object data : sheetData) {
-            if (data == null || !clazz.equals(data.getClass())) {
-                throw new IllegalArgumentException("sheetData中的元素类型不一致");
-            }
+    /**
+     * 获取用于Excel文件下载的输出流
+     *
+     * @param webRequest NativeWebRequest对象，用于获取HttpServletResponse
+     * @param fileName   下载文件的名称(不含扩展名)
+     * @param excelType  Excel文件扩展名(如.xlsx)
+     * @return OutputStream 响应输出流，用于写入Excel数据
+     * @throws IOException              如果获取输出流失败
+     * @throws IllegalArgumentException 如果参数校验失败或HttpServletResponse为空
+     */
+    public OutputStream getOutputStream(NativeWebRequest webRequest, String fileName, String excelType) throws IOException {
+        // 参数校验
+        if (fileName == null || excelType == null) {
+            throw new IllegalArgumentException("文件名或文件类型不能为空");
         }
 
-        // 设置sheet的数据类型
-        writeSheet.setClazz(clazz);
+        // 获取并验证HttpServletResponse对象
+        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+        if (response == null) {
+            throw new IllegalArgumentException("HttpServletResponse为空");
+        }
 
-        // 将数据写入指定的sheet
-        excelWriter.write(sheetData, writeSheet);
+        // 设置响应头：内容类型、编码、文件名和跨域头
+        response.setContentType(EXCEL_CONTENT_TYPE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String encodedFileName = URLUtil.encode(fileName, StandardCharsets.UTF_8);
+        String name = encodedFileName + excelType;
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + name);
+        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+
+        return response.getOutputStream();
     }
 
 }
