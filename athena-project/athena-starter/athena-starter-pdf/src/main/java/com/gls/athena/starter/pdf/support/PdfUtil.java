@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -52,6 +53,32 @@ public class PdfUtil {
         response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
 
         return response.getOutputStream();
+    }
+
+    /**
+     * 将HTML内容转换为PDF格式并输出
+     * 此方法使用ITextRenderer库将给定的HTML字符串渲染成PDF格式，并将结果写入指定的输出流
+     * 主要包括以下几个步骤：
+     * 1. 实例化ITextRenderer对象
+     * 2. 使用提供的HTML字符串设置文档内容
+     * 3. 布局文档
+     * 4. 创建PDF并写入输出流
+     *
+     * @param html         要转换为PDF的HTML字符串
+     * @param outputStream 用于输出生成的PDF文件的流
+     */
+    public void writeHtmlToPdf(String html, OutputStream outputStream) {
+        // 实例化ITextRenderer对象，用于HTML到PDF的转换
+        ITextRenderer renderer = new ITextRenderer();
+
+        // 设置文档内容为提供的HTML字符串
+        renderer.setDocumentFromString(html);
+
+        // 执行文档布局
+        renderer.layout();
+
+        // 创建PDF并将其写入指定的输出流
+        renderer.createPDF(outputStream);
     }
 
 }

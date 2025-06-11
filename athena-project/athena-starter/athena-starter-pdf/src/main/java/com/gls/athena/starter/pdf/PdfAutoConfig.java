@@ -1,5 +1,7 @@
 package com.gls.athena.starter.pdf;
 
+import com.gls.athena.starter.pdf.config.PdfProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan
+@EnableConfigurationProperties(PdfProperties.class)
 public class PdfAutoConfig {
 
 }

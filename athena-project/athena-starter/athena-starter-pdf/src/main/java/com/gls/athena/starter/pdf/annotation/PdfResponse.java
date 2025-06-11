@@ -17,8 +17,8 @@ public @interface PdfResponse {
     String filename() default "document";
 
     /**
-     * 模板路径，为空则直接生成PDF
+     * 模板名
      */
-    PdfTemplate template();
+    String template() default "";
 
 }
