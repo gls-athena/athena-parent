@@ -1,11 +1,14 @@
 package com.gls.athena.starter.excel.support;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.URLUtil;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.WriteTable;
+import com.alibaba.excel.write.metadata.fill.FillConfig;
+import com.alibaba.excel.write.metadata.fill.FillWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +18,10 @@ import org.springframework.web.context.request.NativeWebRequest;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lizy19
@@ -134,4 +140,56 @@ public class ExcelUtil {
         return response.getOutputStream();
     }
 
+    /**
+     * 填充Excel工作表数据
+     * <p>
+     * 该方法根据传入的数据对象类型，采用不同的方式将数据填充到Excel工作表中：
+     * 1. 如果数据为集合类型，直接填充整个集合
+     * 2. 如果数据为普通JavaBean对象，将其转换为Map后分别处理：
+     * - 集合类型的属性使用FillWrapper单独填充
+     * - 其他属性统一填充
+     *
+     * @param excelWriter Excel写入工具对象，用于执行实际的填充操作
+     * @param writeSheet  要填充的Excel工作表对象
+     * @param sheetData   要填充的数据，可以是集合或JavaBean对象
+     */
+    public void fillSheetData(ExcelWriter excelWriter, WriteSheet writeSheet, Object sheetData) {
+        // 空数据检查
+        if (sheetData == null) {
+            log.warn("填充Excel数据时，数据为空，跳过填充操作");
+            return;
+        }
+
+        // 处理集合类型数据
+        if (sheetData instanceof Collection) {
+            excelWriter.fill(sheetData, writeSheet);
+            return;
+        }
+
+        // 处理JavaBean对象
+        Map<String, Object> dataMap = BeanUtil.beanToMap(sheetData);
+        // 创建填充数据Map
+        Map<String, Object> fillMap = new HashMap<>();
+        // 创建填充配置
+        FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
+        // 遍历Bean属性，区分集合类型和普通属性
+        for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value instanceof Collection<?> collection) {
+                // 集合类型属性单独填充
+                FillWrapper fillWrapper = new FillWrapper(key, collection);
+                excelWriter.fill(fillWrapper, fillConfig, writeSheet);
+            } else {
+                // 普通属性暂存到fillMap
+                fillMap.put(key, value);
+            }
+        }
+
+        // 填充剩余的普通属性
+        if (CollUtil.isNotEmpty(fillMap)) {
+            excelWriter.fill(fillMap, fillConfig, writeSheet);
+        }
+    }
 }

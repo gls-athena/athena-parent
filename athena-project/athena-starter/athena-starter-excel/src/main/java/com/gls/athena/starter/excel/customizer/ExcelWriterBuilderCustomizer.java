@@ -3,7 +3,10 @@ package com.gls.athena.starter.excel.customizer;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.write.builder.ExcelWriterBuilder;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
+import lombok.SneakyThrows;
+import org.springframework.core.io.ClassPathResource;
 
+import java.io.InputStream;
 import java.nio.charset.Charset;
 
 /**
@@ -38,6 +41,7 @@ public class ExcelWriterBuilderCustomizer extends ExcelWriterParameterBuilderCus
      *
      * @param builder Excel写入构建器，用于配置Excel写入的相关参数
      */
+    @SneakyThrows
     @Override
     public void customize(ExcelWriterBuilder builder) {
         super.customize(builder);
@@ -65,7 +69,8 @@ public class ExcelWriterBuilderCustomizer extends ExcelWriterParameterBuilderCus
 
         // 模板配置：如果指定了模板文件路径，则设置Excel文件的模板
         if (StrUtil.isNotEmpty(excelResponse.template())) {
-            builder.withTemplate(excelResponse.template());
+            InputStream template = new ClassPathResource(excelResponse.template()).getInputStream();
+            builder.withTemplate(template);
         }
     }
 

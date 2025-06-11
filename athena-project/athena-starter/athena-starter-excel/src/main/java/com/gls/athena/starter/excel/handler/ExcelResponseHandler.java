@@ -123,7 +123,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         WriteSheet writeSheet = getWriteSheet(excelSheet);
 
         // 使用ExcelWriter将数据填充到指定工作表
-        excelWriter.fill(sheetData, writeSheet);
+        ExcelUtil.fillSheetData(excelWriter, writeSheet, sheetData);
     }
 
     /**
