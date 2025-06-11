@@ -1,7 +1,11 @@
 package com.gls.athena.starter.pdf.handler;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.template.TemplateConfig;
+import cn.hutool.extra.template.TemplateUtil;
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
+import com.gls.athena.starter.pdf.annotation.PdfTemplate;
 import com.gls.athena.starter.pdf.support.PdfUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -10,11 +14,13 @@ import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.util.Map;
 
 /**
  * PDF响应处理器
  *
- * @author lizy19
+ * @author george
  */
 @Slf4j
 public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
@@ -31,16 +37,29 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
         PdfResponse pdfResponse = returnType.getMethodAnnotation(PdfResponse.class);
         log.info("处理PDF响应: {}", pdfResponse);
         try (OutputStream outputStream = PdfUtil.getOutputStream(webRequest, pdfResponse.filename())) {
-            if (StrUtil.isEmpty(pdfResponse.template())) {
+            if (ObjectUtil.isEmpty(pdfResponse.template())) {
                 fillDataToPdf(returnValue, outputStream, pdfResponse);
             } else {
                 writeDataToPdf(returnValue, outputStream, pdfResponse);
             }
         }
-
     }
 
     private void fillDataToPdf(Object returnValue, OutputStream outputStream, PdfResponse pdfResponse) {
+        Map<String, Object> data = BeanUtil.beanToMap(returnValue);
+        TemplateConfig config = getTemplateConfig(pdfResponse.template());
+        String content = TemplateUtil.createEngine(config).getTemplate(pdfResponse.template().name()).render(data);
+
+    }
+
+    private TemplateConfig getTemplateConfig(PdfTemplate template) {
+        TemplateConfig config = new TemplateConfig();
+        config.setCharset(Charset.forName(template.charset()));
+        config.setPath(template.path());
+        config.setResourceMode(template.resourceMode());
+        config.setUseCache(template.useCache());
+        config.setCustomEngine(template.customEngine());
+        return config;
     }
 
     private void writeDataToPdf(Object returnValue, OutputStream outputStream, PdfResponse pdfResponse) {
