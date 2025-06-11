@@ -59,13 +59,14 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
      */
     @Override
     public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
+        // 标记请求已处理
+        mavContainer.setRequestHandled(true);
         // 获取Excel响应的配置信息
         ExcelResponse excelResponse = returnType.getMethodAnnotation(ExcelResponse.class);
         log.info("ExcelResponseHandler: {}", excelResponse);
         // 创建Excel输出流并写入数据
         try (OutputStream outputStream = ExcelUtil.getOutputStream(webRequest, excelResponse.filename(), excelResponse.excelType().getValue())) {
-            ExcelWriter excelWriter = getExcelWriter(outputStream, excelResponse);
-            try {
+            try (ExcelWriter excelWriter = getExcelWriter(outputStream, excelResponse)) {
                 // 根据是否使用模板选择不同的Excel写入方式
                 if (StrUtil.isEmpty(excelResponse.template())) {
                     // 如果没有模板，则直接写入数据
@@ -74,16 +75,8 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
                     // 如果使用了模板，则填充数据
                     fillDataToExcel(returnValue, excelWriter, excelResponse);
                 }
-            } catch (Exception e) {
-                log.error("Error writing Excel response", e);
-                throw e;
-            } finally {
-                // 确保Excel写入器完成写入操作
-                excelWriter.finish();
             }
         }
-        // 标记请求已处理
-        mavContainer.setRequestHandled(true);
     }
 
     /**
