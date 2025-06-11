@@ -173,10 +173,7 @@ public class ExcelUtil {
         // 创建填充配置
         FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
         // 遍历Bean属性，区分集合类型和普通属性
-        for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-
+        dataMap.forEach((key, value) -> {
             if (value instanceof Collection<?> collection) {
                 // 集合类型属性单独填充
                 FillWrapper fillWrapper = new FillWrapper(key, collection);
@@ -185,7 +182,7 @@ public class ExcelUtil {
                 // 普通属性暂存到fillMap
                 fillMap.put(key, value);
             }
-        }
+        });
 
         // 填充剩余的普通属性
         if (CollUtil.isNotEmpty(fillMap)) {
