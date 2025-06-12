@@ -165,9 +165,13 @@ public class PdfUtil {
 
         // 获取PDF表单字段并填充数据
         AcroFields fields = stamper.getAcroFields();
-        for (Map.Entry<String, Object> entry : data.entrySet()) {
-            fields.setField(entry.getKey(), entry.getValue().toString());
-        }
+        data.forEach((key, value) -> {
+            try {
+                fields.setField(key, value.toString());
+            } catch (IOException e) {
+                log.warn("填充字段失败: {}", key, e);
+            }
+        });
 
         // 扁平化表单字段并关闭资源
         stamper.setFormFlattening(true);
