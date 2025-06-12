@@ -2,7 +2,7 @@ package com.gls.athena.starter.data.jpa.base;
 
 import com.gls.athena.common.bean.page.PageRequest;
 import com.gls.athena.common.bean.page.PageResponse;
-import com.gls.athena.starter.data.jpa.support.PageUtil;
+import com.gls.athena.starter.data.jpa.support.JpaUtil;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,13 +60,13 @@ public interface IRepository<E extends BaseEntity> extends JpaRepositoryImplemen
      */
     default PageResponse<E> findAll(PageRequest<E> pageRequest) {
         // 将分页请求对象转换为Spring Data JPA的Pageable对象
-        Pageable pageable = PageUtil.toPageable(pageRequest);
+        Pageable pageable = JpaUtil.toPageable(pageRequest);
 
         // 根据查询参数和分页信息执行查询操作
         Page<E> page = findAll(pageRequest.getParams(), pageable);
 
         // 将查询结果转换为统一的分页响应格式
-        return PageUtil.toPageResponse(page);
+        return JpaUtil.toPageResponse(page);
     }
 
 }

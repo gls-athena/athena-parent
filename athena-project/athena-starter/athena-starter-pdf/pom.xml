@@ -19,6 +19,11 @@
             <version>9.12.0</version>
         </dependency>
         <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf-fonts-extra</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
         </dependency>

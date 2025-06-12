@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.gls.athena.common.bean.page.PageRequest;
 import com.gls.athena.common.bean.page.PageResponse;
-import com.gls.athena.starter.mybatis.support.PageUtil;
+import com.gls.athena.starter.mybatis.support.MybatisUtil;
 
 /**
  * Mapper接口
@@ -31,13 +31,13 @@ public interface IMapper<E> extends BaseMapper<E> {
      */
     default PageResponse<E> selectPage(PageRequest<E> pageRequest) {
         // 转换分页请求参数格式
-        IPage<E> page = PageUtil.toPage(pageRequest);
+        IPage<E> page = MybatisUtil.toPage(pageRequest);
 
         // 执行带条件分页查询（自动封装查询条件到QueryWrapper）
         IPage<E> result = selectPage(page, new QueryWrapper<>(pageRequest.getParams()));
 
         // 转换分页结果格式
-        return PageUtil.toPageResponse(result);
+        return MybatisUtil.toPageResponse(result);
     }
 
 }

@@ -8,9 +8,11 @@ import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.PdfStamper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.xhtmlrenderer.pdf.ITextFontResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.IOException;
@@ -90,12 +92,24 @@ public class PdfUtil {
         renderer.createPDF(outputStream);
     }
 
+    /**
+     * 为ITextRenderer添加类路径下的字体资源
+     * <p>
+     * 该方法从类路径的/fonts目录加载字体文件，并将其添加到渲染器的字体解析器中。
+     * 字体将使用IDENTITY_H编码（支持Unicode字符）且不嵌入PDF文档。
+     *
+     * @param renderer 需要添加字体的ITextRenderer实例
+     * @throws IOException 如果无法读取字体目录或字体文件时抛出
+     */
     private void addClasspathFonts(ITextRenderer renderer) throws IOException {
-        // 添加字体文件
-        ClassPathResource simsun = new ClassPathResource("/fonts/simsun.ttc");
-        renderer.getFontResolver().addFont(simsun.getPath(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
-        ClassPathResource msyh = new ClassPathResource("/fonts/msyh.ttc");
-        renderer.getFontResolver().addFont(msyh.getPath(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+        // 如果fonts目录在JAR内，需要逐个添加字体文件
+        Resource[] resources = new PathMatchingResourcePatternResolver()
+                .getResources("classpath:fonts/*.*");
+
+        ITextFontResolver fontResolver = renderer.getFontResolver();
+        for (Resource font : resources) {
+            fontResolver.addFont(font.getFile().getPath(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+        }
     }
 
     /**
