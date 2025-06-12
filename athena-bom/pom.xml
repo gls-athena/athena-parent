@@ -124,6 +124,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.gls.athena.starter.pdf</groupId>
+                <artifactId>athena-starter-pdf</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.gls.athena.starter.swagger</groupId>
                 <artifactId>athena-starter-swagger</artifactId>
                 <version>${project.version}</version>

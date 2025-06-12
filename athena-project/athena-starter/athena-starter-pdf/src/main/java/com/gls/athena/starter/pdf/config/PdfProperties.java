@@ -19,5 +19,5 @@ public class PdfProperties extends BaseProperties {
      * HTML模板配置
      */
     @NestedConfigurationProperty
-    private TemplateConfig templateConfig = new TemplateConfig();
+    private TemplateConfig templateConfig = new TemplateConfig("template", TemplateConfig.ResourceMode.CLASSPATH);
 }

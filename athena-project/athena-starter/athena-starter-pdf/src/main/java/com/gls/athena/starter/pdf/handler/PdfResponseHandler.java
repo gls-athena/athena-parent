@@ -88,6 +88,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
         String html = TemplateUtil.createEngine(pdfProperties.getTemplateConfig())
                 .getTemplate(pdfResponse.template())
                 .render(data);
+        log.info("渲染HTML模板: {}", html);
         // 将HTML写入PDF
         PdfUtil.writeHtmlToPdf(html, outputStream);
     }

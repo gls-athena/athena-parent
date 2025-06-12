@@ -3,11 +3,13 @@ package com.gls.athena.starter.pdf.support;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.lowagie.text.pdf.AcroFields;
+import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.PdfStamper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.xhtmlrenderer.pdf.ITextRenderer;
@@ -73,9 +75,12 @@ public class PdfUtil {
      * @param html         要转换为PDF的HTML字符串
      * @param outputStream 用于输出生成的PDF文件的流
      */
+    @SneakyThrows
     public void writeHtmlToPdf(String html, OutputStream outputStream) {
         // 实例化ITextRenderer对象，用于HTML到PDF的转换
         ITextRenderer renderer = new ITextRenderer();
+        // 设置字体解析器，添加所需的字体文件
+        addClasspathFonts(renderer);
 
         // 设置文档内容为提供的HTML字符串
         renderer.setDocumentFromString(html);
@@ -85,6 +90,15 @@ public class PdfUtil {
 
         // 创建PDF并将其写入指定的输出流
         renderer.createPDF(outputStream);
+    }
+
+    @SneakyThrows
+    private void addClasspathFonts(ITextRenderer renderer) {
+        // 添加字体文件
+        ClassPathResource simsun = new ClassPathResource("/fonts/simsun.ttc");
+        renderer.getFontResolver().addFont(simsun.getPath(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+        ClassPathResource msyh = new ClassPathResource("/fonts/msyh.ttc");
+        renderer.getFontResolver().addFont(msyh.getPath(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
     }
 
     @SneakyThrows
