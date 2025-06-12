@@ -58,7 +58,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
         mavContainer.setRequestHandled(true);
         // 获取方法上的@PdfResponse注解
         PdfResponse pdfResponse = returnType.getMethodAnnotation(PdfResponse.class);
-        log.info("处理PDF响应: {}", pdfResponse);
+        log.debug("处理PDF响应: {}", pdfResponse);
         Map<String, Object> data = BeanUtil.beanToMap(returnValue);
         try (OutputStream outputStream = PdfUtil.getOutputStream(webRequest, pdfResponse.filename())) {
             switch (pdfResponse.templateType()) {
@@ -88,7 +88,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
         String html = TemplateUtil.createEngine(pdfProperties.getTemplateConfig())
                 .getTemplate(pdfResponse.template())
                 .render(data);
-        log.info("渲染HTML模板: {}", html);
+        log.debug("渲染HTML模板: {}", html);
         // 将HTML写入PDF
         PdfUtil.writeHtmlToPdf(html, pdfProperties.getFontPath(), outputStream);
     }

@@ -108,14 +108,15 @@ public class PdfUtil {
     private void addClasspathFonts(ITextRenderer renderer, String fontPath) throws IOException {
 
         // 标准化路径处理
-        fontPath = normalizeClasspathPath(fontPath);
+        String path = normalizeClasspathPath(fontPath);
 
         Resource[] resources = new PathMatchingResourcePatternResolver()
-                .getResources("classpath:" + fontPath + "*.{ttf,otf}");
+                .getResources("classpath:" + path + "*.*");
 
         ITextFontResolver fontResolver = renderer.getFontResolver();
         for (Resource font : resources) {
             try {
+                log.debug("加载字体: {}", font.getFile().getAbsolutePath());
                 fontResolver.addFont(font.getFile().getAbsolutePath(),
                         BaseFont.IDENTITY_H,
                         BaseFont.NOT_EMBEDDED);
