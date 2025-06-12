@@ -7,7 +7,6 @@ import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.PdfStamper;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
@@ -75,8 +74,7 @@ public class PdfUtil {
      * @param html         要转换为PDF的HTML字符串
      * @param outputStream 用于输出生成的PDF文件的流
      */
-    @SneakyThrows
-    public void writeHtmlToPdf(String html, OutputStream outputStream) {
+    public void writeHtmlToPdf(String html, OutputStream outputStream) throws IOException {
         // 实例化ITextRenderer对象，用于HTML到PDF的转换
         ITextRenderer renderer = new ITextRenderer();
         // 设置字体解析器，添加所需的字体文件
@@ -92,8 +90,7 @@ public class PdfUtil {
         renderer.createPDF(outputStream);
     }
 
-    @SneakyThrows
-    private void addClasspathFonts(ITextRenderer renderer) {
+    private void addClasspathFonts(ITextRenderer renderer) throws IOException {
         // 添加字体文件
         ClassPathResource simsun = new ClassPathResource("/fonts/simsun.ttc");
         renderer.getFontResolver().addFont(simsun.getPath(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
@@ -101,16 +98,29 @@ public class PdfUtil {
         renderer.getFontResolver().addFont(msyh.getPath(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
     }
 
-    @SneakyThrows
-    public void fillPdfTemplate(InputStream inputStream, Map<String, Object> data, OutputStream outputStream) {
+    /**
+     * 填充PDF模板表单字段并输出结果
+     *
+     * @param inputStream  包含PDF模板的输入流，必须是一个可读的PDF文件
+     * @param data         包含字段名和对应值的映射，将用于填充PDF表单字段
+     * @param outputStream 用于输出填充后PDF文档的输出流
+     * @throws IOException 如果读取输入流或写入输出流时发生I/O错误
+     */
+    public void fillPdfTemplate(InputStream inputStream, Map<String, Object> data, OutputStream outputStream) throws IOException {
+        // 初始化PDF文档处理器
         PdfReader reader = new PdfReader(inputStream);
         PdfStamper stamper = new PdfStamper(reader, outputStream);
+
+        // 获取PDF表单字段并填充数据
         AcroFields fields = stamper.getAcroFields();
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             fields.setField(entry.getKey(), entry.getValue().toString());
         }
+
+        // 扁平化表单字段并关闭资源
         stamper.setFormFlattening(true);
         stamper.close();
         reader.close();
     }
+
 }

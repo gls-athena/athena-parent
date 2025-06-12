@@ -6,7 +6,6 @@ import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import com.gls.athena.starter.pdf.config.PdfProperties;
 import com.gls.athena.starter.pdf.support.PdfUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
@@ -14,6 +13,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
@@ -83,7 +83,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
      * @param outputStream 输出流
      * @param pdfResponse  PDF响应
      */
-    private void handleHtmlTemplate(Map<String, Object> data, OutputStream outputStream, PdfResponse pdfResponse) {
+    private void handleHtmlTemplate(Map<String, Object> data, OutputStream outputStream, PdfResponse pdfResponse) throws IOException {
         // 渲染模板
         String html = TemplateUtil.createEngine(pdfProperties.getTemplateConfig())
                 .getTemplate(pdfResponse.template())
@@ -100,8 +100,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
      * @param outputStream 输出流
      * @param pdfResponse  PDF响应
      */
-    @SneakyThrows
-    private void handlePdfTemplate(Map<String, Object> data, OutputStream outputStream, PdfResponse pdfResponse) {
+    private void handlePdfTemplate(Map<String, Object> data, OutputStream outputStream, PdfResponse pdfResponse) throws IOException {
         InputStream template = new ClassPathResource(pdfResponse.template()).getInputStream();
         PdfUtil.fillPdfTemplate(template, data, outputStream);
     }
