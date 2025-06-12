@@ -20,4 +20,8 @@ public class PdfProperties extends BaseProperties {
      */
     @NestedConfigurationProperty
     private TemplateConfig templateConfig = new TemplateConfig("template", TemplateConfig.ResourceMode.CLASSPATH);
+    /**
+     * 字体路径
+     */
+    private String fontPath = "fonts";
 }

@@ -8,6 +8,7 @@ import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.PdfStamper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +25,7 @@ import java.util.Map;
 /**
  * @author george
  */
+@Slf4j
 @UtilityClass
 public class PdfUtil {
 
@@ -74,13 +76,14 @@ public class PdfUtil {
      * 4. 创建PDF并写入输出流
      *
      * @param html         要转换为PDF的HTML字符串
+     * @param fontPath     字体路径
      * @param outputStream 用于输出生成的PDF文件的流
      */
-    public void writeHtmlToPdf(String html, OutputStream outputStream) throws IOException {
+    public void writeHtmlToPdf(String html, String fontPath, OutputStream outputStream) throws IOException {
         // 实例化ITextRenderer对象，用于HTML到PDF的转换
         ITextRenderer renderer = new ITextRenderer();
         // 设置字体解析器，添加所需的字体文件
-        addClasspathFonts(renderer);
+        addClasspathFonts(renderer, fontPath);
 
         // 设置文档内容为提供的HTML字符串
         renderer.setDocumentFromString(html);
@@ -99,17 +102,51 @@ public class PdfUtil {
      * 字体将使用IDENTITY_H编码（支持Unicode字符）且不嵌入PDF文档。
      *
      * @param renderer 需要添加字体的ITextRenderer实例
+     * @param fontPath
      * @throws IOException 如果无法读取字体目录或字体文件时抛出
      */
-    private void addClasspathFonts(ITextRenderer renderer) throws IOException {
-        // 如果fonts目录在JAR内，需要逐个添加字体文件
+    private void addClasspathFonts(ITextRenderer renderer, String fontPath) throws IOException {
+
+        // 标准化路径处理
+        fontPath = normalizeClasspathPath(fontPath);
+
         Resource[] resources = new PathMatchingResourcePatternResolver()
-                .getResources("classpath:fonts/*.*");
+                .getResources("classpath:" + fontPath + "*.{ttf,otf}");
 
         ITextFontResolver fontResolver = renderer.getFontResolver();
         for (Resource font : resources) {
-            fontResolver.addFont(font.getFile().getPath(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+            try {
+                fontResolver.addFont(font.getFile().getAbsolutePath(),
+                        BaseFont.IDENTITY_H,
+                        BaseFont.NOT_EMBEDDED);
+            } catch (IOException e) {
+                log.warn("无法加载字体: {}", font.getFile().getAbsolutePath(), e);
+            }
         }
+    }
+
+    /**
+     * 标准化classpath路径格式
+     * 1. 去除前后多余斜杠
+     * 2. 确保路径末尾有且只有一个斜杠
+     *
+     * @param path 原始路径
+     * @return 标准化后的路径
+     */
+    private String normalizeClasspathPath(String path) {
+        if (StrUtil.isBlank(path)) {
+            return "";
+        }
+
+        // 去除前后空白和斜杠
+        path = path.trim().replaceAll("^/+|/+$", "");
+
+        // 如果路径不为空，则在末尾添加一个斜杠
+        if (!path.isEmpty()) {
+            path += "/";
+        }
+
+        return path;
     }
 
     /**

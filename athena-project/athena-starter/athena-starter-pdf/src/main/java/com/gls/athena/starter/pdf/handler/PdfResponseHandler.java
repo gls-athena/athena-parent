@@ -90,7 +90,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
                 .render(data);
         log.info("渲染HTML模板: {}", html);
         // 将HTML写入PDF
-        PdfUtil.writeHtmlToPdf(html, outputStream);
+        PdfUtil.writeHtmlToPdf(html, pdfProperties.getFontPath(), outputStream);
     }
 
     /**
