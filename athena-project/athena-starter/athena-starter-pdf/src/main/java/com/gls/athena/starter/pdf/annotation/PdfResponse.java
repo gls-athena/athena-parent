@@ -1,5 +1,7 @@
 package com.gls.athena.starter.pdf.annotation;
 
+import com.gls.athena.starter.pdf.config.TemplateType;
+
 import java.lang.annotation.*;
 
 /**
@@ -20,5 +22,10 @@ public @interface PdfResponse {
      * 模板名
      */
     String template() default "";
+
+    /**
+     * 模板类型
+     */
+    TemplateType templateType() default TemplateType.HTML;
 
 }

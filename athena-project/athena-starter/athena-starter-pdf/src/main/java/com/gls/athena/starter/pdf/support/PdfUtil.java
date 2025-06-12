@@ -2,15 +2,21 @@ package com.gls.athena.starter.pdf.support;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import com.lowagie.text.pdf.AcroFields;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfStamper;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * @author george
@@ -81,4 +87,16 @@ public class PdfUtil {
         renderer.createPDF(outputStream);
     }
 
+    @SneakyThrows
+    public void fillPdfTemplate(InputStream inputStream, Map<String, Object> data, OutputStream outputStream) {
+        PdfReader reader = new PdfReader(inputStream);
+        PdfStamper stamper = new PdfStamper(reader, outputStream);
+        AcroFields fields = stamper.getAcroFields();
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            fields.setField(entry.getKey(), entry.getValue().toString());
+        }
+        stamper.setFormFlattening(true);
+        stamper.close();
+        reader.close();
+    }
 }
