@@ -3,6 +3,7 @@ package com.gls.athena.starter.excel.customizer;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.excel.converters.longconverter.LongStringConverter;
 import com.alibaba.excel.write.builder.AbstractExcelWriterParameterBuilder;
 import com.gls.athena.common.core.base.ICustomizer;
 import com.gls.athena.starter.excel.annotation.ExcelConfig;
@@ -103,6 +104,8 @@ public abstract class BaseWriterCustomizer<B extends AbstractExcelWriterParamete
      * @param builder 用于注册转换器的构建器对象，类型为泛型`B`，通常是一个支持注册转换器的构建器实例。
      */
     private void registerConverters(B builder) {
+        // 注册默认转换器 LongStringConverter
+        builder.registerConverter(new LongStringConverter());
         // 检查`excelParameter`中是否配置了转换器
         if (config.converter() != null) {
             // 遍历所有配置的转换器类，实例化并注册到`builder`中
