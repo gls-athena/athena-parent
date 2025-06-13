@@ -1,12 +1,15 @@
 package com.gls.athena.starter.excel.customizer;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.builder.ExcelWriterBuilder;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 
 /**
@@ -16,7 +19,7 @@ import java.nio.charset.Charset;
  * @author george
  * @since 1.0.0
  */
-public class ExcelWriterBuilderCustomizer extends ExcelWriterParameterBuilderCustomizer<ExcelWriterBuilder> {
+public class ExcelWriterCustomizer extends BaseWriterCustomizer<ExcelWriterBuilder> {
 
     /**
      * Excel响应配置
@@ -28,9 +31,26 @@ public class ExcelWriterBuilderCustomizer extends ExcelWriterParameterBuilderCus
      *
      * @param excelResponse Excel响应配置注解
      */
-    public ExcelWriterBuilderCustomizer(ExcelResponse excelResponse) {
+    private ExcelWriterCustomizer(ExcelResponse excelResponse) {
         super(excelResponse.parameter());
         this.excelResponse = excelResponse;
+    }
+
+    /**
+     * 构建ExcelWriter对象用于写入Excel数据
+     *
+     * @param outputStream  输出流，用于指定Excel文件的写入位置
+     * @param excelResponse Excel响应对象，包含Excel写入所需的配置和数据
+     * @return ExcelWriter实例，可用于后续的Excel数据写入操作
+     */
+    public static ExcelWriter build(OutputStream outputStream, ExcelResponse excelResponse) {
+        // 创建ExcelWriterBuilder并应用自定义配置
+        ExcelWriterBuilder builder = EasyExcel.write(outputStream);
+        ExcelWriterCustomizer customizer = new ExcelWriterCustomizer(excelResponse);
+        customizer.customize(builder);
+
+        // 构建并返回ExcelWriter实例
+        return builder.build();
     }
 
     /**
@@ -43,9 +63,7 @@ public class ExcelWriterBuilderCustomizer extends ExcelWriterParameterBuilderCus
      */
     @SneakyThrows
     @Override
-    public void customize(ExcelWriterBuilder builder) {
-        super.customize(builder);
-
+    public void configure(ExcelWriterBuilder builder) {
         // 基础配置：设置自动关闭流、内存模式、异常时是否写入Excel
         builder.autoCloseStream(excelResponse.autoCloseStream())
                 .inMemory(excelResponse.inMemory())

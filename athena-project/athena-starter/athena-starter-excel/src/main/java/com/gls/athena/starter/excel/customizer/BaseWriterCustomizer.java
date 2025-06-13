@@ -6,7 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.write.builder.AbstractExcelWriterParameterBuilder;
 import com.gls.athena.common.core.base.ICustomizer;
 import com.gls.athena.starter.excel.annotation.ExcelParameter;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Arrays;
@@ -19,8 +19,8 @@ import java.util.Locale;
  * @param <B> Excel写入参数构建器类型
  * @author george
  */
-@Data
-public class ExcelWriterParameterBuilderCustomizer<B extends AbstractExcelWriterParameterBuilder<B, ?>> implements ICustomizer<B> {
+@RequiredArgsConstructor
+public abstract class BaseWriterCustomizer<B extends AbstractExcelWriterParameterBuilder<B, ?>> implements ICustomizer<B> {
 
     /**
      * Excel参数配置
@@ -51,7 +51,19 @@ public class ExcelWriterParameterBuilderCustomizer<B extends AbstractExcelWriter
 
         // 配置列过滤：设置列过滤规则，决定哪些列需要写入Excel
         configureColumnFilters(builder);
+
+        // 执行自定义配置
+        configure(builder);
     }
+
+    /**
+     * 自定义配置
+     * <p>
+     * 该函数用于自定义配置Excel写入参数。
+     *
+     * @param builder Excel写入参数构建器，用于构建和配置Excel写入参数
+     */
+    public abstract void configure(B builder);
 
     /**
      * 配置表头信息

@@ -2,19 +2,15 @@ package com.gls.athena.starter.excel.handler;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
-import com.alibaba.excel.write.builder.ExcelWriterBuilder;
-import com.alibaba.excel.write.builder.ExcelWriterSheetBuilder;
-import com.alibaba.excel.write.builder.ExcelWriterTableBuilder;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.WriteTable;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.annotation.ExcelSheet;
 import com.gls.athena.starter.excel.annotation.ExcelTable;
-import com.gls.athena.starter.excel.customizer.ExcelWriterBuilderCustomizer;
-import com.gls.athena.starter.excel.customizer.ExcelWriterSheetBuilderCustomizer;
-import com.gls.athena.starter.excel.customizer.ExcelWriterTableBuilderCustomizer;
+import com.gls.athena.starter.excel.customizer.ExcelWriterCustomizer;
+import com.gls.athena.starter.excel.customizer.WriteSheetCustomizer;
+import com.gls.athena.starter.excel.customizer.WriteTableCustomizer;
 import com.gls.athena.starter.excel.support.ExcelUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -66,7 +62,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         log.info("ExcelResponseHandler: {}", excelResponse);
         // 创建Excel输出流并写入数据
         try (OutputStream outputStream = ExcelUtil.getOutputStream(webRequest, excelResponse.filename(), excelResponse.excelType().getValue())) {
-            try (ExcelWriter excelWriter = getExcelWriter(outputStream, excelResponse)) {
+            try (ExcelWriter excelWriter = ExcelWriterCustomizer.build(outputStream, excelResponse)) {
                 // 根据是否使用模板选择不同的Excel写入方式
                 if (StrUtil.isEmpty(excelResponse.template())) {
                     // 如果没有模板，则直接写入数据
@@ -113,7 +109,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
      */
     private void fillSingleSheet(Object sheetData, ExcelWriter excelWriter, ExcelSheet excelSheet) {
         // 根据配置创建EasyExcel所需的WriteSheet对象
-        WriteSheet writeSheet = getWriteSheet(excelSheet);
+        WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
 
         // 使用ExcelWriter将数据填充到指定工作表
         ExcelUtil.fillSheetData(excelWriter, writeSheet, sheetData);
@@ -156,66 +152,13 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         List<?> dataList = Convert.toList(data);
 
         // 获取工作表配置并生成写入对象
-        WriteSheet writeSheet = getWriteSheet(excelSheet);
+        WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
 
         // 获取表格配置并生成多个写入表格对象
         List<WriteTable> writeTables = getWriteTables(excelSheet.tables());
 
         // 执行实际的数据写入操作
         ExcelUtil.writeSheetData(excelWriter, writeSheet, writeTables, dataList);
-    }
-
-    /**
-     * 根据ExcelTable配置构建WriteTable对象
-     *
-     * @param excelTable Excel表格配置对象，包含表格编号等配置信息
-     * @return WriteTable 可写入的表格对象，用于Excel写入操作
-     */
-    private WriteTable getWriteTable(ExcelTable excelTable) {
-        // 初始化表格构建器，设置基础表格编号
-        ExcelWriterTableBuilder excelWriterTableBuilder = EasyExcel.writerTable(excelTable.tableNo());
-
-        // 创建并应用表格构建自定义逻辑
-        ExcelWriterTableBuilderCustomizer excelWriterTableBuilderCustomizer = new ExcelWriterTableBuilderCustomizer(excelTable);
-        excelWriterTableBuilderCustomizer.customize(excelWriterTableBuilder);
-
-        return excelWriterTableBuilder.build();
-    }
-
-    /**
-     * 根据ExcelSheet配置创建并返回EasyExcel的WriteSheet对象
-     *
-     * @param excelSheet Excel表格配置对象，包含sheet编号和名称等信息
-     * @return WriteSheet 构建完成的EasyExcel写入表格对象
-     */
-    private WriteSheet getWriteSheet(ExcelSheet excelSheet) {
-        // 初始化EasyExcel的Sheet构建器，设置基础属性
-        ExcelWriterSheetBuilder excelWriterSheetBuilder = EasyExcel.writerSheet(excelSheet.sheetNo(), excelSheet.sheetName());
-
-        // 通过自定义配置器对Sheet构建器进行个性化配置
-        ExcelWriterSheetBuilderCustomizer excelWriterSheetBuilderCustomizer = new ExcelWriterSheetBuilderCustomizer(excelSheet);
-        excelWriterSheetBuilderCustomizer.customize(excelWriterSheetBuilder);
-
-        return excelWriterSheetBuilder.build();
-    }
-
-    /**
-     * 获取ExcelWriter对象用于写入Excel数据
-     *
-     * @param outputStream  输出流，用于指定Excel文件的输出位置
-     * @param excelResponse Excel响应对象，包含Excel的配置信息（如样式、表头等）
-     * @return ExcelWriter 实例，用于后续的Excel数据写入操作
-     */
-    private ExcelWriter getExcelWriter(OutputStream outputStream, ExcelResponse excelResponse) {
-        // 创建ExcelWriterBuilder并初始化基础配置
-        ExcelWriterBuilder excelWriterBuilder = EasyExcel.write(outputStream);
-
-        // 应用自定义配置（如样式、表头等）
-        ExcelWriterBuilderCustomizer excelWriterBuilderCustomizer = new ExcelWriterBuilderCustomizer(excelResponse);
-        excelWriterBuilderCustomizer.customize(excelWriterBuilder);
-
-        // 构建并返回ExcelWriter实例
-        return excelWriterBuilder.build();
     }
 
     /**
@@ -226,6 +169,8 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
      */
     private List<WriteTable> getWriteTables(ExcelTable[] tables) {
         // 使用流式处理将每个ExcelTable转换为WriteTable并收集为列表
-        return Arrays.stream(tables).map(this::getWriteTable).collect(Collectors.toList());
+        return Arrays.stream(tables)
+                .map(WriteTableCustomizer::build)
+                .collect(Collectors.toList());
     }
 }

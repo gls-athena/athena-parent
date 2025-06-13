@@ -1,6 +1,7 @@
 package com.gls.athena.starter.excel.customizer;
 
 import com.alibaba.excel.write.builder.ExcelWriterSheetBuilder;
+import com.alibaba.excel.write.metadata.WriteSheet;
 import com.gls.athena.starter.excel.annotation.ExcelSheet;
 
 /**
@@ -10,7 +11,7 @@ import com.gls.athena.starter.excel.annotation.ExcelSheet;
  * @author george
  * @since 1.0.0
  */
-public class ExcelWriterSheetBuilderCustomizer extends ExcelWriterParameterBuilderCustomizer<ExcelWriterSheetBuilder> {
+public class WriteSheetCustomizer extends BaseWriterCustomizer<ExcelWriterSheetBuilder> {
 
     /**
      * Sheet配置注解
@@ -23,9 +24,28 @@ public class ExcelWriterSheetBuilderCustomizer extends ExcelWriterParameterBuild
      *
      * @param excelSheet Sheet配置注解，不能为null
      */
-    public ExcelWriterSheetBuilderCustomizer(final ExcelSheet excelSheet) {
+    private WriteSheetCustomizer(ExcelSheet excelSheet) {
         super(excelSheet.parameter());
         this.excelSheet = excelSheet;
+    }
+
+    /**
+     * 构建并配置WriteSheet对象
+     * <p>
+     * 该方法根据给定的ExcelSheet配置，通过自定义器对ExcelWriterSheetBuilder进行配置，
+     * 最终构建并返回一个配置完成的WriteSheet实例。
+     *
+     * @param excelSheet 包含工作表配置信息的ExcelSheet对象
+     * @return 配置完成的WriteSheet实例
+     */
+    public static WriteSheet build(ExcelSheet excelSheet) {
+        // 初始化EasyExcel的Sheet构建器，设置基础属性
+        ExcelWriterSheetBuilder builder = new ExcelWriterSheetBuilder();
+
+        // 通过自定义配置器对Sheet构建器进行个性化配置
+        WriteSheetCustomizer customizer = new WriteSheetCustomizer(excelSheet);
+        customizer.customize(builder);
+        return builder.build();
     }
 
     /**
@@ -36,10 +56,7 @@ public class ExcelWriterSheetBuilderCustomizer extends ExcelWriterParameterBuild
      * @param builder ExcelWriterSheetBuilder实例，用于构建和配置Excel工作表
      */
     @Override
-    public void customize(final ExcelWriterSheetBuilder builder) {
-        // 调用父类的customize方法进行基础配置
-        super.customize(builder);
-
+    public void configure(ExcelWriterSheetBuilder builder) {
         // 设置工作表的编号和名称
         builder.sheetNo(excelSheet.sheetNo())
                 .sheetName(excelSheet.sheetName());
