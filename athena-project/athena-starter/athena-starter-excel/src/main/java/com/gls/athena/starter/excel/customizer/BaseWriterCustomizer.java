@@ -5,7 +5,7 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.write.builder.AbstractExcelWriterParameterBuilder;
 import com.gls.athena.common.core.base.ICustomizer;
-import com.gls.athena.starter.excel.annotation.ExcelParameter;
+import com.gls.athena.starter.excel.annotation.ExcelConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 
@@ -25,7 +25,7 @@ public abstract class BaseWriterCustomizer<B extends AbstractExcelWriterParamete
     /**
      * Excel参数配置
      */
-    private final ExcelParameter excelParameter;
+    private final ExcelConfig config;
 
     /**
      * 定制Excel写入参数
@@ -79,19 +79,19 @@ public abstract class BaseWriterCustomizer<B extends AbstractExcelWriterParamete
      */
     private void configureHeader(B builder) {
         // 配置表头内容
-        if (ObjUtil.isNotEmpty(excelParameter.head())) {
-            builder.head(Arrays.stream(excelParameter.head())
+        if (ObjUtil.isNotEmpty(config.head())) {
+            builder.head(Arrays.stream(config.head())
                     .map(head -> StrUtil.split(head, StrUtil.COMMA))
                     .toList());
         }
 
         // 配置是否需要表头及是否自动合并表头
-        builder.needHead(excelParameter.needHead());
-        builder.automaticMergeHead(excelParameter.automaticMergeHead());
+        builder.needHead(config.needHead());
+        builder.automaticMergeHead(config.automaticMergeHead());
 
         // 配置相对表头行索引
-        if (excelParameter.relativeHeadRowIndex() > 0) {
-            builder.relativeHeadRowIndex(excelParameter.relativeHeadRowIndex());
+        if (config.relativeHeadRowIndex() > 0) {
+            builder.relativeHeadRowIndex(config.relativeHeadRowIndex());
         }
     }
 
@@ -104,9 +104,9 @@ public abstract class BaseWriterCustomizer<B extends AbstractExcelWriterParamete
      */
     private void registerConverters(B builder) {
         // 检查`excelParameter`中是否配置了转换器
-        if (excelParameter.converter() != null) {
+        if (config.converter() != null) {
             // 遍历所有配置的转换器类，实例化并注册到`builder`中
-            Arrays.stream(excelParameter.converter())
+            Arrays.stream(config.converter())
                     .forEach(converter -> builder.registerConverter(BeanUtils.instantiateClass(converter)));
         }
     }
@@ -121,23 +121,23 @@ public abstract class BaseWriterCustomizer<B extends AbstractExcelWriterParamete
      */
     private void configureBasicParameters(B builder) {
         // 配置是否使用1904日期系统
-        builder.use1904windowing(excelParameter.use1904windowing());
+        builder.use1904windowing(config.use1904windowing());
 
         // 如果区域设置不为空，则配置区域设置
-        if (StrUtil.isNotEmpty(excelParameter.locale())) {
-            builder.locale(Locale.of(excelParameter.locale()));
+        if (StrUtil.isNotEmpty(config.locale())) {
+            builder.locale(Locale.of(config.locale()));
         }
 
         // 如果文件缓存位置不为空，则配置文件缓存位置
-        if (excelParameter.filedCacheLocation() != null) {
-            builder.filedCacheLocation(excelParameter.filedCacheLocation());
+        if (config.filedCacheLocation() != null) {
+            builder.filedCacheLocation(config.filedCacheLocation());
         }
 
         // 配置是否自动修剪
-        builder.autoTrim(excelParameter.autoTrim());
+        builder.autoTrim(config.autoTrim());
 
         // 配置是否使用默认样式
-        builder.useDefaultStyle(excelParameter.useDefaultStyle());
+        builder.useDefaultStyle(config.useDefaultStyle());
     }
 
     /**
@@ -151,9 +151,9 @@ public abstract class BaseWriterCustomizer<B extends AbstractExcelWriterParamete
      */
     private void configureDataHandling(B builder) {
         // 检查是否存在写处理器配置
-        if (excelParameter.writeHandler() != null) {
+        if (config.writeHandler() != null) {
             // 遍历所有写处理器，并注册到 builder 中
-            Arrays.stream(excelParameter.writeHandler())
+            Arrays.stream(config.writeHandler())
                     .forEach(handler -> builder.registerWriteHandler(BeanUtils.instantiateClass(handler)));
         }
     }
@@ -166,23 +166,23 @@ public abstract class BaseWriterCustomizer<B extends AbstractExcelWriterParamete
      */
     private void configureColumnFilters(B builder) {
         // 设置排除的列
-        if (ArrayUtil.isNotEmpty(excelParameter.excludeColumnIndexes())) {
-            builder.excludeColumnIndexes(Arrays.stream(excelParameter.excludeColumnIndexes()).boxed().toList());
+        if (ArrayUtil.isNotEmpty(config.excludeColumnIndexes())) {
+            builder.excludeColumnIndexes(Arrays.stream(config.excludeColumnIndexes()).boxed().toList());
         }
-        if (ArrayUtil.isNotEmpty(excelParameter.excludeColumnFieldNames())) {
-            builder.excludeColumnFieldNames(Arrays.stream(excelParameter.excludeColumnFieldNames()).toList());
+        if (ArrayUtil.isNotEmpty(config.excludeColumnFieldNames())) {
+            builder.excludeColumnFieldNames(Arrays.stream(config.excludeColumnFieldNames()).toList());
         }
 
         // 设置包含的列
-        if (ArrayUtil.isNotEmpty(excelParameter.includeColumnIndexes())) {
-            builder.includeColumnIndexes(Arrays.stream(excelParameter.includeColumnIndexes()).boxed().toList());
+        if (ArrayUtil.isNotEmpty(config.includeColumnIndexes())) {
+            builder.includeColumnIndexes(Arrays.stream(config.includeColumnIndexes()).boxed().toList());
         }
-        if (ArrayUtil.isNotEmpty(excelParameter.includeColumnFieldNames())) {
-            builder.includeColumnFieldNames(Arrays.stream(excelParameter.includeColumnFieldNames()).toList());
+        if (ArrayUtil.isNotEmpty(config.includeColumnFieldNames())) {
+            builder.includeColumnFieldNames(Arrays.stream(config.includeColumnFieldNames()).toList());
         }
 
         // 设置是否按包含列排序
-        builder.orderByIncludeColumn(excelParameter.orderByIncludeColumn());
+        builder.orderByIncludeColumn(config.orderByIncludeColumn());
     }
 
 }

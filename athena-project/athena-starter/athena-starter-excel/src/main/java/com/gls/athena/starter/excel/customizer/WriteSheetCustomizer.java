@@ -17,16 +17,16 @@ public class WriteSheetCustomizer extends BaseWriterCustomizer<ExcelWriterSheetB
      * Sheet配置注解
      * 包含sheet相关的配置信息，如sheet编号、名称等
      */
-    private final ExcelSheet excelSheet;
+    private final ExcelSheet sheet;
 
     /**
      * 构造Excel Sheet构建器自定义器
      *
-     * @param excelSheet Sheet配置注解，不能为null
+     * @param sheet Sheet配置注解，不能为null
      */
-    private WriteSheetCustomizer(ExcelSheet excelSheet) {
-        super(excelSheet.parameter());
-        this.excelSheet = excelSheet;
+    private WriteSheetCustomizer(ExcelSheet sheet) {
+        super(sheet.config());
+        this.sheet = sheet;
     }
 
     /**
@@ -58,8 +58,8 @@ public class WriteSheetCustomizer extends BaseWriterCustomizer<ExcelWriterSheetB
     @Override
     public void configure(ExcelWriterSheetBuilder builder) {
         // 设置工作表的编号和名称
-        builder.sheetNo(excelSheet.sheetNo())
-                .sheetName(excelSheet.sheetName());
+        builder.sheetNo(sheet.sheetNo())
+                .sheetName(sheet.sheetName());
     }
 
 }

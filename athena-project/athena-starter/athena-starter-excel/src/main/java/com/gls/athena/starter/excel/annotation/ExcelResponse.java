@@ -24,7 +24,7 @@ public @interface ExcelResponse {
      *
      * @return Excel基础参数配置对象
      */
-    ExcelParameter parameter() default @ExcelParameter;
+    ExcelConfig config() default @ExcelConfig;
 
     /**
      * 是否自动关闭输出流

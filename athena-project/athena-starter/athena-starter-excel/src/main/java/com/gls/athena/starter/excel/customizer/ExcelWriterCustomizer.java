@@ -24,16 +24,16 @@ public class ExcelWriterCustomizer extends BaseWriterCustomizer<ExcelWriterBuild
     /**
      * Excel响应配置
      */
-    private final ExcelResponse excelResponse;
+    private final ExcelResponse response;
 
     /**
      * 构造自定义器实例
      *
-     * @param excelResponse Excel响应配置注解
+     * @param response Excel响应配置注解
      */
-    private ExcelWriterCustomizer(ExcelResponse excelResponse) {
-        super(excelResponse.parameter());
-        this.excelResponse = excelResponse;
+    private ExcelWriterCustomizer(ExcelResponse response) {
+        super(response.config());
+        this.response = response;
     }
 
     /**
@@ -65,29 +65,29 @@ public class ExcelWriterCustomizer extends BaseWriterCustomizer<ExcelWriterBuild
     @Override
     public void configure(ExcelWriterBuilder builder) {
         // 基础配置：设置自动关闭流、内存模式、异常时是否写入Excel
-        builder.autoCloseStream(excelResponse.autoCloseStream())
-                .inMemory(excelResponse.inMemory())
-                .writeExcelOnException(excelResponse.writeExcelOnException());
+        builder.autoCloseStream(response.autoCloseStream())
+                .inMemory(response.inMemory())
+                .writeExcelOnException(response.writeExcelOnException());
 
         // 密码保护配置：如果设置了密码，则对Excel文件进行密码保护
-        if (StrUtil.isNotEmpty(excelResponse.password())) {
-            builder.password(excelResponse.password());
+        if (StrUtil.isNotEmpty(response.password())) {
+            builder.password(response.password());
         }
 
         // Excel类型配置：如果指定了Excel类型，则设置Excel文件的类型
-        if (excelResponse.excelType() != null) {
-            builder.excelType(excelResponse.excelType());
+        if (response.excelType() != null) {
+            builder.excelType(response.excelType());
         }
 
         // CSV相关配置：如果指定了字符集，则设置CSV文件的字符集，并设置是否包含BOM
-        if (StrUtil.isNotEmpty(excelResponse.charset())) {
-            builder.charset(Charset.forName(excelResponse.charset()));
+        if (StrUtil.isNotEmpty(response.charset())) {
+            builder.charset(Charset.forName(response.charset()));
         }
-        builder.withBom(excelResponse.withBom());
+        builder.withBom(response.withBom());
 
         // 模板配置：如果指定了模板文件路径，则设置Excel文件的模板
-        if (StrUtil.isNotEmpty(excelResponse.template())) {
-            InputStream template = new ClassPathResource(excelResponse.template()).getInputStream();
+        if (StrUtil.isNotEmpty(response.template())) {
+            InputStream template = new ClassPathResource(response.template()).getInputStream();
             builder.withTemplate(template);
         }
     }

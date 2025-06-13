@@ -23,7 +23,7 @@ public @interface ExcelTable {
      *
      * @return ExcelParameter对象，默认使用空参数配置
      */
-    ExcelParameter parameter() default @ExcelParameter;
+    ExcelConfig config() default @ExcelConfig;
 
     /**
      * Excel表格序号

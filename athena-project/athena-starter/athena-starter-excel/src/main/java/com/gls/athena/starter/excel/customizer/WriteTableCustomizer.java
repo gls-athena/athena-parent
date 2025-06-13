@@ -12,16 +12,16 @@ import com.gls.athena.starter.excel.annotation.ExcelTable;
  */
 public class WriteTableCustomizer extends BaseWriterCustomizer<ExcelWriterTableBuilder> {
 
-    private final ExcelTable excelTable;
+    private final ExcelTable table;
 
     /**
      * 初始化表格构建器自定义配置
      *
-     * @param excelTable Excel表格注解配置
+     * @param table Excel表格注解配置
      */
-    private WriteTableCustomizer(ExcelTable excelTable) {
-        super(excelTable.parameter());
-        this.excelTable = excelTable;
+    private WriteTableCustomizer(ExcelTable table) {
+        super(table.config());
+        this.table = table;
     }
 
     /**
@@ -51,7 +51,7 @@ public class WriteTableCustomizer extends BaseWriterCustomizer<ExcelWriterTableB
     @Override
     public void configure(ExcelWriterTableBuilder builder) {
         // 设置表格的序号
-        builder.tableNo(excelTable.tableNo());
+        builder.tableNo(table.tableNo());
     }
 
 }
