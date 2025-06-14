@@ -32,14 +32,19 @@ public class SmsAuthenticationConverter extends BaseAuthenticationConverter {
     protected Authentication convert(MultiValueMap<String, String> parameterMap, Authentication clientPrincipal, Set<String> scopes) {
         // 手机号 (REQUIRED)
         String mobile = parameterMap.getFirst(IAuthorizationConstants.MOBILE);
-        if (StrUtil.isBlank(mobile) || parameterMap.get(IAuthorizationConstants.MOBILE).size() != 1) {
+        List<String> mobileValues = parameterMap.get(IAuthorizationConstants.MOBILE);
+        if (StrUtil.isBlank(mobile) || mobileValues == null || mobileValues.size() != 1) {
             AuthenticationUtil.throwError(OAuth2ErrorCodes.INVALID_REQUEST, IAuthorizationConstants.MOBILE, IAuthorizationConstants.ERROR_URI);
         }
+
         // 额外参数
         Map<String, Object> additionalParameters = parameterMap.entrySet().stream()
-                .filter(entry -> !List.of(OAuth2ParameterNames.GRANT_TYPE, IAuthorizationConstants.MOBILE, OAuth2ParameterNames.SCOPE)
-                        .contains(entry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().size() > 1 ? entry.getValue() : entry.getValue().getFirst()));
+                .filter(entry -> !IAuthorizationConstants.MOBILE.equals(entry.getKey())
+                        && !OAuth2ParameterNames.GRANT_TYPE.equals(entry.getKey())
+                        && !OAuth2ParameterNames.SCOPE.equals(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().size() > 1 ? entry.getValue() : entry.getValue().getFirst()
+                ));
+
         // 返回 SmsOAuth2AuthenticationToken 对象
         return new SmsAuthenticationToken(clientPrincipal, additionalParameters, scopes, mobile);
     }

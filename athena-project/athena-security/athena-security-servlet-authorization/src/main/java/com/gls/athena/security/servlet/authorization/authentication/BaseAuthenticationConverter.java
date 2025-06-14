@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.util.MultiValueMap;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -33,7 +34,7 @@ public abstract class BaseAuthenticationConverter implements AuthenticationConve
         MultiValueMap<String, String> parameterMap = WebUtil.getParameterMap(request);
         // 获取授权类型
         String grantType = parameterMap.getFirst(OAuth2ParameterNames.GRANT_TYPE);
-        if (!support(grantType)) {
+        if (grantType == null || !support(grantType)) {
             return null;
         }
 
@@ -44,7 +45,8 @@ public abstract class BaseAuthenticationConverter implements AuthenticationConve
         }
         // 获取请求的范围
         String scope = parameterMap.getFirst(OAuth2ParameterNames.SCOPE);
-        if (StrUtil.isNotBlank(scope) && parameterMap.get(OAuth2ParameterNames.SCOPE).size() != 1) {
+        List<String> scopeParams = parameterMap.get(OAuth2ParameterNames.SCOPE);
+        if (StrUtil.isBlank(scope) || scopeParams == null || scopeParams.size() != 1) {
             AuthenticationUtil.throwError(OAuth2ErrorCodes.INVALID_REQUEST, OAuth2ParameterNames.SCOPE, IAuthorizationConstants.ERROR_URI);
         }
         // 请求的范围
