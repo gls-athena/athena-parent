@@ -40,6 +40,7 @@ public class AuthorizationSecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authorizationSecurityFilterChain(HttpSecurity http,
                                                                 AuthorizationServerCustomizer authorizationServerCustomizer,
+                                                                AuthorizeHttpRequestsCustomizer authorizeHttpRequestsCustomizer,
                                                                 ExceptionHandlingCustomizer exceptionHandlingCustomizer) throws Exception {
         // OAuth2授权服务器配置
         OAuth2AuthorizationServerConfigurer authorizationServer = OAuth2AuthorizationServerConfigurer.authorizationServer();
@@ -47,6 +48,8 @@ public class AuthorizationSecurityConfig {
         http.securityMatcher(authorizationServer.getEndpointsMatcher());
         // 默认安全配置
         http.with(authorizationServer, authorizationServerCustomizer);
+        // 配置请求授权
+        http.authorizeHttpRequests(authorizeHttpRequestsCustomizer);
         // 异常处理
         http.exceptionHandling(exceptionHandlingCustomizer);
         // 构建

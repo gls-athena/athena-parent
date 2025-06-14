@@ -48,7 +48,7 @@
         <spring-modulith.version>1.3.6</spring-modulith.version>
         <spring-shell.version>3.4.0</spring-shell.version>
         <tanzu-scg-extensions.version>1.0.0</tanzu-scg-extensions.version>
-        <timefold-solver.version>1.22.1</timefold-solver.version>
+        <timefold-solver.version>1.23.0</timefold-solver.version>
         <vaadin.version>24.7.6</vaadin.version>
 
         <spring-boot.version>3.4.6</spring-boot.version>
