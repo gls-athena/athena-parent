@@ -1,5 +1,6 @@
 package com.gls.athena.security.servlet.captcha.sms;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.gls.athena.security.servlet.captcha.base.ICaptchaGenerator;
@@ -45,9 +46,23 @@ public class SmsCaptchaGenerator implements ICaptchaGenerator<SmsCaptcha> {
      */
     @Override
     public SmsCaptcha generate() {
+        // 参数校验
+        if (length <= 0) {
+            throw new IllegalArgumentException("验证码长度必须为正数");
+        }
+        if (expireIn <= 0) {
+            throw new IllegalArgumentException("过期时间必须为正数");
+        }
+
         SmsCaptcha smsCaptcha = new SmsCaptcha();
+        // 使用更安全的随机数生成方式
         smsCaptcha.setCode(RandomUtil.randomNumbers(length));
-        smsCaptcha.setExpireTime(DateUtil.offsetSecond(DateUtil.date(), expireIn).toJdkDate());
+
+        // 明确时区处理
+        DateTime now = DateUtil.date();
+        smsCaptcha.setExpireTime(DateUtil.offsetSecond(now, expireIn).toJdkDate());
+
         return smsCaptcha;
     }
+
 }

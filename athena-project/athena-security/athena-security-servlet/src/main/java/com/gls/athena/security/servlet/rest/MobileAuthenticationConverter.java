@@ -21,17 +21,26 @@ public class MobileAuthenticationConverter implements AuthenticationConverter {
     private String mobileParameter = "mobile";
 
     /**
-     * 转换
+     * 将HTTP请求转换为移动端认证令牌
+     * <p>
+     * 该方法从HTTP请求中提取手机号，如果手机号存在则创建未认证的移动端认证令牌，
+     * 否则返回null表示无法转换
      *
-     * @param request 请求
-     * @return 认证
+     * @param request HTTP请求对象，包含客户端请求的所有信息
+     * @return MobileAuthenticationToken 未认证的移动端认证令牌，
+     * 如果请求中不包含手机号则返回null
      */
     @Override
     public Authentication convert(HttpServletRequest request) {
+        // 从请求中获取手机号
         String mobile = obtainMobile(request);
+
+        // 手机号不存在则返回null
         if (mobile == null) {
             return null;
         }
+
+        // 创建并返回未认证的移动端认证令牌
         return MobileAuthenticationToken.unauthenticated(mobile);
     }
 

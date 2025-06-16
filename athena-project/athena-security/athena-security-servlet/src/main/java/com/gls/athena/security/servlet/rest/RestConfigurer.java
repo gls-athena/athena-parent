@@ -102,11 +102,16 @@ public final class RestConfigurer<H extends HttpSecurityBuilder<H>> extends
     }
 
     /**
-     * 设置登录处理 URL
+     * 创建用于匹配登录处理URL的请求匹配器
      *
-     * @param loginProcessingUrl 登录处理 URL
-     *                           loginProcessingUrl 登录处理 URL
-     * @return 请求匹配器
+     * <p>
+     * 该方法实现父类的抽象方法，用于创建一个Ant风格的路径请求匹配器，
+     * 该匹配器将验证请求URL是否与指定的登录处理URL匹配，且请求方法是否为POST。
+     * </p>
+     *
+     * @param loginProcessingUrl 需要进行匹配的登录处理URL路径，
+     *                           通常为表单登录提交的目标地址
+     * @return AntPathRequestMatcher 实例，用于匹配POST请求到指定URL的请求
      */
     @Override
     protected RequestMatcher createLoginProcessingUrlMatcher(String loginProcessingUrl) {
@@ -114,21 +119,27 @@ public final class RestConfigurer<H extends HttpSecurityBuilder<H>> extends
     }
 
     /**
-     * 配置
+     * 配置HTTP安全构建器
+     * <p>
+     * 主要功能：
+     * 1. 设置默认的认证转换器，并允许自定义转换器优先执行
+     * 2. 设置默认的认证提供者，并允许添加自定义提供者
+     * 3. 调用父类配置完成过滤器链的最终配置
      *
-     * @param http HTTP 安全构建器
-     * @throws Exception 异常
+     * @param http HTTP安全构建器，用于配置安全相关的HTTP设置
+     * @throws Exception 可能抛出任何配置过程中出现的异常
      */
     @Override
     public void configure(H http) throws Exception {
-        // 设置默认的认证转换器
+        // 配置认证转换器：合并默认转换器和自定义转换器（自定义优先），并设置到认证过滤器中
         List<AuthenticationConverter> authenticationConverters = createDefaultAuthenticationConverters();
         if (!this.authenticationConverters.isEmpty()) {
             authenticationConverters.addAll(0, this.authenticationConverters);
         }
         this.authenticationConvertersConsumer.accept(authenticationConverters);
         getAuthenticationFilter().setAuthenticationConverter(new DelegatingAuthenticationConverter(authenticationConverters));
-        // 设置默认的认证提供者
+
+        // 配置认证提供者：合并默认提供者和自定义提供者，并注册到HTTP安全构建器中
         List<AuthenticationProvider> authenticationProviders = createDefaultAuthenticationProviders();
         if (!this.authenticationProviders.isEmpty()) {
             authenticationProviders.addAll(this.authenticationProviders);
@@ -136,36 +147,63 @@ public final class RestConfigurer<H extends HttpSecurityBuilder<H>> extends
         this.authenticationProvidersConsumer.accept(authenticationProviders);
         authenticationProviders.forEach(
                 (authenticationProvider) -> http.authenticationProvider(postProcess(authenticationProvider)));
-        // 配置过滤器
+
+        // 调用父类配置完成最终过滤器配置
         super.configure(http);
     }
 
     /**
-     * 创建默认的认证转换器
+     * 创建默认的认证转换器列表
+     * <p>
+     * 该方法创建并配置两个默认的认证转换器：
+     * 1. MobileAuthenticationConverter - 用于移动端认证，配置手机号参数
+     * 2. UsernamePasswordAuthenticationConverter - 用于用户名密码认证，配置用户名和密码参数
+     * <p>
+     * 注：所有配置参数均从restProperties中获取
      *
-     * @return 认证转换器
+     * @return List<AuthenticationConverter> 包含两个默认认证转换器的列表：
+     * - MobileAuthenticationConverter实例（已配置手机号参数）
+     * - UsernamePasswordAuthenticationConverter实例（已配置用户名和密码参数）
      */
     private List<AuthenticationConverter> createDefaultAuthenticationConverters() {
+        // 初始化认证转换器列表
         List<AuthenticationConverter> authenticationConverters = new ArrayList<>();
+
+        // 添加并配置移动端认证转换器
         authenticationConverters.add(new MobileAuthenticationConverter()
                 .setMobileParameter(restProperties.getMobileParameter()));
+
+        // 添加并配置用户名密码认证转换器
         authenticationConverters.add(new UsernamePasswordAuthenticationConverter()
                 .setUsernameParameter(restProperties.getUsernameParameter())
                 .setPasswordParameter(restProperties.getPasswordParameter()));
+
         return authenticationConverters;
     }
 
     /**
-     * 创建默认的认证提供者
+     * 创建默认的认证提供者列表
+     * <p>
+     * 该方法会创建一个包含移动端认证提供者的默认认证提供者列表。
+     * 首先从Spring容器中获取UserDetailsService实例，如果存在则创建
+     * MobileAuthenticationProvider并添加到返回列表中。
      *
-     * @return 认证提供者
+     * @return List<AuthenticationProvider> 包含移动端认证提供者的列表，
+     * 如果UserDetailsService不存在则返回空列表
      */
     private List<AuthenticationProvider> createDefaultAuthenticationProviders() {
+        // 初始化认证提供者列表
         List<AuthenticationProvider> authenticationProviders = new ArrayList<>();
+
+        // 从Spring容器获取用户详情服务
         UserDetailsService userDetailsService = SpringUtil.getBean(UserDetailsService.class);
+
+        // 如果用户详情服务存在，则创建移动端认证提供者并添加到列表
         if (userDetailsService != null) {
             authenticationProviders.add(new MobileAuthenticationProvider(userDetailsService));
         }
+
         return authenticationProviders;
     }
+
 }

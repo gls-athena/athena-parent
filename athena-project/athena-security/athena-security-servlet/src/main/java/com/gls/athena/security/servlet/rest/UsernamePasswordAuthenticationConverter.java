@@ -26,22 +26,24 @@ public class UsernamePasswordAuthenticationConverter implements AuthenticationCo
     private String passwordParameter = "password";
 
     /**
-     * 转换
+     * 从HttpServletRequest中提取认证信息并转换为Authentication对象
      *
-     * @param request 请求
-     * @return 认证
+     * @param request HTTP请求对象，从中提取用户名和密码等认证信息
+     * @return 包含用户名和密码的未认证Authentication对象，如果用户名或密码为空则返回null
+     * @see UsernamePasswordAuthenticationToken
      */
     @Override
     public Authentication convert(HttpServletRequest request) {
-        // 获取用户名
+        // 从请求中提取用户名和密码
         String username = obtainUsername(request);
-        // 获取密码
         String password = obtainPassword(request);
-        // 如果用户名或密码为空，则返回null
+
+        // 验证用户名和密码的有效性
         if (username == null || password == null) {
             return null;
         }
-        // 返回认证信息
+
+        // 创建并返回未认证的令牌对象
         return UsernamePasswordAuthenticationToken.unauthenticated(username, password);
     }
 
