@@ -6,7 +6,6 @@ import com.gls.athena.security.servlet.client.config.IClientConstants;
 import com.gls.athena.security.servlet.client.social.ISocialUserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -55,7 +54,7 @@ public class DelegateOAuth2UserService implements OAuth2UserService<OAuth2UserRe
      * OAuth2用户服务适配器提供者，用于支持不同社交平台的用户信息适配
      */
     @Resource
-    private ObjectProvider<IOAuth2UserServiceAdapter> adapters;
+    private IOAuth2LoginAdapterManager adapterManager;
 
     /**
      * HTTP会话对象，用于存储社交用户信息
@@ -99,12 +98,7 @@ public class DelegateOAuth2UserService implements OAuth2UserService<OAuth2UserRe
      * @return 社交平台提供者标识
      */
     private String extractProvider(OAuth2UserRequest userRequest) {
-        return MapUtil.getStr(
-                userRequest.getClientRegistration()
-                        .getProviderDetails()
-                        .getConfigurationMetadata(),
-                IClientConstants.PROVIDER_ID
-        );
+        return MapUtil.getStr(userRequest.getClientRegistration().getProviderDetails().getConfigurationMetadata(), IClientConstants.PROVIDER_ID);
     }
 
     /**
@@ -118,9 +112,7 @@ public class DelegateOAuth2UserService implements OAuth2UserService<OAuth2UserRe
      * @return OAuth2User 加载的用户信息
      */
     private OAuth2User loadOAuth2User(OAuth2UserRequest userRequest, String provider) {
-        return adapters.stream()
-                .filter(adapter -> adapter.test(provider))
-                .findFirst()
+        return adapterManager.getAdapter(provider)
                 .map(adapter -> adapter.loadUser(userRequest))
                 .orElseGet(() -> DEFAULT.loadUser(userRequest));
     }

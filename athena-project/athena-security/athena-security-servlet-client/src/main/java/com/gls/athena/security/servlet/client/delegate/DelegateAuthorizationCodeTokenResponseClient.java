@@ -2,6 +2,7 @@ package com.gls.athena.security.servlet.client.delegate;
 
 import cn.hutool.core.map.MapUtil;
 import com.gls.athena.security.servlet.client.config.IClientConstants;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
@@ -9,9 +10,7 @@ import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizati
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * OAuth2授权码模式的令牌响应委托客户端
@@ -26,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
 
     /**
@@ -34,22 +34,9 @@ public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2Acces
     private static final RestClientAuthorizationCodeTokenResponseClient DELEGATE = new RestClientAuthorizationCodeTokenResponseClient();
 
     /**
-     * OAuth2提供商适配器列表
+     * 所有可用的OAuth2适配器列表
      */
-    private final List<IAuthorizationCodeTokenResponseClientAdapter> adapters;
-    /**
-     * 适配器缓存，用于提高查找性能 key:providerId, value:adapter
-     */
-    private final Map<String, IAuthorizationCodeTokenResponseClientAdapter> adapterCache = new ConcurrentHashMap<>();
-
-    /**
-     * 构造函数，注入所有可用的OAuth2适配器
-     *
-     * @param adapters OAuth2适配器列表
-     */
-    public DelegateAuthorizationCodeTokenResponseClient(List<IAuthorizationCodeTokenResponseClientAdapter> adapters) {
-        this.adapters = adapters;
-    }
+    private final IOAuth2LoginAdapterManager adapterManager;
 
     /**
      * 处理OAuth2授权码换取访问令牌的请求
@@ -68,15 +55,10 @@ public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2Acces
     public OAuth2AccessTokenResponse getTokenResponse(OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest) {
         try {
             String providerId = extractProviderId(authorizationCodeGrantRequest);
-            IAuthorizationCodeTokenResponseClientAdapter adapter = findAdapter(providerId);
-
-            if (adapter != null) {
-                log.debug("Using adapter for provider: {}", providerId);
-                return adapter.getTokenResponse(authorizationCodeGrantRequest);
-            }
-
-            log.debug("No adapter found for provider: {}, using default client", providerId);
-            return DELEGATE.getTokenResponse(authorizationCodeGrantRequest);
+            log.debug("Processing token response for provider: {}", providerId);
+            return adapterManager.getAdapter(providerId)
+                    .map(adapter -> adapter.getTokenResponse(authorizationCodeGrantRequest))
+                    .orElseGet(() -> DELEGATE.getTokenResponse(authorizationCodeGrantRequest));
         } catch (Exception e) {
             log.error("Error processing token response", e);
             throw e;
@@ -94,21 +76,4 @@ public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2Acces
         return MapUtil.getStr(metadata, IClientConstants.PROVIDER_ID);
     }
 
-    /**
-     * 查找或缓存对应的OAuth2适配器
-     * <p>
-     * 使用ConcurrentHashMap确保线程安全，同时利用computeIfAbsent保证原子性操作
-     * </p>
-     *
-     * @param providerId OAuth2提供商ID
-     * @return 匹配的适配器，如果没有找到则返回null
-     */
-    private IAuthorizationCodeTokenResponseClientAdapter findAdapter(String providerId) {
-        return adapterCache.computeIfAbsent(providerId, pid ->
-                adapters.stream()
-                        .filter(adapter -> adapter.test(pid))
-                        .findFirst()
-                        .orElse(null)
-        );
-    }
 }

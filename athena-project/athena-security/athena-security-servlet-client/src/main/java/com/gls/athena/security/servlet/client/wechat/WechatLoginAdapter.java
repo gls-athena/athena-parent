@@ -3,7 +3,7 @@ package com.gls.athena.security.servlet.client.wechat;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import com.gls.athena.security.servlet.client.delegate.IOAuth2LoginCustomizer;
+import com.gls.athena.security.servlet.client.delegate.IOAuth2LoginAdapter;
 import com.gls.athena.security.servlet.client.wechat.domain.WechatAccessTokenRequest;
 import com.gls.athena.security.servlet.client.wechat.domain.WechatAccessTokenResponse;
 import com.gls.athena.security.servlet.client.wechat.domain.WechatUserInfoRequest;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @author george
  */
 @Component
-public class WechatLoginCustomizer implements IOAuth2LoginCustomizer {
+public class WechatLoginAdapter implements IOAuth2LoginAdapter {
 
     /**
      * 测试是否支持指定的注册标识

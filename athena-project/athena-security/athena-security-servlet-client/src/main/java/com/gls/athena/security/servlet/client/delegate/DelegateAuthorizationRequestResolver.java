@@ -4,7 +4,6 @@ import cn.hutool.core.map.MapUtil;
 import com.gls.athena.security.servlet.client.config.IClientConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
@@ -57,9 +56,9 @@ public class DelegateAuthorizationRequestResolver implements OAuth2Authorization
     private final DefaultOAuth2AuthorizationRequestResolver resolver;
 
     /**
-     * 自定义授权请求定制器集合
+     * 所有可用的OAuth2适配器列表
      */
-    private final ObjectProvider<IAuthorizationRequestCustomizer> customizers;
+    private final IOAuth2LoginAdapterManager adapterManager;
 
     /**
      * OAuth2 客户端注册信息存储库
@@ -70,13 +69,13 @@ public class DelegateAuthorizationRequestResolver implements OAuth2Authorization
      * 构造函数
      *
      * @param clientRegistrationRepository OAuth2 客户端注册信息存储库
-     * @param customizers                  授权请求定制器提供者
+     * @param adapterManager               授权请求定制器提供者
      */
     public DelegateAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository,
-                                                ObjectProvider<IAuthorizationRequestCustomizer> customizers) {
+                                                IOAuth2LoginAdapterManager adapterManager) {
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.resolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, AUTHORIZATION_REQUEST_BASE_URI);
-        this.customizers = customizers;
+        this.adapterManager = adapterManager;
     }
 
     /**
@@ -159,16 +158,8 @@ public class DelegateAuthorizationRequestResolver implements OAuth2Authorization
             }
 
             // 查找并应用匹配的定制器
-            customizers.stream()
-                    .filter(customizer -> customizer.test(provider))
-                    .findFirst()
-                    .ifPresentOrElse(
-                            customizer -> {
-                                log.debug("应用自定义授权请求配置: provider={}", provider);
-                                customizer.accept(builder, request, clientRegistration);
-                            },
-                            () -> log.debug("未找到匹配的授权请求定制器: provider={}", provider)
-                    );
+            adapterManager.getAdapter(provider)
+                    .ifPresent(adapter -> adapter.accept(builder, request, clientRegistration));
         } catch (Exception e) {
             log.error("自定义授权请求配置失败", e);
         }
