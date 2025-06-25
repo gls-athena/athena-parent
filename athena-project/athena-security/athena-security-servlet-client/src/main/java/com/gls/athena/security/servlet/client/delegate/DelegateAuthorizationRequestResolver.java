@@ -10,7 +10,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -48,8 +48,8 @@ public class DelegateAuthorizationRequestResolver implements OAuth2Authorization
     /**
      * 用于解析授权请求URL的路径匹配器
      */
-    private final static AntPathRequestMatcher REQUEST_MATCHER = new AntPathRequestMatcher(
-            AUTHORIZATION_REQUEST_BASE_URI + "/{" + REGISTRATION_ID + "}");
+    private final static PathPatternRequestMatcher REQUEST_MATCHER = PathPatternRequestMatcher.withDefaults()
+            .matcher(AUTHORIZATION_REQUEST_BASE_URI + "/{" + REGISTRATION_ID + "}");
 
     /**
      * Spring Security 提供的默认授权请求解析器

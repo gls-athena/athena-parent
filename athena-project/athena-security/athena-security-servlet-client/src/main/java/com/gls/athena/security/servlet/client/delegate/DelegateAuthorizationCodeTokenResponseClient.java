@@ -3,9 +3,9 @@ package com.gls.athena.security.servlet.client.delegate;
 import cn.hutool.core.map.MapUtil;
 import com.gls.athena.security.servlet.client.config.IClientConstants;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +31,7 @@ public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2Acces
     /**
      * 默认的令牌响应客户端，用于处理未匹配到专用适配器的情况
      */
-    private static final DefaultAuthorizationCodeTokenResponseClient DEFAULT = new DefaultAuthorizationCodeTokenResponseClient();
+    private static final RestClientAuthorizationCodeTokenResponseClient DELEGATE = new RestClientAuthorizationCodeTokenResponseClient();
 
     /**
      * OAuth2提供商适配器列表
@@ -76,7 +76,7 @@ public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2Acces
             }
 
             log.debug("No adapter found for provider: {}, using default client", providerId);
-            return DEFAULT.getTokenResponse(authorizationCodeGrantRequest);
+            return DELEGATE.getTokenResponse(authorizationCodeGrantRequest);
         } catch (Exception e) {
             log.error("Error processing token response", e);
             throw e;

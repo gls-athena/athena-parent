@@ -102,7 +102,7 @@ public class PdfUtil {
      * 字体将使用IDENTITY_H编码（支持Unicode字符）且不嵌入PDF文档。
      *
      * @param renderer 需要添加字体的ITextRenderer实例
-     * @param fontPath
+     * @param fontPath 字体路径，默认为"fonts"
      * @throws IOException 如果无法读取字体目录或字体文件时抛出
      */
     private void addClasspathFonts(ITextRenderer renderer, String fontPath) throws IOException {

@@ -4,6 +4,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,7 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractAu
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.DelegatingAuthenticationConverter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.ArrayList;
@@ -115,7 +116,8 @@ public final class RestConfigurer<H extends HttpSecurityBuilder<H>> extends
      */
     @Override
     protected RequestMatcher createLoginProcessingUrlMatcher(String loginProcessingUrl) {
-        return new AntPathRequestMatcher(loginProcessingUrl, "POST");
+        return PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.POST, loginProcessingUrl);
     }
 
     /**
