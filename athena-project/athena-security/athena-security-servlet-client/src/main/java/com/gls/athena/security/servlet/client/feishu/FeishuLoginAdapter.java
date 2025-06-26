@@ -3,7 +3,7 @@ package com.gls.athena.security.servlet.client.feishu;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import com.gls.athena.security.servlet.client.delegate.IOAuth2LoginAdapter;
+import com.gls.athena.security.servlet.client.delegate.ISocialLoginAdapter;
 import com.gls.athena.security.servlet.client.feishu.domian.FeishuUserAccessTokenRequest;
 import com.gls.athena.security.servlet.client.feishu.domian.FeishuUserAccessTokenResponse;
 import com.gls.athena.security.servlet.client.feishu.domian.FeishuUserInfoResponse;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @author george
  */
 @Component
-public class FeishuLoginAdapter implements IOAuth2LoginAdapter {
+public class FeishuLoginAdapter implements ISocialLoginAdapter {
 
     /**
      * 测试是否支持指定的注册标识

@@ -3,7 +3,7 @@ package com.gls.athena.security.servlet.client.wechat;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import com.gls.athena.security.servlet.client.delegate.IOAuth2LoginAdapter;
+import com.gls.athena.security.servlet.client.delegate.ISocialLoginAdapter;
 import com.gls.athena.security.servlet.client.wechat.domain.MiniAccessTokenResponse;
 import com.gls.athena.security.servlet.client.wechat.domain.MiniUserInfoRequest;
 import com.gls.athena.security.servlet.client.wechat.domain.MiniUserInfoResponse;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * @author george
  */
 @Component
-public class WechatMiniLoginAdapter implements IOAuth2LoginAdapter {
+public class WechatMiniLoginAdapter implements ISocialLoginAdapter {
 
     /**
      * 测试是否支持

@@ -12,20 +12,19 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import java.util.function.Predicate;
 
 /**
- * OAuth2 登录适配器接口
- * 用于处理 OAuth2 登录的自定义逻辑
- * 包括授权请求的定制、访问令牌响应的处理以及用户信息的获取
+ * 社交登录适配器
  *
- * @author george
+ * @author lizy19
  */
-public interface IOAuth2LoginAdapter extends OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>, OAuth2UserService<OAuth2UserRequest, OAuth2User>, Predicate<String> {
+public interface ISocialLoginAdapter extends OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>,
+        OAuth2UserService<OAuth2UserRequest, OAuth2User>, Predicate<String> {
 
     /**
-     * 自定义授权请求
+     * 社交登录适配器
      *
-     * @param request            请求对象
-     * @param clientRegistration 客户端注册信息
-     * @return 自定义的授权请求对象
+     * @param builder       社交登录请求构建器
+     * @param request       请求
+     * @param clientRegistration 社交登录客户端注册信息
      */
     void accept(OAuth2AuthorizationRequest.Builder builder, HttpServletRequest request, ClientRegistration clientRegistration);
 }

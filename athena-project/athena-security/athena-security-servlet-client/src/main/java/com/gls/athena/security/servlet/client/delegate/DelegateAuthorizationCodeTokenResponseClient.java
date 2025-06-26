@@ -13,13 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * OAuth2授权码模式的令牌响应委托客户端
- * <p>
- * 该客户端通过委托模式实现不同OAuth2提供商的令牌响应处理：
- * 1. 支持多个OAuth2提供商的适配器注册
- * 2. 使用缓存机制提高性能
- * 3. 当没有匹配的适配器时，降级使用默认客户端
- * </p>
+ * 委托授权码令牌响应客户端
  *
  * @author george
  */
@@ -28,51 +22,41 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
 
-    /**
-     * 默认的令牌响应客户端，用于处理未匹配到专用适配器的情况
-     */
-    private static final RestClientAuthorizationCodeTokenResponseClient DELEGATE = new RestClientAuthorizationCodeTokenResponseClient();
+    private static final RestClientAuthorizationCodeTokenResponseClient DEFAULT = new RestClientAuthorizationCodeTokenResponseClient();
+
+    private final ISocialLoginAdapterManager adapterManager;
 
     /**
-     * 所有可用的OAuth2适配器列表
-     */
-    private final IOAuth2LoginAdapterManager adapterManager;
-
-    /**
-     * 处理OAuth2授权码换取访问令牌的请求
-     * <p>
-     * 处理流程：
-     * 1. 提取providerId
-     * 2. 查找对应的适配器
-     * 3. 使用适配器处理请求，如无适配器则使用默认客户端
-     * </p>
+     * 获取OAuth2访问令牌响应。
+     * 根据授权码授权请求，从适配器管理器中获取对应提供商的适配器，并获取令牌响应。
+     * 如果找不到对应提供商的适配器，则使用默认的RestClientAuthorizationCodeTokenResponseClient进行处理。
      *
-     * @param authorizationCodeGrantRequest OAuth2授权码授权请求
-     * @return OAuth2访问令牌响应
-     * @throws Exception 处理过程中的异常将被记录并向上传播
+     * @param authorizationCodeGrantRequest OAuth2授权码授权请求，包含授权码等信息
+     * @return OAuth2AccessTokenResponse OAuth2访问令牌响应
      */
     @Override
     public OAuth2AccessTokenResponse getTokenResponse(OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest) {
-        try {
-            String providerId = extractProviderId(authorizationCodeGrantRequest);
-            log.debug("Processing token response for provider: {}", providerId);
-            return adapterManager.getAdapter(providerId)
-                    .map(adapter -> adapter.getTokenResponse(authorizationCodeGrantRequest))
-                    .orElseGet(() -> DELEGATE.getTokenResponse(authorizationCodeGrantRequest));
-        } catch (Exception e) {
-            log.error("Error processing token response", e);
-            throw e;
-        }
+        // 从授权请求中提取提供商ID
+        String providerId = extractProviderId(authorizationCodeGrantRequest);
+        log.debug("Processing token response for provider: {}", providerId);
+
+        // 获取对应提供商的适配器并处理令牌响应，若不存在则使用默认处理
+        return adapterManager.getAdapter(providerId)
+                .map(adapter -> adapter.getTokenResponse(authorizationCodeGrantRequest))
+                .orElseGet(() -> DEFAULT.getTokenResponse(authorizationCodeGrantRequest));
     }
 
     /**
-     * 从请求中提取OAuth2提供商ID
+     * 从OAuth2授权码请求中提取提供商标识(providerId)
      *
-     * @param request OAuth2授权码授权请求
-     * @return 提供商ID
+     * @param request OAuth2授权码请求对象，包含客户端注册信息和提供方配置元数据
+     * @return 提供商标识字符串，从配置元数据中获取的{@link IClientConstants#PROVIDER_ID}对应值
+     * 如果元数据中不存在该键则可能返回null
      */
     private String extractProviderId(OAuth2AuthorizationCodeGrantRequest request) {
+        // 从客户端注册信息的提供方详情中获取配置元数据
         Map<String, Object> metadata = request.getClientRegistration().getProviderDetails().getConfigurationMetadata();
+        // 使用工具类从元数据Map中获取指定键的字符串值
         return MapUtil.getStr(metadata, IClientConstants.PROVIDER_ID);
     }
 
