@@ -39,7 +39,7 @@ public class WriteSheetCustomizer extends BaseWriterCustomizer<ExcelWriterSheetB
      * @return 配置完成的WriteSheet实例
      */
     public static WriteSheet build(ExcelSheet excelSheet) {
-        // 初始化EasyExcel的Sheet构建器，设置基础属性
+        // 初始化Excel的Sheet构建器，设置基础属性
         ExcelWriterSheetBuilder builder = new ExcelWriterSheetBuilder();
 
         // 通过自定义配置器对Sheet构建器进行个性化配置

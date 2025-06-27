@@ -1,8 +1,8 @@
 package com.gls.athena.starter.excel.customizer;
 
 import cn.hutool.core.util.StrUtil;
-import cn.idev.excel.EasyExcel;
 import cn.idev.excel.ExcelWriter;
+import cn.idev.excel.FastExcel;
 import cn.idev.excel.write.builder.ExcelWriterBuilder;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import lombok.SneakyThrows;
@@ -45,7 +45,7 @@ public class ExcelWriterCustomizer extends BaseWriterCustomizer<ExcelWriterBuild
      */
     public static ExcelWriter build(OutputStream outputStream, ExcelResponse excelResponse) {
         // 创建ExcelWriterBuilder并应用自定义配置
-        ExcelWriterBuilder builder = EasyExcel.write(outputStream);
+        ExcelWriterBuilder builder = FastExcel.write(outputStream);
         ExcelWriterCustomizer customizer = new ExcelWriterCustomizer(excelResponse);
         customizer.customize(builder);
 

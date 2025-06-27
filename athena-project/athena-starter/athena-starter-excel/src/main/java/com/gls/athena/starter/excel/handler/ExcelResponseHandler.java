@@ -108,7 +108,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
      * @param excelSheet  Excel工作表配置信息，包含工作表名称等参数
      */
     private void fillSingleSheet(Object sheetData, ExcelWriter excelWriter, ExcelSheet excelSheet) {
-        // 根据配置创建EasyExcel所需的WriteSheet对象
+        // 根据配置创建Excel所需的WriteSheet对象
         WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
 
         // 使用ExcelWriter将数据填充到指定工作表

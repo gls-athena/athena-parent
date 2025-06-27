@@ -1,6 +1,6 @@
 package com.gls.athena.starter.excel.handler;
 
-import cn.idev.excel.EasyExcel;
+import cn.idev.excel.FastExcel;
 import com.gls.athena.starter.excel.annotation.ExcelRequest;
 import com.gls.athena.starter.excel.listener.IReadListener;
 import lombok.extern.slf4j.Slf4j;
@@ -102,7 +102,7 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
 
     /**
      * 处理Excel文件的读取过程
-     * 使用EasyExcel框架进行文件解析，支持自定义读取监听器和Excel请求注解配置。
+     * 使用FastExcel框架进行文件解析，支持自定义读取监听器和Excel请求注解配置。
      * 该方法通过传入的输入流、目标对象类型、读取监听器以及Excel请求注解信息，
      * 配置并执行Excel文件的读取操作。
      *
@@ -113,8 +113,8 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
      */
     private void processExcelFile(InputStream inputStream, Class<?> targetType,
                                   IReadListener<?> readListener, ExcelRequest excelRequest) {
-        // 使用EasyExcel框架读取Excel文件，并配置读取参数
-        EasyExcel.read(inputStream, targetType, readListener)
+        // 使用FastExcel框架读取Excel文件，并配置读取参数
+        FastExcel.read(inputStream, targetType, readListener)
                 .headRowNumber(excelRequest.headRowNumber())
                 .ignoreEmptyRow(excelRequest.ignoreEmptyRow())
                 .sheet()
