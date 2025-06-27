@@ -29,7 +29,7 @@ public class AliyunOssConfig {
      */
     @Bean
     @ConditionalOnMissingBean
-    public OSS createOssClient(AliyunOssProperties properties) {
+    public OSS ossClient(AliyunOssProperties properties) {
         // 基础参数校验
         Assert.notNull(properties, "OSS properties must not be null");
         Assert.hasText(properties.getEndpoint(), "OSS endpoint must not be empty");
@@ -38,23 +38,16 @@ public class AliyunOssConfig {
 
         // 处理基础AK/SK认证模式
         if (AliyunCoreProperties.AuthMode.AS_AK.equals(properties.getAuthMode())) {
-            return new OSSClientBuilder().build(
-                    properties.getEndpoint(),
-                    properties.getAccessKeyId(),
-                    properties.getAccessKeySecret(),
-                    properties.getConfig()
+            return new OSSClientBuilder().build(properties.getEndpoint(),
+                    properties.getAccessKeyId(), properties.getAccessKeySecret(), properties.getConfig()
             );
         }
 
         // 处理STS临时凭证认证模式
         if (AliyunCoreProperties.AuthMode.STS.equals(properties.getAuthMode())) {
             Assert.hasText(properties.getSecurityToken(), "SecurityToken must not be empty for STS mode");
-            return new OSSClientBuilder().build(
-                    properties.getEndpoint(),
-                    properties.getAccessKeyId(),
-                    properties.getAccessKeySecret(),
-                    properties.getSecurityToken(),
-                    properties.getConfig()
+            return new OSSClientBuilder().build(properties.getEndpoint(),
+                    properties.getAccessKeyId(), properties.getAccessKeySecret(), properties.getSecurityToken(), properties.getConfig()
             );
         }
 
@@ -69,7 +62,7 @@ public class AliyunOssConfig {
      */
     @Bean
     @ConditionalOnMissingBean
-    public OssProtocolResolver createOssProtocolResolver() {
+    public OssProtocolResolver ossProtocolResolver() {
         return new OssProtocolResolver();
     }
 
@@ -80,7 +73,7 @@ public class AliyunOssConfig {
      */
     @Bean
     @ConditionalOnMissingBean
-    public OssEndpoint createOssEndpoint() {
+    public OssEndpoint ossEndpoint() {
         return new OssEndpoint();
     }
 }

@@ -106,9 +106,7 @@ public class DelegateOAuth2UserService implements OAuth2UserService<OAuth2UserRe
         session.setAttribute(IClientConstants.SOCIAL_USER_SESSION_KEY, socialUser);
 
         // 抛出OAuth2认证异常，指示发生了需要处理的认证错误
-        throw new OAuth2AuthenticationException(
-                new OAuth2Error(ERROR_CODE, ERROR_MESSAGE, null)
-        );
+        throw new OAuth2AuthenticationException(new OAuth2Error(ERROR_CODE, ERROR_MESSAGE, null));
     }
 
     /**

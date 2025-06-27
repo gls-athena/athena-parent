@@ -22,8 +22,8 @@ public interface ISocialLoginAdapter extends OAuth2AccessTokenResponseClient<OAu
     /**
      * 社交登录适配器
      *
-     * @param builder       社交登录请求构建器
-     * @param request       请求
+     * @param builder            社交登录请求构建器
+     * @param request            请求
      * @param clientRegistration 社交登录客户端注册信息
      */
     void accept(OAuth2AuthorizationRequest.Builder builder, HttpServletRequest request, ClientRegistration clientRegistration);

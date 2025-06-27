@@ -2,7 +2,7 @@ package com.gls.athena.security.servlet.client.delegate;
 
 import cn.hutool.core.map.MapUtil;
 import com.gls.athena.security.servlet.client.config.IClientConstants;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
@@ -19,12 +19,12 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
 
     private static final RestClientAuthorizationCodeTokenResponseClient DEFAULT = new RestClientAuthorizationCodeTokenResponseClient();
 
-    private final ISocialLoginAdapterManager adapterManager;
+    @Resource
+    private ISocialLoginAdapterManager adapterManager;
 
     /**
      * 获取OAuth2访问令牌响应。
