@@ -13,8 +13,8 @@
     <artifactId>athena-common-bean</artifactId>
     <dependencies>
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>easyexcel-core</artifactId>
+            <groupId>cn.idev.excel</groupId>
+            <artifactId>fastexcel-core</artifactId>
         </dependency>
         <dependency>
             <groupId>io.swagger.core.v3</groupId>

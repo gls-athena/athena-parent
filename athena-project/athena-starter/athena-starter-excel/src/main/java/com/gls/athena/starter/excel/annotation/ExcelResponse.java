@@ -1,6 +1,6 @@
 package com.gls.athena.starter.excel.annotation;
 
-import com.alibaba.excel.support.ExcelTypeEnum;
+import cn.idev.excel.support.ExcelTypeEnum;
 
 import java.lang.annotation.*;
 

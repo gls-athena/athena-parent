@@ -1,7 +1,7 @@
 package com.gls.athena.starter.excel.customizer;
 
-import com.alibaba.excel.write.builder.ExcelWriterTableBuilder;
-import com.alibaba.excel.write.metadata.WriteTable;
+import cn.idev.excel.write.builder.ExcelWriterTableBuilder;
+import cn.idev.excel.write.metadata.WriteTable;
 import com.gls.athena.starter.excel.annotation.ExcelTable;
 
 /**
