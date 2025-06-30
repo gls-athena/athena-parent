@@ -101,7 +101,10 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
      * @param pdfResponse  PDF响应
      */
     private void handlePdfTemplate(Map<String, Object> data, OutputStream outputStream, PdfResponse pdfResponse) throws IOException {
+        // 加载模板
         InputStream template = new ClassPathResource(pdfResponse.template()).getInputStream();
+        log.debug("加载PDF模板: {}", template);
+        // 填充数据到PDF模板
         PdfUtil.fillPdfTemplate(template, data, outputStream);
     }
 
