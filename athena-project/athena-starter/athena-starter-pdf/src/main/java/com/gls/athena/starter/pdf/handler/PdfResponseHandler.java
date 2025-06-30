@@ -53,7 +53,8 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
      * @throws Exception 异常
      */
     @Override
-    public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
+    public void handleReturnValue(Object returnValue, MethodParameter returnType,
+                                  ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
         // 设置请求已处理
         mavContainer.setRequestHandled(true);
         // 获取方法上的@PdfResponse注解
@@ -83,7 +84,8 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
      * @param outputStream 输出流
      * @param pdfResponse  PDF响应
      */
-    private void handleHtmlTemplate(Map<String, Object> data, OutputStream outputStream, PdfResponse pdfResponse) throws IOException {
+    private void handleHtmlTemplate(Map<String, Object> data, OutputStream outputStream,
+                                    PdfResponse pdfResponse) throws IOException {
         // 渲染模板
         String html = TemplateUtil.createEngine(pdfProperties.getTemplateConfig())
                 .getTemplate(pdfResponse.template())
@@ -100,7 +102,8 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
      * @param outputStream 输出流
      * @param pdfResponse  PDF响应
      */
-    private void handlePdfTemplate(Map<String, Object> data, OutputStream outputStream, PdfResponse pdfResponse) throws IOException {
+    private void handlePdfTemplate(Map<String, Object> data, OutputStream outputStream,
+                                   PdfResponse pdfResponse) throws IOException {
         // 加载模板
         InputStream template = new ClassPathResource(pdfResponse.template()).getInputStream();
         log.debug("加载PDF模板: {}", template);

@@ -158,7 +158,8 @@ public class PdfUtil {
      * @param outputStream 用于输出填充后PDF文档的输出流
      * @throws IOException 如果读取输入流或写入输出流时发生I/O错误
      */
-    public void fillPdfTemplate(InputStream inputStream, Map<String, Object> data, OutputStream outputStream) throws IOException {
+    public void fillPdfTemplate(InputStream inputStream, Map<String, Object> data,
+                                OutputStream outputStream) throws IOException {
         // 初始化PDF文档处理器
         PdfReader reader = new PdfReader(inputStream);
         PdfStamper stamper = new PdfStamper(reader, outputStream);

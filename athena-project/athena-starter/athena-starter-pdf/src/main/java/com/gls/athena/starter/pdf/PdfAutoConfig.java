@@ -14,5 +14,4 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan
 @EnableConfigurationProperties(PdfProperties.class)
 public class PdfAutoConfig {
-
 }
