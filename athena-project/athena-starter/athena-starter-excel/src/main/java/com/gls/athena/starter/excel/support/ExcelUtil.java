@@ -98,26 +98,22 @@ public class ExcelUtil {
         List<?> dataList = Convert.toList(data);
         WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
         List<WriteTable> writeTables = WriteTableCustomizer.build(CollUtil.toList(excelSheet.tables()));
-        writeToTables(excelWriter, writeSheet, writeTables, dataList);
-    }
-
-    private void writeToTables(ExcelWriter excelWriter, WriteSheet writeSheet, List<WriteTable> writeTableList, List<?> sheetData) {
-        if (writeTableList.isEmpty()) {
-            writeToTable(excelWriter, writeSheet, null, sheetData);
+        if (writeTables.isEmpty()) {
+            writeToTable(dataList, excelWriter, writeSheet, null);
             return;
         }
-        if (writeTableList.size() == 1) {
-            writeToTable(excelWriter, writeSheet, writeTableList.getFirst(), sheetData);
+        if (writeTables.size() == 1) {
+            writeToTable(dataList, excelWriter, writeSheet, writeTables.getFirst());
             return;
         }
-        for (WriteTable writeTable : writeTableList) {
+        for (WriteTable writeTable : writeTables) {
             int tableNo = writeTable.getTableNo();
-            List<?> tableData = Convert.toList(sheetData.get(tableNo));
-            writeToTable(excelWriter, writeSheet, writeTable, tableData);
+            List<?> tableData = Convert.toList(dataList.get(tableNo));
+            writeToTable(tableData, excelWriter, writeSheet, writeTable);
         }
     }
 
-    private void writeToTable(ExcelWriter excelWriter, WriteSheet writeSheet, WriteTable writeTable, List<?> data) {
+    private void writeToTable(List<?> data, ExcelWriter excelWriter, WriteSheet writeSheet, WriteTable writeTable) {
         Class<?> clazz = data.getFirst().getClass();
         if (writeTable != null) {
             writeTable.setClazz(clazz);
