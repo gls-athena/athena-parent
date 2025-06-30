@@ -163,17 +163,17 @@ public class PdfUtil {
         // 初始化PDF文档处理器
         PdfReader reader = new PdfReader(inputStream);
         PdfStamper stamper = new PdfStamper(reader, outputStream);
-
         // 获取PDF表单字段并填充数据
         AcroFields fields = stamper.getAcroFields();
-        data.forEach((key, value) -> {
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            String key = entry.getKey();
+            String value = StrUtil.toString(entry.getValue());
             try {
-                fields.setField(key, value.toString());
+                fields.setField(key, value);
             } catch (IOException e) {
                 log.warn("填充字段失败: {}", key, e);
             }
-        });
-
+        }
         // 扁平化表单字段并关闭资源
         stamper.setFormFlattening(true);
         stamper.close();
