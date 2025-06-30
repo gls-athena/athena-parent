@@ -112,8 +112,24 @@ public class ExcelUtil {
         }
     }
 
+    /**
+     * 将数据写入Excel表格
+     *
+     * @param data        需要写入Excel的 数据列表，不能为空
+     * @param excelWriter Excel写入器，用于执行写入操作
+     * @param writeSheet  描述写入工作表的相关信息
+     * @param writeTable  可选参数，描述写入表格的相关信息如果未提供，则默认使用writeSheet中的配置
+     */
     private void writeToTable(@NonNull List<?> data, @NonNull ExcelWriter excelWriter, @NonNull WriteSheet writeSheet, WriteTable writeTable) {
+        // 检查数据列表是否为空，如果为空则抛出异常
+        if (data.isEmpty()) {
+            throw new IllegalArgumentException("数据列表不能为空");
+        }
+
+        // 获取数据列表中第一个元素的类类型
         Class<?> clazz = data.getFirst().getClass();
+
+        // 根据writeTable参数是否存在，选择合适的写入方式
         if (writeTable != null) {
             writeTable.setClazz(clazz);
             excelWriter.write(data, writeSheet, writeTable);
