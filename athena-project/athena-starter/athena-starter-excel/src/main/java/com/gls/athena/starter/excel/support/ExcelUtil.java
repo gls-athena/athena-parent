@@ -33,7 +33,7 @@ public class ExcelUtil {
     public void exportToExcel(Object data, OutputStream outputStream, ExcelResponse excelResponse) {
         try (ExcelWriter excelWriter = ExcelWriterCustomizer.build(outputStream, excelResponse)) {
             if (StrUtil.isEmpty(excelResponse.template())) {
-                writeToExcel(data, excelWriter, excelResponse);
+                writeToExcel(Convert.toList(data), excelWriter, excelResponse);
             } else {
                 fillToExcel(data, excelWriter, excelResponse);
             }
@@ -80,35 +80,33 @@ public class ExcelUtil {
         }
     }
 
-    private void writeToExcel(Object data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
+    private void writeToExcel(List<?> data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
         ExcelSheet[] excelSheets = excelResponse.sheets();
         if (excelSheets.length == 1) {
             writeToSheet(data, excelWriter, excelSheets[0]);
             return;
         }
-        List<?> dataList = Convert.toList(data);
         for (ExcelSheet excelSheet : excelSheets) {
             int sheetNo = excelSheet.sheetNo();
-            Object sheetData = dataList.get(sheetNo);
+            List<?> sheetData = Convert.toList(data.get(sheetNo));
             writeToSheet(sheetData, excelWriter, excelSheet);
         }
     }
 
-    private void writeToSheet(Object data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
-        List<?> dataList = Convert.toList(data);
+    private void writeToSheet(List<?> data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
         WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
         List<WriteTable> writeTables = WriteTableCustomizer.build(CollUtil.toList(excelSheet.tables()));
         if (writeTables.isEmpty()) {
-            writeToTable(dataList, excelWriter, writeSheet, null);
+            writeToTable(data, excelWriter, writeSheet, null);
             return;
         }
         if (writeTables.size() == 1) {
-            writeToTable(dataList, excelWriter, writeSheet, writeTables.getFirst());
+            writeToTable(data, excelWriter, writeSheet, writeTables.getFirst());
             return;
         }
         for (WriteTable writeTable : writeTables) {
             int tableNo = writeTable.getTableNo();
-            List<?> tableData = Convert.toList(dataList.get(tableNo));
+            List<?> tableData = Convert.toList(data.get(tableNo));
             writeToTable(tableData, excelWriter, writeSheet, writeTable);
         }
     }
