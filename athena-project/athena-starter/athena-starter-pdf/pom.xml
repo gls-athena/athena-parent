@@ -16,17 +16,18 @@
         <dependency>
             <groupId>com.github.librepdf</groupId>
             <artifactId>openpdf</artifactId>
-            <version>2.2.3</version>
         </dependency>
         <dependency>
             <groupId>com.github.librepdf</groupId>
             <artifactId>openpdf-html</artifactId>
-            <version>2.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf-renderer</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.librepdf</groupId>
             <artifactId>openpdf-fonts-extra</artifactId>
-            <version>2.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
