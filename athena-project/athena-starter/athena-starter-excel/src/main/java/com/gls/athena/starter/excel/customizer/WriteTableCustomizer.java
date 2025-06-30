@@ -4,6 +4,9 @@ import cn.idev.excel.write.builder.ExcelWriterTableBuilder;
 import cn.idev.excel.write.metadata.WriteTable;
 import com.gls.athena.starter.excel.annotation.ExcelTable;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Excel表格写入构建器的自定义配置类
  * 用于定制Excel表格写入时的Table相关参数
@@ -39,6 +42,20 @@ public class WriteTableCustomizer extends BaseWriterCustomizer<ExcelWriterTableB
         customizer.customize(builder);
 
         return builder.build();
+    }
+
+    /**
+     * 将ExcelTable数组转换为WriteTable列表
+     * 此方法使用Stream API来遍历每个ExcelTable实例，并将其转换为WriteTable对象，最后收集到一个列表中
+     *
+     * @param excelTables ExcelTable数组，包含待转换的Excel表格信息
+     * @return 转换后的WriteTable对象列表
+     */
+    public static List<WriteTable> build(List<ExcelTable> excelTables) {
+        // 将多个ExcelTable转换为WriteTable列表
+        return excelTables.stream()
+                .map(WriteTableCustomizer::build)
+                .collect(Collectors.toList());
     }
 
     /**
