@@ -9,12 +9,12 @@ import com.lowagie.text.pdf.PdfStamper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.openpdf.pdf.ITextFontResolver;
+import org.openpdf.pdf.ITextRenderer;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.xhtmlrenderer.pdf.ITextFontResolver;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.IOException;
 import java.io.InputStream;
