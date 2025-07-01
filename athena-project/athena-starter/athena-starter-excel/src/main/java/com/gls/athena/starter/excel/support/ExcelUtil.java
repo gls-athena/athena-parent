@@ -25,17 +25,31 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author george
+ * Excel工具类
+ *
+ * @author lizy19
  */
 @Slf4j
 @UtilityClass
 public class ExcelUtil {
 
+    /**
+     * 将数据导出到Excel文件
+     *
+     * @param data          要导出的数据对象，非空
+     * @param outputStream  输出流，用于写入Excel文件，非空
+     * @param excelResponse Excel导出配置对象，包含导出模板、样式等信息，非空
+     * @throws RuntimeException 当导出过程中发生异常时抛出
+     */
     public void exportToExcel(@NonNull Object data, @NonNull OutputStream outputStream, @NonNull ExcelResponse excelResponse) {
+        // 使用try-with-resources确保ExcelWriter正确关闭
         try (ExcelWriter excelWriter = ExcelWriterCustomizer.build(outputStream, excelResponse)) {
+            // 根据是否使用模板选择不同的导出方式
             if (StrUtil.isEmpty(excelResponse.template())) {
+                // 无模板情况下的导出逻辑
                 writeToExcel(Convert.toList(data), excelWriter, excelResponse);
             } else {
+                // 使用模板填充的导出逻辑
                 fillToExcel(data, excelWriter, excelResponse);
             }
         } catch (Exception e) {
@@ -44,12 +58,23 @@ public class ExcelUtil {
         }
     }
 
+    /**
+     * 将数据填充到Excel文件中
+     *
+     * @param data          要填充的数据，可以是单个对象或对象列表
+     * @param excelWriter   Excel写入工具，用于实际写入Excel文件
+     * @param excelResponse Excel响应对象，包含Excel的配置信息（如sheet配置）
+     */
     private void fillToExcel(@NonNull Object data, @NonNull ExcelWriter excelWriter, @NonNull ExcelResponse excelResponse) {
         ExcelSheet[] excelSheets = excelResponse.sheets();
+
+        // 单sheet情况直接处理
         if (excelSheets.length == 1) {
             fillToSheet(data, excelWriter, excelSheets[0]);
             return;
         }
+
+        // 多sheet处理：将数据按sheet顺序分配
         List<?> dataList = Convert.toList(data);
         for (ExcelSheet excelSheet : excelSheets) {
             int sheetNo = excelSheet.sheetNo();
@@ -58,35 +83,65 @@ public class ExcelUtil {
         }
     }
 
+    /**
+     * 将数据填充到Excel工作表中
+     *
+     * @param data        要填充的数据，支持集合类型或普通Java对象
+     * @param excelWriter Excel写入工具实例，用于执行填充操作
+     * @param excelSheet  Excel工作表配置信息
+     */
     private void fillToSheet(@NonNull Object data, @NonNull ExcelWriter excelWriter, @NonNull ExcelSheet excelSheet) {
+        // 构建可写入的工作表对象
         WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
+
+        // 处理集合类型数据
         if (data instanceof Collection) {
             excelWriter.fill(data, writeSheet);
             return;
         }
+
+        // 将Bean对象转换为Map结构
         Map<String, Object> dataMap = BeanUtil.beanToMap(data);
         Map<String, Object> fillMap = new HashMap<>();
         FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
+
+        // 遍历Map处理每个字段
         for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
+
+            // 集合类型字段单独填充（如多行数据）
             if (value instanceof Collection<?> column) {
                 excelWriter.fill(new FillWrapper(key, column), fillConfig, writeSheet);
             } else {
+                // 非集合类型字段暂存
                 fillMap.put(key, value);
             }
         }
+
+        // 填充剩余的非集合类型字段
         if (!fillMap.isEmpty()) {
             excelWriter.fill(fillMap, fillConfig, writeSheet);
         }
     }
 
+    /**
+     * 将数据写入Excel文件
+     *
+     * @param data          要写入的数据列表，可以是任意类型的对象列表
+     * @param excelWriter   Excel写入工具，用于实际执行Excel写入操作
+     * @param excelResponse Excel响应对象，包含Excel工作表配置信息
+     */
     private void writeToExcel(@NonNull List<?> data, @NonNull ExcelWriter excelWriter, @NonNull ExcelResponse excelResponse) {
         ExcelSheet[] excelSheets = excelResponse.sheets();
+
+        // 如果只有一个工作表，直接将所有数据写入该工作表
         if (excelSheets.length == 1) {
             writeToSheet(data, excelWriter, excelSheets[0]);
             return;
         }
+
+        // 多个工作表时，根据sheetNo从数据中获取对应分页数据并写入
         for (ExcelSheet excelSheet : excelSheets) {
             int sheetNo = excelSheet.sheetNo();
             List<?> sheetData = Convert.toList(data.get(sheetNo));
@@ -94,9 +149,21 @@ public class ExcelUtil {
         }
     }
 
+    /**
+     * 将数据写入Excel工作表
+     *
+     * @param data        待写入的数据列表，支持泛型
+     * @param excelWriter Excel写入工具实例
+     * @param excelSheet  Excel工作表配置信息
+     */
     private void writeToSheet(@NonNull List<?> data, @NonNull ExcelWriter excelWriter, @NonNull ExcelSheet excelSheet) {
+        // 构建基础工作表配置
         WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
+
+        // 获取工作表内所有表格配置
         List<WriteTable> writeTables = WriteTableCustomizer.build(CollUtil.toList(excelSheet.tables()));
+
+        // 处理无表格或单表格的特殊情况
         if (writeTables.isEmpty()) {
             writeToTable(data, excelWriter, writeSheet, null);
             return;
@@ -105,6 +172,8 @@ public class ExcelUtil {
             writeToTable(data, excelWriter, writeSheet, writeTables.getFirst());
             return;
         }
+
+        // 多表格情况：按表格编号匹配数据分区写入
         for (WriteTable writeTable : writeTables) {
             int tableNo = writeTable.getTableNo();
             List<?> tableData = Convert.toList(data.get(tableNo));
@@ -113,23 +182,18 @@ public class ExcelUtil {
     }
 
     /**
-     * 将数据写入Excel表格
+     * 将数据列表写入Excel表格
      *
-     * @param data        需要写入Excel的 数据列表，不能为空
-     * @param excelWriter Excel写入器，用于执行写入操作
-     * @param writeSheet  描述写入工作表的相关信息
-     * @param writeTable  可选参数，描述写入表格的相关信息如果未提供，则默认使用writeSheet中的配置
+     * @param data        要写入的数据列表，列表元素类型必须一致且非空
+     * @param excelWriter Excel写入工具实例，用于执行实际写入操作
+     * @param writeSheet  工作表配置对象，定义写入的目标工作表
+     * @param writeTable  表格配置对象（可选），若存在则用于定义表格样式和结构；若为null则直接使用工作表配置
      */
     private void writeToTable(@NonNull List<?> data, @NonNull ExcelWriter excelWriter, @NonNull WriteSheet writeSheet, WriteTable writeTable) {
-        // 检查数据列表是否为空，如果为空则抛出异常
-        if (data.isEmpty()) {
-            throw new IllegalArgumentException("数据列表不能为空");
-        }
-
-        // 获取数据列表中第一个元素的类类型
+        // 获取列表第一个元素的Class类型作为写入模板
         Class<?> clazz = data.getFirst().getClass();
 
-        // 根据writeTable参数是否存在，选择合适的写入方式
+        // 根据writeTable是否存在决定不同的写入策略
         if (writeTable != null) {
             writeTable.setClazz(clazz);
             excelWriter.write(data, writeSheet, writeTable);
@@ -138,5 +202,4 @@ public class ExcelUtil {
             excelWriter.write(data, writeSheet);
         }
     }
-
 }
