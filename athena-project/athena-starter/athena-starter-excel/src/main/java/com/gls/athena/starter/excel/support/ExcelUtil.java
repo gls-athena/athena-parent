@@ -2,7 +2,6 @@ package com.gls.athena.starter.excel.support;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import cn.idev.excel.ExcelWriter;
 import cn.idev.excel.write.metadata.WriteSheet;
@@ -47,7 +46,7 @@ public class ExcelUtil {
             // 根据是否使用模板选择不同的导出方式
             if (StrUtil.isEmpty(excelResponse.template())) {
                 // 无模板情况下的导出逻辑
-                writeToExcel(Convert.toList(data), excelWriter, excelResponse);
+                writeToExcel(convertToList(data), excelWriter, excelResponse);
             } else {
                 // 使用模板填充的导出逻辑
                 fillToExcel(data, excelWriter, excelResponse);
@@ -75,7 +74,7 @@ public class ExcelUtil {
         }
 
         // 多sheet处理：将数据按sheet顺序分配
-        List<?> dataList = Convert.toList(data);
+        List<?> dataList = convertToList(data);
         for (ExcelSheet excelSheet : excelSheets) {
             int sheetNo = excelSheet.sheetNo();
             Object sheetData = dataList.get(sheetNo);
@@ -131,9 +130,19 @@ public class ExcelUtil {
      * @param data          要写入的数据列表，可以是任意类型的对象列表
      * @param excelWriter   Excel写入工具，用于实际执行Excel写入操作
      * @param excelResponse Excel响应对象，包含Excel工作表配置信息
+     * @throws IllegalArgumentException  如果参数不合法
+     * @throws IndexOutOfBoundsException 如果sheetNo超出数据范围
      */
     private void writeToExcel(@NonNull List<?> data, @NonNull ExcelWriter excelWriter, @NonNull ExcelResponse excelResponse) {
+        // 参数校验
+        if (CollUtil.isEmpty(data)) {
+            throw new IllegalArgumentException("数据列表不能为空");
+        }
+
         ExcelSheet[] excelSheets = excelResponse.sheets();
+        if (excelSheets == null || excelSheets.length == 0) {
+            throw new IllegalArgumentException("Excel工作表配置不能为空");
+        }
 
         // 如果只有一个工作表，直接将所有数据写入该工作表
         if (excelSheets.length == 1) {
@@ -144,7 +153,10 @@ public class ExcelUtil {
         // 多个工作表时，根据sheetNo从数据中获取对应分页数据并写入
         for (ExcelSheet excelSheet : excelSheets) {
             int sheetNo = excelSheet.sheetNo();
-            List<?> sheetData = Convert.toList(data.get(sheetNo));
+            if (sheetNo < 0 || sheetNo >= data.size()) {
+                throw new IndexOutOfBoundsException("Sheet number " + sheetNo + " is out of data bounds");
+            }
+            List<?> sheetData = convertToList(data.get(sheetNo));
             writeToSheet(sheetData, excelWriter, excelSheet);
         }
     }
@@ -176,7 +188,12 @@ public class ExcelUtil {
         // 多表格情况：按表格编号匹配数据分区写入
         for (WriteTable writeTable : writeTables) {
             int tableNo = writeTable.getTableNo();
-            List<?> tableData = Convert.toList(data.get(tableNo));
+            // 添加边界检查
+            if (tableNo < 0 || tableNo >= data.size()) {
+                log.warn("表格编号超出范围，将忽略该表格：{}", tableNo);
+                throw new IllegalArgumentException("表格编号超出数据范围: " + tableNo);
+            }
+            List<?> tableData = convertToList(data.get(tableNo));
             writeToTable(tableData, excelWriter, writeSheet, writeTable);
         }
     }
@@ -188,10 +205,23 @@ public class ExcelUtil {
      * @param excelWriter Excel写入工具实例，用于执行实际写入操作
      * @param writeSheet  工作表配置对象，定义写入的目标工作表
      * @param writeTable  表格配置对象（可选），若存在则用于定义表格样式和结构；若为null则直接使用工作表配置
+     * @throws IllegalArgumentException 如果数据列表为空或元素类型不一致
      */
     private void writeToTable(@NonNull List<?> data, @NonNull ExcelWriter excelWriter, @NonNull WriteSheet writeSheet, WriteTable writeTable) {
+        // 检查数据列表是否为空
+        if (data.isEmpty()) {
+            throw new IllegalArgumentException("数据列表不能为空");
+        }
+
         // 获取列表第一个元素的Class类型作为写入模板
         Class<?> clazz = data.getFirst().getClass();
+
+        // 验证所有元素类型是否一致
+        for (Object item : data) {
+            if (item == null || !clazz.equals(item.getClass())) {
+                throw new IllegalArgumentException("数据列表元素类型不一致或包含null元素");
+            }
+        }
 
         // 根据writeTable是否存在决定不同的写入策略
         if (writeTable != null) {
@@ -201,5 +231,32 @@ public class ExcelUtil {
             writeSheet.setClazz(clazz);
             excelWriter.write(data, writeSheet);
         }
+    }
+
+    /**
+     * 将输入对象转换为List类型
+     *
+     * @param value 需要转换的对象，不能为null且必须为List类型
+     * @return 转换后的List对象
+     * @throws NullPointerException     当输入对象为null时抛出
+     * @throws IllegalArgumentException 当输入对象不是List类型，或List为空时抛出
+     */
+    private List<?> convertToList(Object value) {
+        // 检查输入对象是否为null
+        if (value == null) {
+            throw new NullPointerException("数据不能为空");
+        }
+
+        // 检查并处理List类型输入
+        if (value instanceof List<?> list) {
+            // 检查List是否为空
+            if (CollUtil.isEmpty(list)) {
+                throw new IllegalArgumentException("数据列表不能为空");
+            }
+            return list;
+        }
+
+        // 非List类型输入处理
+        throw new IllegalArgumentException("数据类型错误");
     }
 }
