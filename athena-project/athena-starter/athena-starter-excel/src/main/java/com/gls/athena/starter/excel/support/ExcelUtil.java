@@ -63,11 +63,16 @@ public class ExcelUtil {
      * @param data          要填充的数据，可以是单个对象或对象列表
      * @param excelWriter   Excel写入工具，用于实际写入Excel文件
      * @param excelResponse Excel响应对象，包含Excel的配置信息（如sheet配置）
+     * @throws IllegalArgumentException 如果参数不合法或数据与sheet不匹配
      */
     private void fillToExcel(@NonNull Object data, @NonNull ExcelWriter excelWriter, @NonNull ExcelResponse excelResponse) {
+        //检查sheet配置是否存在
         ExcelSheet[] excelSheets = excelResponse.sheets();
+        if (excelSheets == null || excelSheets.length == 0) {
+            throw new IllegalArgumentException("ExcelResponse中必须包含至少一个sheet配置");
+        }
 
-        // 单sheet情况直接处理
+        // 单sheet处理：直接使用原始数据填充
         if (excelSheets.length == 1) {
             fillToSheet(data, excelWriter, excelSheets[0]);
             return;
@@ -77,6 +82,9 @@ public class ExcelUtil {
         List<?> dataList = convertToList(data);
         for (ExcelSheet excelSheet : excelSheets) {
             int sheetNo = excelSheet.sheetNo();
+            if (sheetNo < 0 || sheetNo >= dataList.size()) {
+                throw new IllegalArgumentException("sheetNo " + sheetNo + "超出数据范围(0-" + (dataList.size() - 1) + ")");
+            }
             Object sheetData = dataList.get(sheetNo);
             fillToSheet(sheetData, excelWriter, excelSheet);
         }
@@ -92,31 +100,28 @@ public class ExcelUtil {
     private void fillToSheet(@NonNull Object data, @NonNull ExcelWriter excelWriter, @NonNull ExcelSheet excelSheet) {
         // 构建可写入的工作表对象
         WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
+        FillConfig fillConfig = FillConfig.builder().forceNewRow(true).build();
 
         // 处理集合类型数据
         if (data instanceof Collection) {
-            excelWriter.fill(data, writeSheet);
+            excelWriter.fill(data, fillConfig, writeSheet);
             return;
         }
 
         // 将Bean对象转换为Map结构
         Map<String, Object> dataMap = BeanUtil.beanToMap(data);
-        Map<String, Object> fillMap = new HashMap<>();
-        FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
+        Map<String, Object> fillMap = new HashMap<>(dataMap.size());
 
         // 遍历Map处理每个字段
-        for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-
-            // 集合类型字段单独填充（如多行数据）
+        dataMap.forEach((key, value) -> {
             if (value instanceof Collection<?> column) {
+                // 集合类型字段单独填充（如多行数据）
                 excelWriter.fill(new FillWrapper(key, column), fillConfig, writeSheet);
             } else {
                 // 非集合类型字段暂存
                 fillMap.put(key, value);
             }
-        }
+        });
 
         // 填充剩余的非集合类型字段
         if (!fillMap.isEmpty()) {
