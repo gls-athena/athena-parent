@@ -1,7 +1,5 @@
 package com.gls.athena.security.servlet.client.delegate;
 
-import cn.hutool.core.map.MapUtil;
-import com.gls.athena.security.servlet.client.config.IClientConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -12,9 +10,6 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.Objects;
-
 /**
  * 委托授权请求解析器
  *
@@ -23,20 +18,38 @@ import java.util.Objects;
 @Slf4j
 @Component
 public class DelegateAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
-
+    /**
+     * 注册ID
+     */
     private final static String REGISTRATION_ID = "registrationId";
-
+    /**
+     * 授权请求基础URI
+     */
     private final static String AUTHORIZATION_REQUEST_BASE_URI = "/oauth2/authorization";
-
+    /**
+     * 请求匹配器
+     */
     private final static PathPatternRequestMatcher REQUEST_MATCHER = PathPatternRequestMatcher.withDefaults()
             .matcher(AUTHORIZATION_REQUEST_BASE_URI + "/{" + REGISTRATION_ID + "}");
-
+    /**
+     * 默认授权请求解析器
+     */
     private final DefaultOAuth2AuthorizationRequestResolver resolver;
-
+    /**
+     * 社交登录适配器管理器
+     */
     private final ISocialLoginAdapterManager adapterManager;
-
+    /**
+     * 客户端注册信息仓库
+     */
     private final ClientRegistrationRepository clientRegistrationRepository;
 
+    /**
+     * 构造委托授权请求解析器
+     *
+     * @param clientRegistrationRepository 客户端注册信息仓库
+     * @param adapterManager               社交登录适配器管理器
+     */
     public DelegateAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository,
                                                 ISocialLoginAdapterManager adapterManager) {
         this.clientRegistrationRepository = clientRegistrationRepository;
@@ -45,100 +58,73 @@ public class DelegateAuthorizationRequestResolver implements OAuth2Authorization
     }
 
     /**
-     * 解析并构建OAuth2授权请求
-     * <p>
-     * 该方法用于从HttpServletRequest中解析出OAuth2授权请求，包含以下处理步骤：
-     * 1. 从请求中获取客户端注册标识
-     * 2. 设置自定义授权请求构建器
-     * 3. 使用解析器生成最终的OAuth2授权请求
+     * 解析并构建OAuth2授权请求对象。
+     * 该方法根据HTTP请求中的客户端注册ID，定制化授权请求构建器，并最终返回解析后的OAuth2授权请求。
      *
-     * @param request HTTP请求对象，包含OAuth2授权请求所需参数
-     * @return 构建完成的OAuth2AuthorizationRequest对象
+     * @param request HTTP请求对象，包含客户端请求信息
+     * @return OAuth2AuthorizationRequest 解析后的OAuth2授权请求对象
      */
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
-        // 从请求路径或参数中提取客户端注册ID
+        // 从请求中获取客户端注册ID
         String clientRegistrationId = getClientRegistrationId(request);
 
-        // 配置自定义请求构建逻辑，允许对标准授权请求进行扩展
+        // 设置授权请求定制器，用于根据请求和客户端注册ID定制化构建器
         resolver.setAuthorizationRequestCustomizer(builder -> customizerResolver(builder, request, clientRegistrationId));
 
-        // 使用配置好的解析器生成最终授权请求
+        // 解析并返回最终的OAuth2授权请求
         return resolver.resolve(request);
     }
 
     /**
-     * 解析并构建OAuth2授权请求
-     * <p>
-     * 该方法用于解析HTTP请求并生成OAuth2授权请求对象。首先设置自定义授权请求构建器，
-     * 然后使用默认解析器完成请求解析。
+     * 重写resolve方法以自定义OAuth2授权请求的解析过程
+     * 此方法允许在解析授权请求时考虑特定的客户端注册ID和HTTP请求上下文
      *
-     * @param request              HTTP请求对象，包含客户端请求信息
-     * @param clientRegistrationId 客户端注册ID，用于识别特定的客户端配置
-     * @return OAuth2AuthorizationRequest 构建完成的OAuth2授权请求对象
+     * @param request              当前的HTTP请求对象，包含有关此次请求的信息，如请求头、查询参数等
+     * @param clientRegistrationId 客户端应用的注册ID，用于区分不同的客户端应用
+     * @return 返回一个解析后的OAuth2授权请求对象，该对象包含了构造授权请求所需的信息
      */
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
-        // 设置自定义授权请求构建器，用于添加特定于请求的定制逻辑
+        // 设置授权请求自定义器，以便在构建授权请求时加入特定的定制逻辑
         resolver.setAuthorizationRequestCustomizer(builder -> customizerResolver(builder, request, clientRegistrationId));
-
-        // 使用默认解析器解析请求并返回结果
+        // 使用定制化的设置解析授权请求，并返回解析后的授权请求对象
         return resolver.resolve(request, clientRegistrationId);
     }
 
     /**
-     * 从HTTP请求中获取客户端注册ID
-     * <p>
-     * 该方法通过检查请求是否匹配预定义的匹配规则，来提取客户端注册ID。
-     * 如果请求匹配成功，则返回注册ID；否则返回null。
+     * 获取客户端注册ID
+     * 该方法用于从HTTP请求中提取客户端的注册ID，如果请求匹配预定义的模式则进行提取
      *
-     * @param request HTTP请求对象，包含客户端请求的所有信息
-     * @return 客户端注册ID字符串，如果请求不匹配则返回null
+     * @param request HttpServletRequest对象，包含客户端的请求信息
+     * @return 如果请求匹配模式且包含注册ID，则返回注册ID；否则返回null
      */
     private String getClientRegistrationId(HttpServletRequest request) {
-        // 检查请求是否匹配预定义的规则
+        // 检查请求是否匹配预定义的模式
         if (REQUEST_MATCHER.matches(request)) {
-            // 从匹配成功的请求中提取注册ID
+            // 如果匹配成功，则从请求中提取并返回注册ID
             return REQUEST_MATCHER.matcher(request).getVariables().get(REGISTRATION_ID);
         }
+        // 如果请求不匹配模式，则返回null
         return null;
     }
 
     /**
-     * 自定义OAuth2授权请求解析器
-     * <p>
-     * 根据客户端注册ID查找对应的ClientRegistration，并通过适配器模式对OAuth2授权请求进行定制化配置
+     * 自定义解析器，用于处理OAuth2授权请求的定制化逻辑
      *
-     * @param builder              OAuth2授权请求构建器，用于配置授权请求参数
-     * @param request              HTTP请求对象，可用于获取请求相关信息
-     * @param clientRegistrationId 客户端注册ID，用于查找对应的ClientRegistration
+     * @param builder              OAuth2授权请求的构建器，用于配置授权请求的属性
+     * @param request              HTTP请求对象，包含触发授权请求的原始HTTP请求信息
+     * @param clientRegistrationId 客户端注册ID，用于标识和配置客户端的信息
      */
     private void customizerResolver(OAuth2AuthorizationRequest.Builder builder,
                                     HttpServletRequest request,
                                     String clientRegistrationId) {
-        try {
-            // 根据注册ID查找客户端注册信息
-            ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(clientRegistrationId);
-            if (Objects.isNull(clientRegistration)) {
-                log.warn("未找到客户端注册信息: {}", clientRegistrationId);
-                return;
-            }
+        // 根据客户端注册ID获取客户端注册信息
+        ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(clientRegistrationId);
 
-            // 从客户端注册信息中获取提供商元数据
-            Map<String, Object> metadata = clientRegistration.getProviderDetails().getConfigurationMetadata();
-            String provider = MapUtil.getStr(metadata, IClientConstants.PROVIDER_ID);
-
-            if (provider == null) {
-                log.warn("未找到提供商信息: {}", clientRegistrationId);
-                return;
-            }
-
-            // 通过适配器管理器获取对应的适配器并应用配置
-            adapterManager.getAdapter(provider)
-                    .ifPresent(adapter -> adapter.accept(builder, request, clientRegistration));
-        } catch (Exception e) {
-            log.error("自定义授权请求配置失败", e);
-        }
+        // 通过适配器管理器获取对应的适配器，并执行定制化逻辑
+        adapterManager.getAdapter(clientRegistration)
+                .ifPresent(adapter -> adapter.accept(builder, request, clientRegistration));
     }
 
 }
