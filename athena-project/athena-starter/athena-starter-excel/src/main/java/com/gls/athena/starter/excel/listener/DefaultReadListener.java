@@ -15,7 +15,10 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Excel数据读取默认监听器
@@ -123,11 +126,11 @@ public class DefaultReadListener<T> implements IReadListener<T> {
      */
     private void processFields(T data, int rowIndex, Map<Integer, Cell> cellMap) {
         // 遍历对象的所有字段，并根据注解进行相应的处理
-        Arrays.stream(data.getClass().getDeclaredFields())
-                .forEach(field -> {
-                    processExcelLine(data, field, rowIndex);
-                    processExcelMultiColumn(data, field, cellMap);
-                });
+        Field[] fields = data.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            processExcelLine(data, field, rowIndex);
+            processExcelMultiColumn(data, field, cellMap);
+        }
     }
 
     /**
