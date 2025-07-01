@@ -4,7 +4,6 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
-import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +15,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
-
-    /**
-     * 默认的适配器，用于处理没有适配器的情况
-     */
-    private static final RestClientAuthorizationCodeTokenResponseClient DEFAULT = new RestClientAuthorizationCodeTokenResponseClient();
 
     /**
      * 适配器管理器，用于管理社交登录适配器
@@ -40,9 +34,7 @@ public class DelegateAuthorizationCodeTokenResponseClient implements OAuth2Acces
     @Override
     public OAuth2AccessTokenResponse getTokenResponse(OAuth2AuthorizationCodeGrantRequest request) {
         // 根据客户端注册信息获取适配器，并尝试获取令牌响应
-        return adapterManager.getAdapter(request.getClientRegistration())
-                .map(adapter -> adapter.getTokenResponse(request))
-                .orElseGet(() -> DEFAULT.getTokenResponse(request));
+        return adapterManager.getTokenResponse(request);
     }
 
 }

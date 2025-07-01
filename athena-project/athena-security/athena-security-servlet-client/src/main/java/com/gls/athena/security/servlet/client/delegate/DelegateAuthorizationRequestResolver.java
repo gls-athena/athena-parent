@@ -68,11 +68,9 @@ public class DelegateAuthorizationRequestResolver implements OAuth2Authorization
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
         // 从请求中获取客户端注册ID
         String clientRegistrationId = getClientRegistrationId(request);
-
-        // 设置授权请求定制器，用于根据请求和客户端注册ID定制化构建器
-        resolver.setAuthorizationRequestCustomizer(builder -> customizerResolver(builder, request, clientRegistrationId));
-
-        // 解析并返回最终的OAuth2授权请求
+        // 根据客户端注册ID定制解析器
+        customResolver(request, clientRegistrationId);
+        // 使用定制后的解析器解析HTTP请求并返回OAuth2授权请求对象
         return resolver.resolve(request);
     }
 
@@ -86,10 +84,27 @@ public class DelegateAuthorizationRequestResolver implements OAuth2Authorization
      */
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
-        // 设置授权请求自定义器，以便在构建授权请求时加入特定的定制逻辑
-        resolver.setAuthorizationRequestCustomizer(builder -> customizerResolver(builder, request, clientRegistrationId));
+        // 调用自定义的解析器方法，对授权请求进行额外的处理或验证
+        customResolver(request, clientRegistrationId);
         // 使用定制化的设置解析授权请求，并返回解析后的授权请求对象
         return resolver.resolve(request, clientRegistrationId);
+    }
+
+    /**
+     * 使用自定义解析器处理OAuth2.0授权请求
+     * <p>
+     * 本方法根据客户端注册ID获取客户端注册信息，并使用自定义的授权请求定制器配置授权请求
+     * 主要目的是在用户登录过程中，根据特定的客户端信息和请求上下文，定制化处理授权请求
+     *
+     * @param request              当前的HTTP请求对象，包含用户请求的详细信息
+     * @param clientRegistrationId 客户端注册ID，用于标识和获取特定的客户端配置
+     */
+    private void customResolver(HttpServletRequest request, String clientRegistrationId) {
+        // 根据客户端注册ID获取对应的客户端注册信息
+        ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(clientRegistrationId);
+
+        // 设置自定义的授权请求处理逻辑
+        resolver.setAuthorizationRequestCustomizer(builder -> adapterManager.accept(builder, request, clientRegistration));
     }
 
     /**
@@ -107,24 +122,6 @@ public class DelegateAuthorizationRequestResolver implements OAuth2Authorization
         }
         // 如果请求不匹配模式，则返回null
         return null;
-    }
-
-    /**
-     * 自定义解析器，用于处理OAuth2授权请求的定制化逻辑
-     *
-     * @param builder              OAuth2授权请求的构建器，用于配置授权请求的属性
-     * @param request              HTTP请求对象，包含触发授权请求的原始HTTP请求信息
-     * @param clientRegistrationId 客户端注册ID，用于标识和配置客户端的信息
-     */
-    private void customizerResolver(OAuth2AuthorizationRequest.Builder builder,
-                                    HttpServletRequest request,
-                                    String clientRegistrationId) {
-        // 根据客户端注册ID获取客户端注册信息
-        ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(clientRegistrationId);
-
-        // 通过适配器管理器获取对应的适配器，并执行定制化逻辑
-        adapterManager.getAdapter(clientRegistration)
-                .ifPresent(adapter -> adapter.accept(builder, request, clientRegistration));
     }
 
 }
