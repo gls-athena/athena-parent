@@ -9,7 +9,7 @@ import java.util.Optional;
 /**
  * 社交登录适配器管理器
  *
- * @author lizy19
+ * @author george
  */
 @Component
 public class ISocialLoginAdapterManager {

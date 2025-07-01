@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 /**
  * 社交登录适配器
  *
- * @author lizy19
+ * @author george
  */
 public interface ISocialLoginAdapter extends OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>,
         OAuth2UserService<OAuth2UserRequest, OAuth2User>, Predicate<String> {
