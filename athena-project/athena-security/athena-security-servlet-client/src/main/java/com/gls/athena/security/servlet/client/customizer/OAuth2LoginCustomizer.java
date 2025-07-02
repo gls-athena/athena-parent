@@ -97,5 +97,7 @@ public class OAuth2LoginCustomizer implements Customizer<OAuth2LoginConfigurer<H
     private void userInfoEndpoint(OAuth2LoginConfigurer<HttpSecurity>.UserInfoEndpointConfig config) {
         // 自定义 OAuth2 用户信息服务
         config.userService(oauth2UserService);
+        // 如果需要处理 OIDC 用户信息，可以在这里添加 OIDC 用户服务
+        config.oidcUserService(oauth2UserService::loadOidcUser);
     }
 }

@@ -1,14 +1,19 @@
 package com.gls.athena.security.servlet.client.delegate;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.gls.athena.common.bean.security.SocialUser;
 import com.gls.athena.security.servlet.client.config.IClientConstants;
 import com.gls.athena.security.servlet.client.social.ISocialUserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
@@ -100,5 +105,30 @@ public class DelegateOAuth2UserService implements OAuth2UserService<OAuth2UserRe
         socialUser.setName(oauth2User.getName());
         // 保存新的社交用户对象，并返回保存后的对象
         return socialUserService.saveSocialUser(socialUser);
+    }
+
+    /**
+     * 加载OIDC用户信息
+     * 本方法通过OIDC用户请求对象获取用户信息，并将其封装成OIDC用户对象返回
+     * 主要步骤包括：
+     * 1. 使用适配器管理器加载OIDC用户信息
+     * 2. 提取客户端注册ID
+     * 3. 根据客户端注册ID和用户详情构建社交用户对象
+     * 4. 创建并返回OIDC用户对象
+     *
+     * @param oidcUserRequest OIDC用户请求对象，包含用户信息请求的相关数据
+     * @return 返回一个封装好的OIDC用户对象
+     */
+    public OidcUser loadOidcUser(OidcUserRequest oidcUserRequest) {
+        // 使用适配器管理器加载OIDC用户信息
+        OidcUser oidcUser = adapterManager.loadOidcUser(oidcUserRequest);
+        // 获取客户端注册ID，用于后续处理
+        String registrationId = oidcUserRequest.getClientRegistration().getRegistrationId();
+        // 根据客户端注册ID和获取的用户详情，构建并返回社交用户对象
+        SocialUser socialUser = getSocialUser(registrationId, oidcUser);
+        // 创建OIDC用户信息对象，封装社交用户的属性
+        OidcUserInfo oidcUserInfo = new OidcUserInfo(BeanUtil.beanToMap(socialUser));
+        // 创建并返回OIDC用户对象，包含社交用户的信息、身份令牌、用户详情和用户名
+        return new DefaultOidcUser(oidcUser.getAuthorities(), oidcUser.getIdToken(), oidcUserInfo);
     }
 }

@@ -6,11 +6,14 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +35,10 @@ public class ISocialLoginAdapterManager {
      * 默认OAuth2用户服务
      */
     private final DefaultOAuth2UserService oauth2UserService = new DefaultOAuth2UserService();
+    /**
+     * 默认OIDC用户服务
+     */
+    private final OidcUserService oidcUserService = new OidcUserService();
     /**
      * 社交登录适配器列表
      */
@@ -94,12 +101,21 @@ public class ISocialLoginAdapterManager {
      * @return 返回一个OAuth2用户对象，包含用户属性信息
      */
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-        // 尝试获取与客户端注册信息相匹配的适配器
-        // 如果适配器存在，则使用适配器处理用户请求
-        // 否则，使用默认的OAuth2用户服务处理请求
         return this.getAdapter(userRequest.getClientRegistration())
                 .map(adapter -> adapter.loadUser(userRequest))
                 .orElseGet(() -> oauth2UserService.loadUser(userRequest));
+    }
+
+    /**
+     * 加载OIDC用户信息
+     *
+     * @param userRequest 用户请求对象，包含客户端注册信息和用户认证信息
+     * @return 返回OidcUser对象，包含用户和认证信息
+     */
+    public OidcUser loadOidcUser(OidcUserRequest userRequest) {
+        return this.getAdapter(userRequest.getClientRegistration())
+                .map(adapter -> adapter.loadOidcUser(userRequest))
+                .orElseGet(() -> oidcUserService.loadUser(userRequest));
     }
 
     /**
