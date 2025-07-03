@@ -27,6 +27,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
+    private static final String CONTENT_DISPOSITION_FORMAT = "attachment;filename=%s";
     /**
      * PDF属性
      */
@@ -67,18 +68,12 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
 
         Map<String, Object> data = BeanUtil.beanToMap(returnValue);
         try (OutputStream outputStream = getOutputStream(webRequest, pdfResponse.filename())) {
-            switch (pdfResponse.templateType()) {
-                case HTML:
-                    // 如果是HTML模板，直接渲染HTML到PDF
-                    pdfHelper.handleHtmlTemplate(data, outputStream, pdfResponse);
-                    break;
-                case PDF:
-                    // 如果是PDF模板，填充数据到PDF
-                    pdfHelper.handlePdfTemplate(data, outputStream, pdfResponse);
-                    break;
-                default:
-                    throw new IllegalArgumentException("不支持的模板类型: " + pdfResponse.templateType());
-            }
+            // 使用PDF助手处理PDF响应
+            pdfHelper.handle(data, outputStream, pdfResponse);
+            log.info("PDFResponseHandler: 成功处理PDF模板: {}", pdfResponse.template());
+        } catch (IOException e) {
+            log.error("PDFResponseHandler: 处理PDF模板失败: {}", pdfResponse.template(), e);
+            throw new RuntimeException("处理PDF模板失败", e);
         }
     }
 
@@ -108,12 +103,13 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType("application/pdf");
 
-        // 处理文件名：URL编码并确保有.pdf扩展名
-        String encodedFileName = URLUtil.encode(fileName, StandardCharsets.UTF_8);
-        String finalFileName = encodedFileName.endsWith(".pdf") ? encodedFileName : encodedFileName + ".pdf";
+        // 安全编码文件名
+        String sanitizedFileName = fileName.replaceAll("[\\x00-\\x1F\\x7F\"\\\\/:*?<>|]", "_");
+        String encodedFileName = URLUtil.encode(sanitizedFileName, StandardCharsets.UTF_8);
+        String fullFileName = encodedFileName + ".pdf";
 
-        // 设置Content-Disposition头（附件下载）和CORS相关头
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + finalFileName);
+        // 设置内容处置和跨域头
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_FORMAT, fullFileName));
         response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
 
         return response.getOutputStream();
