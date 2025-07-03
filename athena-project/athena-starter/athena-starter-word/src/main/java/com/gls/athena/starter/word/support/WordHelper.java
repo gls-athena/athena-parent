@@ -1,5 +1,6 @@
 package com.gls.athena.starter.word.support;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.template.TemplateUtil;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.config.WordProperties;
@@ -11,6 +12,7 @@ import org.jsoup.select.Elements;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -28,6 +30,7 @@ import java.util.regex.Pattern;
 public class WordHelper {
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^}]*)\\}");
 
+    private static final int LIST_INDENTATION_LEFT = 720;
     @Resource
     private WordProperties wordProperties;
 
@@ -39,56 +42,49 @@ public class WordHelper {
      * 最后将处理后的文档写入输出流
      *
      * @param data         包含变量及其对应值的映射，用于替换模板中的占位符
-     * @param outputStream 用于输出处理后文档的流
+     * @param outputStream 用于输出处理后文档的流（调用方负责关闭）
      * @param wordResponse 包含模板路径的响应对象
      */
     public void handleDocxTemplate(Map<String, Object> data, OutputStream outputStream, WordResponse wordResponse) {
+        ClassPathResource resource = new ClassPathResource(wordResponse.template());
+        if (!resource.exists()) {
+            throw new IllegalArgumentException("模板文件不存在: " + wordResponse.template());
+        }
 
-        try (InputStream is = new ClassPathResource(wordResponse.template()).getInputStream()) {
+        try (InputStream is = resource.getInputStream()) {
             XWPFDocument document = new XWPFDocument(is);
 
-            // 替换段落中的变量
-            for (XWPFParagraph paragraph : document.getParagraphs()) {
-                replacePlaceholdersInParagraph(paragraph, data);
-            }
+            // 替换段落
+            processParagraphs(document.getParagraphs(), data);
 
-            // 替换表格中的变量
+            // 替换表格
             for (XWPFTable table : document.getTables()) {
                 for (XWPFTableRow row : table.getRows()) {
                     for (XWPFTableCell cell : row.getTableCells()) {
-                        for (XWPFParagraph paragraph : cell.getParagraphs()) {
-                            replacePlaceholdersInParagraph(paragraph, data);
-                        }
+                        processParagraphs(cell.getParagraphs(), data);
                     }
                 }
             }
 
-            // 替换页眉页脚中的变量
+            // 替换页眉
             for (XWPFHeader header : document.getHeaderList()) {
-                for (XWPFParagraph paragraph : header.getParagraphs()) {
-                    replacePlaceholdersInParagraph(paragraph, data);
-                }
+                processParagraphs(header.getParagraphs(), data);
                 for (XWPFTable table : header.getTables()) {
                     for (XWPFTableRow row : table.getRows()) {
                         for (XWPFTableCell cell : row.getTableCells()) {
-                            for (XWPFParagraph paragraph : cell.getParagraphs()) {
-                                replacePlaceholdersInParagraph(paragraph, data);
-                            }
+                            processParagraphs(cell.getParagraphs(), data);
                         }
                     }
                 }
             }
 
+            // 替换页脚
             for (XWPFFooter footer : document.getFooterList()) {
-                for (XWPFParagraph paragraph : footer.getParagraphs()) {
-                    replacePlaceholdersInParagraph(paragraph, data);
-                }
+                processParagraphs(footer.getParagraphs(), data);
                 for (XWPFTable table : footer.getTables()) {
                     for (XWPFTableRow row : table.getRows()) {
                         for (XWPFTableCell cell : row.getTableCells()) {
-                            for (XWPFParagraph paragraph : cell.getParagraphs()) {
-                                replacePlaceholdersInParagraph(paragraph, data);
-                            }
+                            processParagraphs(cell.getParagraphs(), data);
                         }
                     }
                 }
@@ -96,8 +92,19 @@ public class WordHelper {
 
             // 写入输出流
             document.write(outputStream);
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException("处理Word模板失败", e);
+        } catch (Exception e) {
+            throw new RuntimeException("未知错误发生在Word模板处理过程中", e);
+        }
+    }
+
+    /**
+     * 对一组段落执行占位符替换
+     */
+    private void processParagraphs(List<XWPFParagraph> paragraphs, Map<String, Object> data) {
+        for (XWPFParagraph paragraph : paragraphs) {
+            replacePlaceholdersInParagraph(paragraph, data);
         }
     }
 
@@ -365,37 +372,20 @@ public class WordHelper {
         }
     }
 
-    /**
-     * 处理列表元素
-     * <p>
-     * 该方法负责将HTML列表元素转换为Word文档中的段落
-     * 它会根据列表元素的结构创建相应的段落和编号样式
-     *
-     * @param listElement HTML列表元素，包含一系列的子元素
-     * @param document    Word文档对象，用于创建和管理文档内容
-     * @param isOrdered   布尔值，指示列表是否为有序列表
-     */
     private void processListElement(Element listElement, XWPFDocument document, boolean isOrdered) {
-        // 选择所有列表项元素
         Elements items = listElement.select("li");
-        // 遍历每个列表项，创建对应的Word段落
         for (Element element : items) {
-            // 创建一个新的段落
             XWPFParagraph paragraph = document.createParagraph();
-            // 设置段落的左缩进
-            paragraph.setIndentationLeft(720);
-            // 设置段落的编号样式，根据是否有序列表来选择样式
+            paragraph.setIndentationLeft(LIST_INDENTATION_LEFT);
             paragraph.setNumID(getOrCreateNumbering(document, isOrdered));
 
-            // 当前处理的列表项元素
-            // 如果列表项没有子元素，则直接添加文本内容
             if (element.children().isEmpty()) {
-                // 创建一个新的文本运行
-                XWPFRun run = paragraph.createRun();
-                // 设置文本内容
-                run.setText(element.text());
+                String text = element.text();
+                if (!text.isEmpty()) {
+                    XWPFRun run = paragraph.createRun();
+                    run.setText(text);
+                }
             } else {
-                // 如果列表项有子元素，则进一步处理段落内容
                 processParagraphContent(element, paragraph);
             }
         }
@@ -419,17 +409,26 @@ public class WordHelper {
     /**
      * 处理图片元素（简化实现）
      * <p>
-     * 该方法负责处理HTML中的图片元素，将其转换为文档中的描述性文本由于实际的图片文件处理较为复杂，
-     * 这里采用了一种简化的处理方式，即用文本占位来表示图片
+     * 该方法负责处理HTML中的图片元素，将其转换为文档中的描述性文本。由于实际的图片文件处理较为复杂，
+     * 这里采用了一种简化的处理方式，即用文本占位来表示图片。
      *
      * @param imgElement 图片元素，从中提取图片的alt属性作为描述性文本
      * @param document   XWPFDocument对象，用于创建新的段落和文本
      */
     private void processImageElement(Element imgElement, XWPFDocument document) {
-        // 这里只是一个占位实现，实际应用需要处理图片文件
+        if (imgElement == null) {
+            // 可选：记录警告日志，便于调试
+            return;
+        }
+
+        String altText = imgElement.attr("alt");
+        if (StrUtil.isBlank(altText)) {
+            altText = "无描述";
+        }
+
         XWPFParagraph paragraph = document.createParagraph();
         XWPFRun run = paragraph.createRun();
-        run.setText("[图片: " + imgElement.attr("alt") + "]");
+        run.setText("[图片: " + altText + "]");
     }
 
     /**
@@ -471,8 +470,8 @@ public class WordHelper {
                 Object value = data.get(key);
                 // 构造替换字符串，如果值为空，则用空字符串替换
                 String replacement = value != null ? value.toString() : "";
-                // 在StringBuffer中应用替换
-                matcher.appendReplacement(sb, replacement);
+                // 使用 Matcher.quoteReplacement 防止 $ 和 \ 导致异常
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
             }
             // 将剩余的文本追加到StringBuffer中
             matcher.appendTail(sb);
@@ -481,4 +480,5 @@ public class WordHelper {
             newRun.setText(sb.toString());
         }
     }
+
 }
