@@ -4,7 +4,7 @@ import cn.hutool.extra.template.TemplateUtil;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.config.WordProperties;
 import com.gls.athena.starter.word.config.WordTemplateType;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +19,10 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class HtmlTemplateProcessor implements TemplateProcessor {
 
-    private final WordProperties wordProperties;
+    @Resource
+    private WordProperties wordProperties;
 
     @Override
     public void processTemplate(Map<String, Object> data, OutputStream outputStream, WordResponse wordResponse) {
