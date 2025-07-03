@@ -1,10 +1,10 @@
-package com.gls.athena.starter.word.support;
+package com.gls.athena.starter.word.support.template;
 
 import cn.hutool.extra.template.TemplateConfig;
-import cn.hutool.extra.template.TemplateUtil;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.config.WordProperties;
-import jakarta.annotation.Resource;
+import com.gls.athena.starter.word.config.WordTemplateType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.stereotype.Component;
@@ -14,25 +14,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * word处理帮助类
+ * Docx模板处理器
+ * 负责处理docx格式的模板文件
  *
  * @author lizy19
  */
 @Slf4j
 @Component
-public class WordHelper {
+@RequiredArgsConstructor
+public class DocxTemplateProcessor implements TemplateProcessor {
 
-    @Resource
-    private WordProperties wordProperties;
+    private final WordProperties wordProperties;
 
-    /**
-     * 处理docx模板，根据提供的数据动态填充模板内容，并将结果输出到指定的输出流
-     *
-     * @param data         包含填充模板所需数据的映射，键通常为模板中的占位符，值为替换占位符的实际内容
-     * @param outputStream 用于输出生成的docx文件的流，调用者负责关闭此流
-     * @param wordResponse 提供与Word相关的响应处理，可能包括错误处理、文档属性设置等
-     */
-    public void handleDocxTemplate(Map<String, Object> data, OutputStream outputStream, WordResponse wordResponse) {
+    @Override
+    public void processTemplate(Map<String, Object> data, OutputStream outputStream, WordResponse wordResponse) {
         try {
             // 获取模板文件路径
             String templatePath = wordProperties.getTemplateConfig().getPath() + "/" + wordResponse.template();
@@ -54,6 +49,11 @@ public class WordHelper {
             log.error("处理DOCX模板失败: {}", wordResponse.template(), e);
             throw new RuntimeException("处理DOCX模板失败", e);
         }
+    }
+
+    @Override
+    public boolean supports(WordTemplateType templateType) {
+        return WordTemplateType.DOCX.equals(templateType);
     }
 
     /**
@@ -114,13 +114,9 @@ public class WordHelper {
 
     /**
      * 替换段落中的占位符
-     * <p>
-     * 本方法旨在处理给定段落中的占位符，并根据提供的数据映射进行替换
-     * 它首先检查段落文本中是否包含占位符，如果是，则遍历段落中的每个文本运行（run），
-     * 并尝试用提供的数据替换占位符
      *
-     * @param paragraph 段落对象，代表文档中的一个段落
-     * @param data      数据映射，包含占位符及其对应的替换值
+     * @param paragraph 段落对象
+     * @param data      数据映射
      */
     private void replaceParagraphPlaceholders(XWPFParagraph paragraph, Map<String, Object> data) {
         // 获取段落的文本内容
@@ -219,7 +215,7 @@ public class WordHelper {
     /**
      * 处理动态表格
      *
-     * @param table         需要处理的表格
+     * @param table         需���处理的表格
      * @param dynamicRowKey 动态行数据的键
      * @param data          数据映射
      */
@@ -344,9 +340,6 @@ public class WordHelper {
      * @param text 包含占位符的文本
      * @param data 数据映射，键为占位符名称，值为替换后的值
      * @return 替换后的文本
-     * <p>
-     * 此方法通过遍历数据映射，将文本中的占位符（格式为${key}）替换为对应的值
-     * 如果输入的文本为空、不包含占位符或数据映射为空，则直接返回原始文本，不做替换
      */
     private String replacePlaceholders(String text, Map<String, Object> data) {
         // 检查文本和数据映射是否为空，以及文本中是否包含占位符
@@ -374,41 +367,4 @@ public class WordHelper {
         // 返回替换后的文本
         return sb.toString();
     }
-
-    /**
-     * 根据HTML模板生成Word文档
-     * 此方法使用模板引擎将给定的数据和模板转换为HTML，然后将HTML转换为Word文档并输出
-     *
-     * @param data         包含模板所需数据的映射
-     * @param outputStream 用于输出生成的Word文档的输出流
-     * @param wordResponse 包含模板信息和响应处理程序的对象
-     */
-    public void handleHtmlTemplate(Map<String, Object> data, OutputStream outputStream, WordResponse wordResponse) {
-        try {
-            // 使用模板引擎根据数据渲染HTML内容
-            String html = TemplateUtil.createEngine(wordProperties.getTemplateConfig())
-                    .getTemplate(wordResponse.template())
-                    .render(data);
-
-            // 将渲染后的HTML内容转换为DOCX格式，并写入输出流
-            htmlToDocx(html, outputStream);
-        } catch (Exception e) {
-            // 记录错误日志，并抛出运行时异常，便于上层处理
-            log.error("处理HTML模板失败: {}", wordResponse.template(), e);
-            throw new RuntimeException("处理HTML模板失败", e);
-        }
-    }
-
-    /**
-     * 将HTML内容转换为Docx格式文件
-     * 此方法用于接收HTML格式的字符串，并将其转换为Docx格式的文件输出
-     * 主要解决了从HTML到Docx的格式转换问题，使得可以方便地将网页内容保存为Word文档
-     *
-     * @param html         HTML格式的字符串，包含需要转换的内容
-     * @param outputStream 输出流，用于保存转换后的Docx文件
-     */
-    private void htmlToDocx(String html, OutputStream outputStream) {
-        // TODO: 实现将HTML转换为Docx的逻辑
-    }
-
 }

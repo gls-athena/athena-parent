@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.gls.athena.starter.word.annotation.WordResponse;
-import com.gls.athena.starter.word.support.WordHelper;
+import com.gls.athena.starter.word.support.TemplateProcessorManager;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class WordResponseHandler implements HandlerMethodReturnValueHandler {
 
-    private final WordHelper wordHelper;
+    private final TemplateProcessorManager templateProcessorManager;
 
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {
@@ -48,16 +48,12 @@ public class WordResponseHandler implements HandlerMethodReturnValueHandler {
 
         Map<String, Object> data = BeanUtil.beanToMap(returnValue);
         try (OutputStream outputStream = getOutputStream(webRequest, wordResponse.filename())) {
-            switch (wordResponse.templateType()) {
-                case HTML:
-                    wordHelper.handleHtmlTemplate(data, outputStream, wordResponse);
-                    break;
-                case DOCX:
-                    wordHelper.handleDocxTemplate(data, outputStream, wordResponse);
-                    break;
-                default:
-                    throw new IllegalArgumentException("不支持的模板类型: " + wordResponse.templateType());
-            }
+            // 使用模板处理器处理Word模板
+            templateProcessorManager.handleTemplate(data, outputStream, wordResponse);
+            log.info("WordResponseHandler: 成功处理Word模板: {}", wordResponse.template());
+        } catch (IOException e) {
+            log.error("WordResponseHandler: 处理Word模板失败: {}", wordResponse.template(), e);
+            throw new RuntimeException("处理Word模板失败", e);
         }
 
     }
