@@ -1,6 +1,5 @@
 package com.gls.athena.security.servlet.client.delegate;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.gls.athena.common.bean.security.SocialUser;
 import com.gls.athena.security.servlet.client.config.IClientConstants;
 import com.gls.athena.security.servlet.client.social.ISocialUserService;
@@ -11,13 +10,9 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
-
-import java.util.HashSet;
 
 /**
  * 委托OAuth2用户服务
@@ -99,8 +94,6 @@ public class DelegateOAuth2UserService implements OAuth2UserService<OAuth2UserRe
         socialUser.setRegistrationId(registrationId);
         // 将OAuth2用户的属性复制到社交用户对象中
         socialUser.setAttributes(oauth2User.getAttributes());
-        // 将OAuth2用户的权限复制到社交用户对象中，使用HashSet确保权限的唯一性
-        socialUser.setAuthorities(new HashSet<>(oauth2User.getAuthorities()));
         // 设置社交用户的名称
         socialUser.setName(oauth2User.getName());
         // 保存新的社交用户对象，并返回保存后的对象
@@ -125,10 +118,6 @@ public class DelegateOAuth2UserService implements OAuth2UserService<OAuth2UserRe
         // 获取客户端注册ID，用于后续处理
         String registrationId = oidcUserRequest.getClientRegistration().getRegistrationId();
         // 根据客户端注册ID和获取的用户详情，构建并返回社交用户对象
-        SocialUser socialUser = getSocialUser(registrationId, oidcUser);
-        // 创建OIDC用户信息对象，封装社交用户的属性
-        OidcUserInfo oidcUserInfo = new OidcUserInfo(BeanUtil.beanToMap(socialUser));
-        // 创建并返回OIDC用户对象，包含社交用户的信息、身份令牌、用户详情和用户名
-        return new DefaultOidcUser(oidcUser.getAuthorities(), oidcUser.getIdToken(), oidcUserInfo);
+        return getSocialUser(registrationId, oidcUser);
     }
 }

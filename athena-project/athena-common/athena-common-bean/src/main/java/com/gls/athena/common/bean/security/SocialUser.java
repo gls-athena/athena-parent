@@ -1,13 +1,20 @@
 package com.gls.athena.common.bean.security;
 
+import cn.hutool.core.collection.CollUtil;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.gls.athena.common.bean.base.BaseVo;
+import com.gls.athena.common.bean.security.jackson2.SocialUserDeserializer;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 社交用户
@@ -16,11 +23,9 @@ import java.util.Set;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class SocialUser extends BaseVo implements OAuth2User {
-    /**
-     * 权限
-     */
-    private Set<GrantedAuthority> authorities;
+@Schema(title = "社交用户", description = "社交用户")
+@JsonDeserialize(using = SocialUserDeserializer.class)
+public class SocialUser extends BaseVo implements OidcUser {
     /**
      * 用户信息（社交平台）
      */
@@ -42,4 +47,23 @@ public class SocialUser extends BaseVo implements OAuth2User {
      */
     private boolean bindStatus;
 
+    @Override
+    public Map<String, Object> getClaims() {
+        return this.attributes;
+    }
+
+    @Override
+    public OidcUserInfo getUserInfo() {
+        return new OidcUserInfo(this.attributes);
+    }
+
+    @Override
+    public OidcIdToken getIdToken() {
+        return null;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return CollUtil.newArrayList(new SimpleGrantedAuthority("SOCIAL_USER"));
+    }
 }

@@ -1,16 +1,12 @@
 package com.gls.athena.common.bean.security.jackson2;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gls.athena.common.bean.security.Organization;
 import com.gls.athena.common.bean.security.Role;
 import com.gls.athena.common.bean.security.User;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,24 +15,19 @@ import java.util.Optional;
  *
  * @author george
  */
-public class UserDeserializer extends JsonDeserializer<User> {
+public class UserDeserializer extends BaseDeserializer<User> {
 
     /**
-     * 将JSON内容反序列化为User对象。
-     * 该方法通过解析传入的JSON数据，将其转换为User对象，并设置User对象的各个属性。
-     * 如果JSON中的某些字段为空，则对应的User对象属性不会被设置。
+     * 使用ObjectMapper和JsonNode创建并初始化一个User实例
+     * 该方法通过解析JsonNode中的属性来设置User对象的属性，包括用户名、密码、手机号等基本信息，
+     * 以及角色和组织等复杂信息
      *
-     * @param parser  JsonParser JSON解析器，用于解析JSON数据
-     * @param context DeserializationContext 反序列化上下文，提供反序列化过程中的上下文信息
-     * @return User 反序列化后的User对象
-     * @throws IOException 如果在解析JSON数据时发生IO异常，则抛出该异常
+     * @param mapper ObjectMapper实例，用于转换JsonNode到Java对象
+     * @param node   包含User信息的JsonNode
+     * @return 返回一个新创建并初始化的User实例
      */
     @Override
-    public User deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-        // 获取ObjectMapper实例，用于后续的JSON解析和转换
-        ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-        // 将JSON数据解析为JsonNode对象，便于后续的属性提取
-        JsonNode node = mapper.readTree(parser);
+    protected User createInstance(ObjectMapper mapper, JsonNode node) {
         User user = new User();
 
         // 从JsonNode中提取并设置User对象的各个属性
@@ -60,9 +51,6 @@ public class UserDeserializer extends JsonDeserializer<User> {
         Optional.ofNullable(node.get("organizations"))
                 .map(organizationsNode -> mapper.<List<Organization>>convertValue(organizationsNode, new TypeReference<>() {
                 })).ifPresent(user::setOrganizations);
-
-        // 调用JacksonUtil工具类中的方法，反序列化BaseVo相关的属性
-        JacksonUtil.deserializeBaseVo(mapper, node, user);
         return user;
     }
 

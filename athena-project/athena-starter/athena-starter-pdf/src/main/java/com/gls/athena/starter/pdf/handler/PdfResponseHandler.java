@@ -1,21 +1,22 @@
 package com.gls.athena.starter.pdf.handler;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.extra.template.TemplateUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
-import com.gls.athena.starter.pdf.config.PdfProperties;
-import com.gls.athena.starter.pdf.support.PdfUtil;
+import com.gls.athena.starter.pdf.support.PdfHelper;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -29,7 +30,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
     /**
      * PDF属性
      */
-    private final PdfProperties pdfProperties;
+    private final PdfHelper pdfHelper;
 
     /**
      * 检查方法是否带有@PdfResponse注解
@@ -40,6 +41,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {
         //  检查方法是否带有@PdfResponse注
+        log.debug("检查方法返回类型是否支持PDF响应: {}", returnType);
         return returnType.hasMethodAnnotation(PdfResponse.class);
     }
 
@@ -59,17 +61,20 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
         mavContainer.setRequestHandled(true);
         // 获取方法上的@PdfResponse注解
         PdfResponse pdfResponse = returnType.getMethodAnnotation(PdfResponse.class);
-        log.debug("处理PDF响应: {}", pdfResponse);
+        if (pdfResponse == null) {
+            throw new IllegalArgumentException("方法未添加@PdfResponse注解");
+        }
+
         Map<String, Object> data = BeanUtil.beanToMap(returnValue);
-        try (OutputStream outputStream = PdfUtil.getOutputStream(webRequest, pdfResponse.filename())) {
+        try (OutputStream outputStream = getOutputStream(webRequest, pdfResponse.filename())) {
             switch (pdfResponse.templateType()) {
                 case HTML:
                     // 如果是HTML模板，直接渲染HTML到PDF
-                    handleHtmlTemplate(data, outputStream, pdfResponse);
+                    pdfHelper.handleHtmlTemplate(data, outputStream, pdfResponse);
                     break;
                 case PDF:
                     // 如果是PDF模板，填充数据到PDF
-                    handlePdfTemplate(data, outputStream, pdfResponse);
+                    pdfHelper.handlePdfTemplate(data, outputStream, pdfResponse);
                     break;
                 default:
                     throw new IllegalArgumentException("不支持的模板类型: " + pdfResponse.templateType());
@@ -78,37 +83,40 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
     }
 
     /**
-     * 填充数据到PDF
+     * 获取用于输出PDF文件的OutputStream
      *
-     * @param data         方法返回值
-     * @param outputStream 输出流
-     * @param pdfResponse  PDF响应
+     * @param webRequest NativeWebRequest对象，用于获取HttpServletResponse
+     * @param fileName   要输出的文件名（自动补全.pdf扩展名）
+     * @return 响应输出流，用于写入PDF文件内容
+     * @throws IOException              如果获取输出流失败
+     * @throws IllegalArgumentException 如果文件名为空
+     * @throws IllegalStateException    如果无法获取HttpServletResponse对象
      */
-    private void handleHtmlTemplate(Map<String, Object> data, OutputStream outputStream,
-                                    PdfResponse pdfResponse) throws IOException {
-        // 渲染模板
-        String html = TemplateUtil.createEngine(pdfProperties.getTemplateConfig())
-                .getTemplate(pdfResponse.template())
-                .render(data);
-        log.debug("渲染HTML模板: {}", html);
-        // 将HTML写入PDF
-        PdfUtil.writeHtmlToPdf(html, pdfProperties.getFontPath(), outputStream);
-    }
+    private OutputStream getOutputStream(NativeWebRequest webRequest, String fileName) throws IOException {
+        // 参数校验：确保文件名不为空
+        if (StrUtil.isBlank(fileName)) {
+            throw new IllegalArgumentException("文件名不能为空");
+        }
 
-    /**
-     * 将数据写入PDF
-     *
-     * @param data         方法返回值
-     * @param outputStream 输出流
-     * @param pdfResponse  PDF响应
-     */
-    private void handlePdfTemplate(Map<String, Object> data, OutputStream outputStream,
-                                   PdfResponse pdfResponse) throws IOException {
-        // 加载模板
-        InputStream template = new ClassPathResource(pdfResponse.template()).getInputStream();
-        log.debug("加载PDF模板: {}", template);
-        // 填充数据到PDF模板
-        PdfUtil.fillPdfTemplate(template, data, outputStream);
+        // 从webRequest中获取HttpServletResponse对象并进行非空校验
+        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+        if (response == null) {
+            throw new IllegalStateException("无法获取HttpServletResponse对象");
+        }
+
+        // 设置响应头：字符编码、内容类型为PDF
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType("application/pdf");
+
+        // 处理文件名：URL编码并确保有.pdf扩展名
+        String encodedFileName = URLUtil.encode(fileName, StandardCharsets.UTF_8);
+        String finalFileName = encodedFileName.endsWith(".pdf") ? encodedFileName : encodedFileName + ".pdf";
+
+        // 设置Content-Disposition头（附件下载）和CORS相关头
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + finalFileName);
+        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+
+        return response.getOutputStream();
     }
 
 }

@@ -1,15 +1,11 @@
 package com.gls.athena.common.bean.security.jackson2;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gls.athena.common.bean.security.Permission;
 import com.gls.athena.common.bean.security.Role;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,25 +14,22 @@ import java.util.Optional;
  *
  * @author george
  */
-public class RoleDeserializer extends JsonDeserializer<Role> {
+public class RoleDeserializer extends BaseDeserializer<Role> {
     /**
-     * 将JSON内容反序列化为Role对象
+     * 重写createInstance方法，用于将JsonNode数据反序列化为Role对象
+     * 此方法选择性地处理和设置角色的各个字段，确保数据的完整性和一致性
      *
-     * @param parser  JsonParser JSON解析器，用于解析JSON数据
-     * @param context DeserializationContext 反序列化上下文，提供反序列化过程中的上下文信息
-     * @return Role 反序列化后的角色对象
-     * @throws IOException 当解析过程中发生IO异常时抛出
+     * @param mapper ObjectMapper实例，用于转换Json数据
+     * @param node   包含角色信息的JsonNode
+     * @return 返回一个新创建的Role实例，其字段根据node中的数据进行设置
      */
     @Override
-    public Role deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-        // 获取ObjectMapper实例，用于处理JSON数据
-        ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-        // 将JSON数据解析为JsonNode对象，便于后续操作
-        JsonNode node = mapper.readTree(parser);
+    protected Role createInstance(ObjectMapper mapper, JsonNode node) {
         // 创建Role对象，用于存储反序列化后的数据
         Role role = new Role();
 
         // 从JsonNode中提取并设置Role对象的各个字段值
+        // 使用Optional处理可能为空的字段，避免空指针异常
         Optional.ofNullable(node.get("name")).map(JsonNode::asText).ifPresent(role::setName);
         Optional.ofNullable(node.get("code")).map(JsonNode::asText).ifPresent(role::setCode);
         Optional.ofNullable(node.get("description")).map(JsonNode::asText).ifPresent(role::setDescription);
@@ -46,12 +39,12 @@ public class RoleDeserializer extends JsonDeserializer<Role> {
         Optional.ofNullable(node.get("defaultRole")).map(JsonNode::asBoolean).ifPresent(role::setDefaultRole);
 
         // 从JsonNode中提取权限列表，并将其转换为List<Permission>类型后设置到Role对象中
+        // 使用Optional和map方法链式处理，确保转换过程的安全性和简洁性
         Optional.ofNullable(node.get("permissions"))
                 .map(permissionsNode -> mapper.<List<Permission>>convertValue(permissionsNode, new TypeReference<>() {
                 })).ifPresent(role::setPermissions);
 
-        // 设置Role对象的基础实体字段值
-        JacksonUtil.deserializeBaseVo(mapper, node, role);
+        // 返回初始化完毕的Role对象
         return role;
     }
 
