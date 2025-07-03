@@ -19,6 +19,10 @@ public enum PdfTemplateType implements IEnum<String> {
      * PDF模板
      */
     PDF("pdf", "PDF模板"),
+    /**
+     * JASPER模板
+     */
+    JASPER("jasper", "JASPER模板"),
     ;
 
     /**
