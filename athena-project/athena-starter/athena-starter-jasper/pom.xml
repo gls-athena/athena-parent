@@ -9,26 +9,10 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.gls.athena.starter.pdf</groupId>
-    <artifactId>athena-starter-pdf</artifactId>
+    <groupId>com.gls.athena.starter.jasper</groupId>
+    <artifactId>athena-starter-jasper</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>com.github.librepdf</groupId>
-            <artifactId>openpdf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.librepdf</groupId>
-            <artifactId>openpdf-html</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.librepdf</groupId>
-            <artifactId>openpdf-renderer</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.librepdf</groupId>
-            <artifactId>openpdf-fonts-extra</artifactId>
-        </dependency>
         <dependency>
             <groupId>net.sf.jasperreports</groupId>
             <artifactId>jasperreports</artifactId>

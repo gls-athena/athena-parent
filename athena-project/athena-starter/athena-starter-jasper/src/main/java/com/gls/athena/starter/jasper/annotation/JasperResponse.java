@@ -1,6 +1,6 @@
-package com.gls.athena.starter.pdf.annotation;
+package com.gls.athena.starter.jasper.annotation;
 
-import com.gls.athena.starter.pdf.config.PdfTemplateType;
+import com.gls.athena.starter.jasper.config.ReportType;
 
 import java.lang.annotation.*;
 
@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PdfResponse {
+public @interface JasperResponse {
     /**
      * 文件名(不含扩展名)
      */
@@ -26,6 +26,6 @@ public @interface PdfResponse {
     /**
      * 模板类型
      */
-    PdfTemplateType templateType() default PdfTemplateType.HTML;
+    ReportType reportType() default ReportType.HTML;
 
 }

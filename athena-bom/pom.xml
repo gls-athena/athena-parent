@@ -124,8 +124,8 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.pdf</groupId>
-                <artifactId>athena-starter-pdf</artifactId>
+                <groupId>com.gls.athena.starter.jasper</groupId>
+                <artifactId>athena-starter-jasper</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

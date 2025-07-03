@@ -1,7 +1,7 @@
-package com.gls.athena.starter.pdf.config;
+package com.gls.athena.starter.jasper.config;
 
-import com.gls.athena.starter.pdf.handler.PdfResponseHandler;
-import com.gls.athena.starter.pdf.support.PdfHelper;
+import com.gls.athena.starter.jasper.handler.JasperResponseHandler;
+import com.gls.athena.starter.jasper.support.JasperHelper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -17,7 +17,7 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-public class PdfConfig {
+public class JasperConfig {
     /**
      * 请求处理适配器
      */
@@ -27,7 +27,7 @@ public class PdfConfig {
      * pdf配置
      */
     @Resource
-    private PdfHelper pdfHelper;
+    private JasperHelper jasperHelper;
 
     /**
      * 初始化方法
@@ -44,7 +44,7 @@ public class PdfConfig {
     private void initReturnValueHandlers() {
         // 创建一个新的返回值处理器列表，并添加默认的ExcelResponseHandler
         List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
-        handlers.add(new PdfResponseHandler(pdfHelper));
+        handlers.add(new JasperResponseHandler(jasperHelper));
 
         // 如果handlerAdapter中已经存在返回值处理器，则将其添加到列表中
         if (handlerAdapter.getReturnValueHandlers() != null) {
