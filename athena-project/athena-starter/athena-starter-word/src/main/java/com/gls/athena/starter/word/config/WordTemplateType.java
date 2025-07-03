@@ -1,24 +1,26 @@
-package com.gls.athena.starter.pdf.config;
+package com.gls.athena.starter.word.config;
 
 import com.gls.athena.common.bean.base.IEnum;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
+ * 模板类型枚举
+ *
  * @author george
  */
 
 @Getter
 @RequiredArgsConstructor
-public enum TemplateType implements IEnum<String> {
+public enum WordTemplateType implements IEnum<String> {
     /**
      * HTML模板
      */
     HTML("html", "HTML模板"),
     /**
-     * PDF模板
+     * Word模板
      */
-    PDF("pdf", "PDF模板"),
+    DOCX("docx", "Word模板"),
     ;
 
     /**

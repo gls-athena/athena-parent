@@ -1,5 +1,7 @@
 package com.gls.athena.starter.word.annotation;
 
+import com.gls.athena.starter.word.config.WordTemplateType;
+
 import java.lang.annotation.*;
 
 /**
@@ -24,5 +26,5 @@ public @interface WordResponse {
     /**
      * 模板类型
      */
-    TemplateType templateType() default TemplateType.DOCX;
+    WordTemplateType templateType() default WordTemplateType.DOCX;
 }
