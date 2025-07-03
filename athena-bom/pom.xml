@@ -114,6 +114,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.gls.athena.starter.jasper</groupId>
+                <artifactId>athena-starter-jasper</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.gls.athena.starter.json</groupId>
                 <artifactId>athena-starter-json</artifactId>
                 <version>${project.version}</version>
@@ -124,8 +129,8 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.jasper</groupId>
-                <artifactId>athena-starter-jasper</artifactId>
+                <groupId>com.gls.athena.starter.pdf</groupId>
+                <artifactId>athena-starter-pdf</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
