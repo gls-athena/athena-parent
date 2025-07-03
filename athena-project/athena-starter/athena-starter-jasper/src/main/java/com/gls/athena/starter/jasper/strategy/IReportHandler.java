@@ -19,45 +19,47 @@ import java.util.Map;
 public interface IReportHandler {
 
     /**
-     * 处理PDF模板并输出
+     * 根据指定的数据和模板生成报告，并将报告输出到指定的输出流中
+     * 此方法使用JasperReports库来处理报告的生成和导出
      *
-     * @param data           数据映射
-     * @param outputStream   输出流
-     * @param jasperResponse PDF响应注解
-     * @throws IOException 如果处理过程中发生I/O错误
+     * @param data           包含报告所需数据的映射，键为字段名，值为字段值
+     * @param outputStream   报告输出的目标输出流
+     * @param jasperResponse 包含模板信息和响应处理程序的对象
+     * @throws IOException 如果在读取模板或输出报告时发生I/O错误
      */
     default void handle(Map<String, Object> data, OutputStream outputStream, JasperResponse jasperResponse) throws IOException {
         try {
-            // 加载PDF模板资源
+            // 加载模板文件为输入流
             InputStream template = new ClassPathResource(jasperResponse.template()).getInputStream();
 
             // 从模板输入流中加载JasperReport对象
             JasperReport jasperReport = (JasperReport) JRLoader.loadObject(template);
 
-            // 使用给定的数据填充报告，使用空数据源
+            // 使用提供的数据填充报告，生成JasperPrint对象
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, data, new JREmptyDataSource());
 
+            // 导出报告到指定的输出流
             exportReport(jasperPrint, outputStream);
         } catch (JRException e) {
-            // 将模板处理异常包装为运行时异常并重新抛出
+            // 如果在报告处理过程中发生错误，将其包装为RuntimeException并抛出
             throw new RuntimeException(e);
         }
     }
 
     /**
-     * 导出报告到输出流
+     * 导出报告到指定的输出流
      *
-     * @param jasperPrint  JasperPrint对象
-     * @param outputStream 输出流
-     * @throws JRException 如果导出过程中发生错误
+     * @param jasperPrint  要导出的JasperPrint对象
+     * @param outputStream 输出报告目标输出流
+     * @throws JRException 如果在导出报告时发生错误
      */
     void exportReport(JasperPrint jasperPrint, OutputStream outputStream) throws JRException;
 
     /**
-     * 是否支持此类型的模板
+     * 检查当前处理策略是否支持指定的报告类型
      *
-     * @param templateType 模板类型
-     * @return 是否支持
+     * @param reportType 要检查的报表类型
+     * @return 如果支持指定的报告类型，则返回true；否则返回false
      */
-    boolean supports(ReportType templateType);
+    boolean supports(ReportType reportType);
 }

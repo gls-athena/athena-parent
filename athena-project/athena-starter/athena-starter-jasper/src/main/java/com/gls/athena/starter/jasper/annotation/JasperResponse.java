@@ -26,6 +26,6 @@ public @interface JasperResponse {
     /**
      * 模板类型
      */
-    ReportType reportType() default ReportType.HTML;
+    ReportType reportType() default ReportType.PDF;
 
 }
