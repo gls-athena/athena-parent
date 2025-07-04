@@ -27,6 +27,7 @@
         <module>athena-starter-pdf</module>
         <module>athena-starter-swagger</module>
         <module>athena-starter-web</module>
+        <module>athena-starter-word</module>
     </modules>
 
     <dependencies>
