@@ -1,7 +1,7 @@
 package com.gls.athena.starter.word.processor.impl;
 
-import com.gls.athena.starter.word.processor.PlaceholderProcessor;
 import com.gls.athena.starter.word.formatter.ValueFormatter;
+import com.gls.athena.starter.word.processor.PlaceholderProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,11 +25,11 @@ public class SimpleProcessor implements PlaceholderProcessor {
     public boolean supports(String placeholder) {
         // 简单占位符不包含特殊前缀
         return !placeholder.startsWith("if:") &&
-               !placeholder.startsWith("foreach:") &&
-               !placeholder.startsWith("math:") &&
-               !placeholder.startsWith("include:") &&
-               !placeholder.equals("/if") &&
-               !placeholder.equals("/foreach");
+                !placeholder.startsWith("foreach:") &&
+                !placeholder.startsWith("math:") &&
+                !placeholder.startsWith("include:") &&
+                !placeholder.equals("/if") &&
+                !placeholder.equals("/foreach");
     }
 
     @Override
