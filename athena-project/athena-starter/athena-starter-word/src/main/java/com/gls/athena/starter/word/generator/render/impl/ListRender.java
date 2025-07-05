@@ -1,10 +1,11 @@
 package com.gls.athena.starter.word.generator.render.impl;
 
-import com.gls.athena.starter.word.generator.render.WordElementRenderer;
+import com.gls.athena.starter.word.generator.render.WordElementRender;
 import com.gls.athena.starter.word.generator.render.WordRenderContext;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
@@ -13,7 +14,8 @@ import java.util.Collection;
  *
  * @author athena
  */
-public class ListRenderer implements WordElementRenderer {
+@Component
+public class ListRender implements WordElementRender {
 
     @Override
     public void render(Object data, WordRenderContext context) {

@@ -1,10 +1,8 @@
 package com.gls.athena.starter.word.processor;
 
-import com.gls.athena.starter.word.generator.WordDocumentGeneratorFactory;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -19,23 +17,19 @@ import java.util.List;
  * @author athena
  */
 @Configuration
-@RequiredArgsConstructor
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class WordResponseConfiguration implements WebMvcConfigurer {
 
-    private final RequestMappingHandlerAdapter requestMappingHandlerAdapter;
-    private final WordDocumentGeneratorFactory generatorFactory;
-
-    @Bean
-    public WordResponseProcessor wordResponseProcessor() {
-        return new WordResponseProcessor(generatorFactory);
-    }
+    @Resource
+    private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
+    @Resource
+    private WordResponseProcessor wordResponseProcessor;
 
     @PostConstruct
     public void init() {
         List<HandlerMethodReturnValueHandler> returnValueHandlers = requestMappingHandlerAdapter.getReturnValueHandlers();
         List<HandlerMethodReturnValueHandler> newHandlers = new ArrayList<>();
-        newHandlers.add(wordResponseProcessor());
+        newHandlers.add(wordResponseProcessor);
         if (returnValueHandlers != null) {
             newHandlers.addAll(returnValueHandlers);
         }

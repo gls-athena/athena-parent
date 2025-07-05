@@ -1,18 +1,20 @@
 package com.gls.athena.starter.word.generator.render.impl;
 
-import com.gls.athena.starter.word.generator.render.WordElementRenderer;
+import com.gls.athena.starter.word.generator.render.WordElementRender;
 import com.gls.athena.starter.word.generator.render.WordRenderContext;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.springframework.stereotype.Component;
 
 /**
  * 标题渲染器
  *
  * @author athena
  */
-public class TitleRenderer implements WordElementRenderer {
+@Component
+public class TitleRender implements WordElementRender {
 
     @Override
     public void render(Object data, WordRenderContext context) {

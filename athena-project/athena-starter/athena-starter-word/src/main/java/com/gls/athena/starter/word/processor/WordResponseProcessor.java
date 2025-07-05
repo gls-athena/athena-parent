@@ -2,13 +2,14 @@ package com.gls.athena.starter.word.processor;
 
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.generator.WordDocumentGeneratorFactory;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Resource;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
@@ -25,10 +26,11 @@ import java.time.format.DateTimeFormatter;
  *
  * @author athena
  */
-@RequiredArgsConstructor
+@Component
 public class WordResponseProcessor implements HandlerMethodReturnValueHandler {
 
-    private final WordDocumentGeneratorFactory generatorFactory;
+    @Resource
+    private WordDocumentGeneratorFactory generatorFactory;
 
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {

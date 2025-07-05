@@ -2,169 +2,99 @@ package com.gls.athena.starter.word.generator.impl;
 
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.generator.WordDocumentGenerator;
-import com.gls.athena.starter.word.generator.render.WordElementRenderer;
 import com.gls.athena.starter.word.generator.render.WordRenderContext;
-import com.gls.athena.starter.word.generator.render.impl.KeyValueRenderer;
-import com.gls.athena.starter.word.generator.render.impl.ListRenderer;
-import com.gls.athena.starter.word.generator.render.impl.TableRenderer;
-import com.gls.athena.starter.word.generator.render.impl.TitleRenderer;
-import lombok.NoArgsConstructor;
+import com.gls.athena.starter.word.generator.render.WordRenderManager;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 基础Word文档生成器实现
  *
  * @author athena
  */
-@NoArgsConstructor
+@Slf4j
+@Component
 public class DefaultWordDocumentGenerator implements WordDocumentGenerator {
 
-    private List<WordElementRenderer> renderers = new ArrayList<>(Arrays.asList(
-            new TitleRenderer(),
-            new TableRenderer(),
-            new ListRenderer(),
-            new KeyValueRenderer()
-    ));
-
     /**
-     * 注入自定义渲染器
+     * 渲染管理器
      */
-    @Autowired(required = false)
-    public void setRenderers(List<WordElementRenderer> customRenderers) {
-        if (customRenderers != null && !customRenderers.isEmpty()) {
-            // 优先使用自定义渲染器
-            this.renderers.addAll(0, customRenderers);
-        }
-    }
+    @Resource
+    private WordRenderManager renderManager;
 
     @Override
     public XWPFDocument generate(Object data, WordResponse wordResponse) {
+        if (data == null) {
+            throw new IllegalArgumentException("Data cannot be null");
+        }
+        if (wordResponse == null) {
+            throw new IllegalArgumentException("WordResponse annotation cannot be null");
+        }
+
+        log.debug("Generating Word document for data type: {}", data.getClass().getSimpleName());
+
         XWPFDocument document = new XWPFDocument();
-        Map<String, Object> context = new HashMap<>();
+        Map<String, Object> parameters = createBaseParameters(wordResponse);
 
-        // 处理标题
-        if (!wordResponse.title().isEmpty()) {
-            // 使用标题渲染器渲染文档标题
-            context.put("level", 1);  // 一级标题
-            WordRenderContext titleContext = new WordRenderContext(document, context);
-            findRenderer(wordResponse.title(), TitleRenderer.class)
-                    .render(wordResponse.title(), titleContext);
+        try {
+            // 渲染文档标题
+            renderDocumentTitle(document, wordResponse, parameters);
+
+            // 使用渲染管理器渲染文档内容
+            renderManager.render(document, data, parameters);
+
+            log.debug("Word document generated successfully");
+            return document;
+        } catch (Exception e) {
+            log.error("Failed to generate Word document", e);
+            // 确保资源清理
+            try {
+                document.close();
+            } catch (Exception closeException) {
+                log.warn("Failed to close document after generation error", closeException);
+            }
+            throw new RuntimeException("Word document generation failed", e);
         }
-
-        // 根据数据类型选择合适的渲染器渲染内容
-        if (data instanceof Map) {
-            renderMapData(document, (Map<?, ?>) data, context);
-        } else if (data instanceof Collection) {
-            renderCollectionData(document, (Collection<?>) data, context);
-        } else {
-            // 简单对象，直接使用toString()展示
-            XWPFParagraph paragraph = document.createParagraph();
-            XWPFRun run = paragraph.createRun();
-            run.setText(data.toString());
-        }
-
-        return document;
     }
 
     @Override
     public boolean supports(Class<?> dataClass) {
-        // 默认支持所有类型的数据
-        return true;
+        return List.class.isAssignableFrom(dataClass);
     }
 
     /**
-     * 渲染Map类型数据
+     * 创建基础参数
      */
-    private void renderMapData(XWPFDocument document, Map<?, ?> data, Map<String, Object> context) {
-        // 使用KeyValueRenderer渲染简单键值对
-        WordElementRenderer keyValueRenderer = findRenderer(data, KeyValueRenderer.class);
-        WordRenderContext renderContext = new WordRenderContext(document, context);
-        keyValueRenderer.render(data, renderContext);
-
-        // 处理Map中的集合值，为每个集合添加子标题并渲染
-        for (Map.Entry<?, ?> entry : data.entrySet()) {
-            Object key = entry.getKey();
-            Object value = entry.getValue();
-
-            if (value instanceof Collection && !((Collection<?>) value).isEmpty()) {
-                Collection<?> collection = (Collection<?>) value;
-
-                // 为集合添加子标题
-                context.put("level", 2);  // 二级标题
-                WordRenderContext titleContext = new WordRenderContext(document, context);
-                findRenderer(key.toString(), TitleRenderer.class)
-                        .render(key.toString(), titleContext);
-
-                // 根据集合类型选择合适的渲染器
-                renderCollectionData(document, collection, context);
-            }
-        }
+    private Map<String, Object> createBaseParameters(WordResponse wordResponse) {
+        Map<String, Object> parameters = new HashMap<>(8);
+        parameters.put("timestamp", new Date());
+        parameters.put("title", wordResponse.title());
+        return parameters;
     }
 
     /**
-     * 渲染Collection类型数据
+     * 渲染文档标题
      */
-    private void renderCollectionData(XWPFDocument document, Collection<?> data, Map<String, Object> context) {
-        String path = "/collection"; // 默认集合路径
+    private void renderDocumentTitle(XWPFDocument document, WordResponse wordResponse, Map<String, Object> parameters) {
+        if (StringUtils.hasText(wordResponse.title())) {
+            log.debug("Rendering document title: {}", wordResponse.title());
 
-        // 首先尝试使用表格渲��器
-        WordElementRenderer tableRenderer = findRenderer(data, TableRenderer.class);
-        if (tableRenderer.supports(data, path)) {
-            WordRenderContext renderContext = new WordRenderContext(document, context);
-            tableRenderer.render(data, renderContext);
-            return;
+            // 创建标题渲染上下文
+            WordRenderContext titleContext = new WordRenderContext(document, parameters);
+            titleContext.enter("title");
+
+            // 使用渲染管理器渲染标题
+            renderManager.renderNode(wordResponse.title(), titleContext);
+
+            titleContext.exit();
         }
-
-        // 如果不支持表格，使用列表渲染器
-        WordElementRenderer listRenderer = findRenderer(data, ListRenderer.class);
-        if (listRenderer.supports(data, path)) {
-            WordRenderContext renderContext = new WordRenderContext(document, context);
-            listRenderer.render(data, renderContext);
-            return;
-        }
-
-        // 如果都不支持，使用简单文本输出
-        XWPFParagraph paragraph = document.createParagraph();
-        XWPFRun run = paragraph.createRun();
-        for (Object item : data) {
-            run.setText(item.toString());
-            run.addBreak();
-        }
-    }
-
-    /**
-     * 查找适合的渲染器
-     */
-    private WordElementRenderer findRenderer(Object data, Class<? extends WordElementRenderer> preferredType) {
-        String path = "/"; // 默认路径
-
-        // 首先尝试查找指定类型的渲染器
-        for (WordElementRenderer renderer : renderers) {
-            if (preferredType.isInstance(renderer) && renderer.supports(data, path)) {
-                return renderer;
-            }
-        }
-
-        // 如果没有找到指定类型的，则查找任何支持的渲染器
-        for (WordElementRenderer renderer : renderers) {
-            if (renderer.supports(data, path)) {
-                return renderer;
-            }
-        }
-
-        // 如果仍然没有找到，使用preferredType的一个实例（如果可能）
-        for (WordElementRenderer renderer : renderers) {
-            if (preferredType.isInstance(renderer)) {
-                return renderer;
-            }
-        }
-
-        // 最后的fallback，返回第一个渲染器
-        return renderers.get(0);
     }
 }

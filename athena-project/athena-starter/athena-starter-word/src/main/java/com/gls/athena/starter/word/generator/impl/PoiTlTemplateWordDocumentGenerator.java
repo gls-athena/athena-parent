@@ -4,10 +4,10 @@ import com.deepoove.poi.XWPFTemplate;
 import com.deepoove.poi.config.Configure;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.generator.WordDocumentGenerator;
-import lombok.NoArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
@@ -21,7 +21,7 @@ import java.util.Map;
  *
  * @author athena
  */
-@NoArgsConstructor
+@Component
 public class PoiTlTemplateWordDocumentGenerator implements WordDocumentGenerator {
 
     @Override

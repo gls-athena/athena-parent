@@ -1,8 +1,9 @@
 package com.gls.athena.starter.word.generator.render.impl;
 
-import com.gls.athena.starter.word.generator.render.WordElementRenderer;
+import com.gls.athena.starter.word.generator.render.WordElementRender;
 import com.gls.athena.starter.word.generator.render.WordRenderContext;
 import org.apache.poi.xwpf.usermodel.*;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -12,7 +13,8 @@ import java.util.*;
  *
  * @author athena
  */
-public class TableRenderer implements WordElementRenderer {
+@Component
+public class TableRender implements WordElementRender {
 
     @Override
     public void render(Object data, WordRenderContext context) {

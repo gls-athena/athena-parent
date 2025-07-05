@@ -5,7 +5,7 @@ package com.gls.athena.starter.word.generator.render;
  *
  * @author athena
  */
-public interface WordElementRenderer {
+public interface WordElementRender {
 
     /**
      * 渲染文档元素

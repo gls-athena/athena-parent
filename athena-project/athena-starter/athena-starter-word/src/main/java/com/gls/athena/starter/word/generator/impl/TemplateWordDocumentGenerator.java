@@ -5,6 +5,7 @@ import com.gls.athena.starter.word.generator.WordDocumentGenerator;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.Map;
  *
  * @author athena
  */
+@Component
 public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
 
     @Override

@@ -1,8 +1,7 @@
 package com.gls.athena.starter.word.generator.render;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 import java.util.Map;
@@ -12,33 +11,28 @@ import java.util.Map;
  *
  * @author athena
  */
+@Data
 @RequiredArgsConstructor
 public class WordRenderContext {
 
     /**
      * Word文档对象
      */
-    @Getter
     private final XWPFDocument document;
 
     /**
      * 渲染参数
      */
-    @Getter
     private final Map<String, Object> parameters;
 
     /**
      * 当前渲染路径
      */
-    @Getter
-    @Setter
     private String currentPath = "/";
 
     /**
      * 当前渲染深度
      */
-    @Getter
-    @Setter
     private int depth = 0;
 
     /**

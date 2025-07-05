@@ -1,8 +1,8 @@
 package com.gls.athena.starter.word.generator;
 
 import com.gls.athena.starter.word.annotation.WordResponse;
-import com.gls.athena.starter.word.config.WordProperties;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -12,11 +12,11 @@ import java.util.List;
  *
  * @author athena
  */
-@RequiredArgsConstructor
+@Component
 public class WordDocumentGeneratorFactory {
 
-    private final List<WordDocumentGenerator> generators;
-    private final WordProperties properties;
+    @Resource
+    private List<WordDocumentGenerator> generators;
 
     /**
      * 获取适用于指定数据和注解的文档生成器
