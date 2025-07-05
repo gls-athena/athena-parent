@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -28,11 +29,48 @@ import java.util.regex.Pattern;
 @Component
 public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
 
+    // 模式常量定义
+
+    /**
+     * 占位符匹配模式
+     */
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^}]+)}");
+
+    /**
+     * 条件渲染匹配模式
+     */
     private static final Pattern CONDITIONAL_PATTERN = Pattern.compile("\\$\\{if:([^}]+)}([\\s\\S]*?)\\$\\{/if}");
+
+    /**
+     * 循环匹配模式
+     */
     private static final Pattern LOOP_PATTERN = Pattern.compile("\\$\\{foreach:([^}]+)}([\\s\\S]*?)\\$\\{/foreach}");
+
+    /**
+     * 数学表达式匹配模式
+     */
     private static final Pattern MATH_PATTERN = Pattern.compile("\\$\\{math:([^}]+)}");
+
+    /**
+     * 模板包含匹配模式
+     */
+    private static final Pattern INCLUDE_PATTERN = Pattern.compile("\\$\\{include:([^}]+)}");
+
+    /**
+     * 变量名匹配模式
+     */
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_.\\[\\]]*)");
+
     private static final String DEFAULT_NULL_VALUE = "";
+
+    // 运算符常量 - 仅保留实际使用的
+    private static final String EQUALS = "==";
+    private static final String NOT_EQUALS = "!=";
+    private static final String GREATER_EQUALS = ">=";
+    private static final String LESS_EQUALS = "<=";
+    private static final String GREATER = ">";
+    private static final String LESS = "<";
+    private static final String PERCENT_FORMAT = "%.";
 
     /**
      * 缓存字段反射信息，提升性能
@@ -40,9 +78,24 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
     private static final Map<Class<?>, Map<String, Field>> FIELD_CACHE = new ConcurrentHashMap<>();
 
     /**
+     * 缓存方法反射信息，提升性能
+     */
+    private static final Map<Class<?>, Map<String, java.lang.reflect.Method>> METHOD_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * 缓存路径解析结果，提升性能
+     */
+    private static final Map<String, String[]> PATH_CACHE = new ConcurrentHashMap<>();
+
+    /**
      * 预编译的日期时间格式化器
      */
     private static final DateTimeFormatter DEFAULT_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    /**
+     * 模板包含功能的最大深度，防止无限递归
+     */
+    private static final int MAX_INCLUDE_DEPTH = 10;
 
     @Override
     public XWPFDocument generate(Object data, WordResponse wordResponse) {
@@ -176,17 +229,113 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
     }
 
     /**
-     * 判断是否为基本类型或包装类型
+     * 获取类的方法映射（使用缓存）
      *
      * @param clazz 类对象
-     * @return 是否为基本类型或包装类型
+     * @return 方法映射
      */
-    private boolean isPrimitiveOrWrapper(Class<?> clazz) {
-        return clazz.isPrimitive() ||
-                clazz == Boolean.class || clazz == Character.class ||
-                clazz == Byte.class || clazz == Short.class ||
-                clazz == Integer.class || clazz == Long.class ||
-                clazz == Float.class || clazz == Double.class;
+    private Map<String, java.lang.reflect.Method> getMethodMap(Class<?> clazz) {
+        return METHOD_CACHE.computeIfAbsent(clazz, this::buildMethodMap);
+    }
+
+    /**
+     * 构建方法映射
+     *
+     * @param clazz 类对象
+     * @return 方法映射
+     */
+    private Map<String, java.lang.reflect.Method> buildMethodMap(Class<?> clazz) {
+        java.lang.reflect.Method[] methods = clazz.getMethods();
+        Map<String, java.lang.reflect.Method> methodMap = new HashMap<>(methods.length);
+
+        for (java.lang.reflect.Method method : methods) {
+            methodMap.put(method.getName(), method);
+        }
+
+        return methodMap;
+    }
+
+    /**
+     * 优化的键路径解析（使用缓存）
+     *
+     * @param key 键路径
+     * @return 路径部分数组
+     */
+    private String[] parseKeyPath(String key) {
+        return PATH_CACHE.computeIfAbsent(key, this::parseKeyPathInternal);
+    }
+
+    /**
+     * 内部路径解析方法
+     *
+     * @param key 键路径
+     * @return 路径部分数组
+     */
+    private String[] parseKeyPathInternal(String key) {
+        List<String> parts = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inBracket = false;
+
+        for (char c : key.toCharArray()) {
+            if (c == '.' && !inBracket) {
+                if (!current.isEmpty()) {
+                    parts.add(current.toString());
+                    current.setLength(0);
+                }
+            } else {
+                if (c == '[') {
+                    inBracket = true;
+                } else if (c == ']') {
+                    inBracket = false;
+                }
+                current.append(c);
+            }
+        }
+
+        if (!current.isEmpty()) {
+            parts.add(current.toString());
+        }
+
+        return parts.toArray(new String[0]);
+    }
+
+    /**
+     * 增强版的字段值获取方法，支持方法缓存
+     *
+     * @param obj       对象
+     * @param fieldName 字段名
+     * @return 字段值
+     */
+    private Object getFieldValue(Object obj, String fieldName) {
+        try {
+            // 首先尝试直接字段访问
+            Map<String, Field> fieldMap = getFieldMap(obj.getClass());
+            Field field = fieldMap.get(fieldName);
+            if (field != null) {
+                return field.get(obj);
+            }
+
+            // 使用缓存的方法映射
+            Map<String, java.lang.reflect.Method> methodMap = getMethodMap(obj.getClass());
+
+            // 尝试getter方法
+            String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+            java.lang.reflect.Method getterMethod = methodMap.get(getterName);
+            if (getterMethod != null && getterMethod.getParameterCount() == 0) {
+                return getterMethod.invoke(obj);
+            }
+
+            // 尝试boolean类型的is方法
+            String isGetterName = "is" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+            java.lang.reflect.Method isMethod = methodMap.get(isGetterName);
+            if (isMethod != null && isMethod.getParameterCount() == 0) {
+                return isMethod.invoke(obj);
+            }
+
+        } catch (Exception e) {
+            log.debug("Failed to get field value: {}.{}", obj.getClass().getSimpleName(), fieldName, e);
+        }
+        return null;
     }
 
     /**
@@ -288,6 +437,80 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
     }
 
     /**
+     * 处理模板包含功能 ${include:templatePath}
+     *
+     * @param text 文本
+     * @param data 数据
+     * @return 处理后的文本
+     */
+    private String processIncludes(String text, Map<String, Object> data) {
+        return processIncludes(text, data, 0);
+    }
+
+    /**
+     * 处理模板包含功能（带递归深度控制）
+     *
+     * @param text  文本
+     * @param data  数据
+     * @param depth 递归深度
+     * @return 处理后的文本
+     */
+    private String processIncludes(String text, Map<String, Object> data, int depth) {
+        if (depth >= MAX_INCLUDE_DEPTH) {
+            log.warn("Maximum include depth reached: {}", MAX_INCLUDE_DEPTH);
+            return text;
+        }
+
+        Matcher matcher = INCLUDE_PATTERN.matcher(text);
+        StringBuilder result = new StringBuilder();
+        int lastEnd = 0;
+
+        while (matcher.find()) {
+            String templatePath = matcher.group(1).trim();
+
+            // 添加包含块前的文本
+            result.append(text, lastEnd, matcher.start());
+
+            // 加载并处理包含的模板
+            String includedContent = loadIncludeTemplate(templatePath, data, depth + 1);
+            result.append(includedContent);
+
+            lastEnd = matcher.end();
+        }
+
+        result.append(text.substring(lastEnd));
+        return result.toString();
+    }
+
+    /**
+     * 加载包含的模板
+     *
+     * @param templatePath 模板路径
+     * @param data         数据
+     * @param depth        递归深度
+     * @return 处理后的内容
+     */
+    private String loadIncludeTemplate(String templatePath, Map<String, Object> data, int depth) {
+        try {
+            Resource templateResource = new ClassPathResource(templatePath);
+            if (!templateResource.exists()) {
+                log.warn("Include template not found: {}", templatePath);
+                return "[Template not found: " + templatePath + "]";
+            }
+
+            // 读取模板内容
+            String templateContent = new String(templateResource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+            // 递归处理模板内容
+            return processIncludes(replacePlaceholders(templateContent, data), data, depth);
+
+        } catch (Exception e) {
+            log.error("Failed to load include template: {}", templatePath, e);
+            return "[Error loading template: " + templatePath + "]";
+        }
+    }
+
+    /**
      * 替换文本中的占位符（增强版，支持条件和数学运算）
      *
      * @param text 原始文本
@@ -295,7 +518,10 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
      * @return 替换后的文本
      */
     private String replacePlaceholders(String text, Map<String, Object> data) {
-        // 首先处理条件渲染
+        // 首先处理包含
+        text = processIncludes(text, data);
+
+        // 处理条件渲染
         text = processConditionalBlocks(text, data);
 
         // 处理循环
@@ -485,29 +711,93 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
      */
     private boolean evaluateCondition(String condition, Map<String, Object> data) {
         try {
+            // 处理 AND 和 OR 操作符
+            if (condition.contains(" && ")) {
+                String[] parts = condition.split(" && ");
+                for (String part : parts) {
+                    if (!evaluateCondition(part.trim(), data)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            if (condition.contains(" || ")) {
+                String[] parts = condition.split(" \\|\\| ");
+                for (String part : parts) {
+                    if (evaluateCondition(part.trim(), data)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // 处理 NOT 操作符
+            if (condition.startsWith("!")) {
+                return !evaluateCondition(condition.substring(1).trim(), data);
+            }
+
             // 处理简单的条件表达式
-            if (condition.contains("==")) {
-                String[] parts = condition.split("==", 2);
+            if (condition.contains(EQUALS)) {
+                String[] parts = condition.split(EQUALS, 2);
                 Object left = getConditionValue(parts[0].trim(), data);
                 Object right = getConditionValue(parts[1].trim(), data);
                 return Objects.equals(left, right);
-            } else if (condition.contains("!=")) {
-                String[] parts = condition.split("!=", 2);
+            } else if (condition.contains(NOT_EQUALS)) {
+                String[] parts = condition.split(NOT_EQUALS, 2);
                 Object left = getConditionValue(parts[0].trim(), data);
                 Object right = getConditionValue(parts[1].trim(), data);
                 return !Objects.equals(left, right);
-            } else if (condition.contains(">=")) {
-                String[] parts = condition.split(">=", 2);
+            } else if (condition.contains(GREATER_EQUALS)) {
+                String[] parts = condition.split(GREATER_EQUALS, 2);
                 return compareNumbers(parts[0].trim(), parts[1].trim(), data) >= 0;
-            } else if (condition.contains("<=")) {
-                String[] parts = condition.split("<=", 2);
+            } else if (condition.contains(LESS_EQUALS)) {
+                String[] parts = condition.split(LESS_EQUALS, 2);
                 return compareNumbers(parts[0].trim(), parts[1].trim(), data) <= 0;
-            } else if (condition.contains(">")) {
-                String[] parts = condition.split(">", 2);
+            } else if (condition.contains(GREATER)) {
+                String[] parts = condition.split(GREATER, 2);
                 return compareNumbers(parts[0].trim(), parts[1].trim(), data) > 0;
-            } else if (condition.contains("<")) {
-                String[] parts = condition.split("<", 2);
+            } else if (condition.contains(LESS)) {
+                String[] parts = condition.split(LESS, 2);
                 return compareNumbers(parts[0].trim(), parts[1].trim(), data) < 0;
+            } else if (condition.contains(" in ")) {
+                // 支持 in 操作符：value in list
+                String[] parts = condition.split(" in ", 2);
+                Object value = getConditionValue(parts[0].trim(), data);
+                Object listObj = getConditionValue(parts[1].trim(), data);
+                if (listObj instanceof Collection) {
+                    return ((Collection<?>) listObj).contains(value);
+                }
+                return false;
+            } else if (condition.contains(" contains ")) {
+                // 支持 contains 操作符：list contains value
+                String[] parts = condition.split(" contains ", 2);
+                Object listObj = getConditionValue(parts[0].trim(), data);
+                Object value = getConditionValue(parts[1].trim(), data);
+                if (listObj instanceof Collection) {
+                    return ((Collection<?>) listObj).contains(value);
+                } else if (listObj instanceof String && value instanceof String) {
+                    return ((String) listObj).contains((String) value);
+                }
+                return false;
+            } else if (condition.contains(" startsWith ")) {
+                // 支持 startsWith 操作符
+                String[] parts = condition.split(" startsWith ", 2);
+                Object strObj = getConditionValue(parts[0].trim(), data);
+                Object prefixObj = getConditionValue(parts[1].trim(), data);
+                if (strObj instanceof String && prefixObj instanceof String) {
+                    return ((String) strObj).startsWith((String) prefixObj);
+                }
+                return false;
+            } else if (condition.contains(" endsWith ")) {
+                // 支持 endsWith 操作符
+                String[] parts = condition.split(" endsWith ", 2);
+                Object strObj = getConditionValue(parts[0].trim(), data);
+                Object suffixObj = getConditionValue(parts[1].trim(), data);
+                if (strObj instanceof String && suffixObj instanceof String) {
+                    return ((String) strObj).endsWith((String) suffixObj);
+                }
+                return false;
             } else {
                 // 简单的布尔值检查
                 Object value = getNestedValue(data, condition);
@@ -598,86 +888,70 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
      */
     private double evaluateMathExpression(String expression, Map<String, Object> data) {
         // 替换变量
-        String processedExpr = expression;
-        Matcher matcher = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_\\.\\[\\]]*)").matcher(expression);
+        String processedExpr = replaceVariablesInExpression(expression, data);
 
-        while (matcher.find()) {
-            String varName = matcher.group(1);
-            Object value = getNestedValue(data, varName);
-            if (value instanceof Number) {
-                processedExpr = processedExpr.replace(varName, value.toString());
-            }
-        }
+        // 处理数学函数
+        processedExpr = processMathFunctions(processedExpr);
 
         // 简单的数学表达式计算器
         return evaluateSimpleMath(processedExpr);
     }
 
     /**
-     * 简单的数学表达式计算器
+     * 替换表达式中的变量
      *
      * @param expression 表达式
-     * @return 计算结果
+     * @param data       数据
+     * @return 处理后的表达式
      */
-    private double evaluateSimpleMath(String expression) {
-        // 移除空格
-        expression = expression.replaceAll("\\s+", "");
+    private String replaceVariablesInExpression(String expression, Map<String, Object> data) {
+        Matcher matcher = VARIABLE_PATTERN.matcher(expression);
+        StringBuilder result = new StringBuilder();
+        int lastEnd = 0;
 
-        // 处理括号
-        while (expression.contains("(")) {
-            int start = expression.lastIndexOf('(');
-            int end = expression.indexOf(')', start);
-            if (end == -1) throw new IllegalArgumentException("Mismatched parentheses");
+        while (matcher.find()) {
+            String varName = matcher.group(1);
+            Object value = getNestedValue(data, varName);
 
-            String subExpr = expression.substring(start + 1, end);
-            double result = evaluateSimpleMath(subExpr);
-            expression = expression.substring(0, start) + result + expression.substring(end + 1);
-        }
+            result.append(expression, lastEnd, matcher.start());
 
-        // 处理加减法
-        if (expression.contains("+") || expression.contains("-")) {
-            for (int i = expression.length() - 1; i >= 0; i--) {
-                char c = expression.charAt(i);
-                if ((c == '+' || c == '-') && i > 0) {
-                    String left = expression.substring(0, i);
-                    String right = expression.substring(i + 1);
-                    if (c == '+') {
-                        return evaluateSimpleMath(left) + evaluateSimpleMath(right);
-                    } else {
-                        return evaluateSimpleMath(left) - evaluateSimpleMath(right);
-                    }
-                }
+            if (value instanceof Number) {
+                result.append(((Number) value).doubleValue());
+            } else {
+                // 如果不是数字，保持原样
+                result.append(varName);
             }
+
+            lastEnd = matcher.end();
         }
 
-        // 处理乘除法
-        if (expression.contains("*") || expression.contains("/")) {
-            for (int i = expression.length() - 1; i >= 0; i--) {
-                char c = expression.charAt(i);
-                if (c == '*' || c == '/') {
-                    String left = expression.substring(0, i);
-                    String right = expression.substring(i + 1);
-                    if (c == '*') {
-                        return evaluateSimpleMath(left) * evaluateSimpleMath(right);
-                    } else {
-                        double rightVal = evaluateSimpleMath(right);
-                        if (rightVal == 0) throw new ArithmeticException("Division by zero");
-                        return evaluateSimpleMath(left) / rightVal;
-                    }
-                }
-            }
-        }
-
-        // 解析数字
-        try {
-            return Double.parseDouble(expression);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid number: " + expression);
-        }
+        result.append(expression.substring(lastEnd));
+        return result.toString();
     }
 
     /**
-     * 根据格式规范格式化值
+     * 处理数学函数
+     *
+     * @param expression 表达式
+     * @return 处理后的表达式
+     */
+    private String processMathFunctions(String expression) {
+        // 支持的数学函数
+        expression = expression.replaceAll("\\babs\\(([^)]+)\\)", "Math.abs($1)");
+        expression = expression.replaceAll("\\bsqrt\\(([^)]+)\\)", "Math.sqrt($1)");
+        expression = expression.replaceAll("\\bpow\\(([^,]+),\\s*([^)]+)\\)", "Math.pow($1,$2)");
+        expression = expression.replaceAll("\\bmax\\(([^,]+),\\s*([^)]+)\\)", "Math.max($1,$2)");
+        expression = expression.replaceAll("\\bmin\\(([^,]+),\\s*([^)]+)\\)", "Math.min($1,$2)");
+        expression = expression.replaceAll("\\bround\\(([^)]+)\\)", "Math.round($1)");
+        expression = expression.replaceAll("\\bceil\\(([^)]+)\\)", "Math.ceil($1)");
+        expression = expression.replaceAll("\\bfloor\\(([^)]+)\\)", "Math.floor($1)");
+
+        return expression;
+    }
+
+
+    /**
+     * 增强版格式化支持更多格式
      *
      * @param value      值
      * @param formatSpec 格式规范
@@ -694,51 +968,23 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
 
         try {
             return switch (formatSpec.toLowerCase()) {
-                case "date" -> {
-                    if (value instanceof Date) {
-                        yield DateTimeFormatter.ofPattern("yyyy-MM-dd").format(
-                                ((Date) value).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
-                    } else if (value instanceof LocalDateTime) {
-                        yield ((LocalDateTime) value).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    }
-                    yield value.toString();
-                }
-                case "time" -> {
-                    if (value instanceof Date) {
-                        yield DateTimeFormatter.ofPattern("HH:mm:ss").format(
-                                ((Date) value).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalTime());
-                    } else if (value instanceof LocalDateTime) {
-                        yield ((LocalDateTime) value).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-                    }
-                    yield value.toString();
-                }
+                case "date" -> formatDate(value, "yyyy-MM-dd");
+                case "time" -> formatTime(value, "HH:mm:ss");
+                case "datetime" -> formatDateTime(value, "yyyy-MM-dd HH:mm:ss");
                 case "upper" -> value.toString().toUpperCase();
                 case "lower" -> value.toString().toLowerCase();
-                case "currency" -> {
-                    if (value instanceof Number) {
-                        yield String.format("¥%.2f", ((Number) value).doubleValue());
-                    }
-                    yield value.toString();
-                }
-                case "percent" -> {
-                    if (value instanceof Number) {
-                        yield String.format("%.1f%%", ((Number) value).doubleValue() * 100);
-                    }
-                    yield value.toString();
-                }
-                default -> {
-                    // 尝试作为日期格式模式
-                    if (value instanceof Date) {
-                        yield DateTimeFormatter.ofPattern(formatSpec).format(
-                                ((Date) value).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
-                    } else if (value instanceof LocalDateTime) {
-                        yield ((LocalDateTime) value).format(DateTimeFormatter.ofPattern(formatSpec));
-                    } else if (value instanceof Number && formatSpec.startsWith("%.")) {
-                        // 数字格式化
-                        yield String.format(formatSpec, ((Number) value).doubleValue());
-                    }
-                    yield value.toString();
-                }
+                case "title" -> toTitleCase(value.toString());
+                case "currency" -> formatCurrency(value);
+                case "percent" -> formatPercent(value);
+                case "trim" -> value.toString().trim();
+                case "length" -> String.valueOf(value.toString().length());
+                case "reverse" -> new StringBuilder(value.toString()).reverse().toString();
+                case "json" -> formatAsJson(value);
+                case "xml" -> formatAsXml(value);
+                case "base64" -> encodeBase64(value.toString());
+                case "url" -> encodeUrl(value.toString());
+                case "html" -> escapeHtml(value.toString());
+                default -> handleCustomFormat(value, formatSpec);
             };
         } catch (Exception e) {
             log.debug("Failed to format value with spec {}: {}", formatSpec, e.getMessage());
@@ -747,19 +993,129 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
     }
 
     /**
-     * 格式化值
+     * 处理自定义格式
      *
-     * @param value 值对象
+     * @param value      值
+     * @param formatSpec 格式规范
      * @return 格式化后的字符串
      */
-    private String formatValue(Object value) {
-        return switch (value) {
-            case null -> DEFAULT_NULL_VALUE;
-            case Date date -> DEFAULT_DATE_FORMATTER.format(date.toInstant()
-                    .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
-            case LocalDateTime localDateTime -> localDateTime.format(DEFAULT_DATE_FORMATTER);
-            default -> value.toString();
-        };
+    private String handleCustomFormat(Object value, String formatSpec) {
+        // 尝试作为日期格式模式
+        if (value instanceof Date || value instanceof LocalDateTime) {
+            return formatDateTime(value, formatSpec);
+        } else if (value instanceof Number && formatSpec.startsWith(PERCENT_FORMAT)) {
+            // 数字格式化
+            return String.format(formatSpec, ((Number) value).doubleValue());
+        }
+        return value.toString();
+    }
+
+    private String formatDate(Object value, String pattern) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        if (value instanceof Date) {
+            return formatter.format(((Date) value).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
+        } else if (value instanceof LocalDateTime) {
+            return ((LocalDateTime) value).format(DateTimeFormatter.ofPattern(pattern));
+        }
+        return value.toString();
+    }
+
+    private String formatTime(Object value, String pattern) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        if (value instanceof Date) {
+            return formatter.format(((Date) value).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalTime());
+        } else if (value instanceof LocalDateTime) {
+            return ((LocalDateTime) value).format(formatter);
+        }
+        return value.toString();
+    }
+
+    private String formatDateTime(Object value, String pattern) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        if (value instanceof Date) {
+            return formatter.format(((Date) value).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
+        } else if (value instanceof LocalDateTime) {
+            return ((LocalDateTime) value).format(formatter);
+        }
+        return value.toString();
+    }
+
+    private String formatCurrency(Object value) {
+        if (value instanceof Number) {
+            return String.format("¥%.2f", ((Number) value).doubleValue());
+        }
+        return value.toString();
+    }
+
+    private String formatPercent(Object value) {
+        if (value instanceof Number) {
+            return String.format("%.1f%%", ((Number) value).doubleValue() * 100);
+        }
+        return value.toString();
+    }
+
+    private String toTitleCase(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        StringBuilder result = new StringBuilder();
+        boolean capitalizeNext = true;
+        for (char c : str.toCharArray()) {
+            if (Character.isWhitespace(c)) {
+                capitalizeNext = true;
+                result.append(c);
+            } else if (capitalizeNext) {
+                result.append(Character.toUpperCase(c));
+                capitalizeNext = false;
+            } else {
+                result.append(Character.toLowerCase(c));
+            }
+        }
+        return result.toString();
+    }
+
+    private String formatAsJson(Object value) {
+        // 简单的JSON格式化
+        if (value instanceof String) {
+            return "\"" + value.toString().replace("\"", "\\\"") + "\"";
+        } else if (value instanceof Number || value instanceof Boolean) {
+            return value.toString();
+        } else if (value == null) {
+            return "null";
+        }
+        return "\"" + value.toString().replace("\"", "\\\"") + "\"";
+    }
+
+    private String formatAsXml(Object value) {
+        return "<value>" + escapeXml(value.toString()) + "</value>";
+    }
+
+    private String encodeBase64(String str) {
+        return Base64.getEncoder().encodeToString(str.getBytes());
+    }
+
+    private String encodeUrl(String str) {
+        try {
+            return java.net.URLEncoder.encode(str, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return str;
+        }
+    }
+
+    private String escapeHtml(String str) {
+        return str.replace("&", "&amp;")
+                  .replace("<", "&lt;")
+                  .replace(">", "&gt;")
+                  .replace("\"", "&quot;")
+                  .replace("'", "&#39;");
+    }
+
+    private String escapeXml(String str) {
+        return str.replace("&", "&amp;")
+                  .replace("<", "&lt;")
+                  .replace(">", "&gt;")
+                  .replace("\"", "&quot;")
+                  .replace("'", "&apos;");
     }
 
     /**
@@ -1093,41 +1449,6 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
     }
 
     /**
-     * 解析键路径，支持数组索引
-     *
-     * @param key 键路径
-     * @return 路径部分数组
-     */
-    private String[] parseKeyPath(String key) {
-        // 简单的路径分割，支持 user.addresses[0].street 这样的格式
-        List<String> parts = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        boolean inBracket = false;
-
-        for (char c : key.toCharArray()) {
-            if (c == '.' && !inBracket) {
-                if (!current.isEmpty()) {
-                    parts.add(current.toString());
-                    current.setLength(0);
-                }
-            } else {
-                if (c == '[') {
-                    inBracket = true;
-                } else if (c == ']') {
-                    inBracket = false;
-                }
-                current.append(c);
-            }
-        }
-
-        if (!current.isEmpty()) {
-            parts.add(current.toString());
-        }
-
-        return parts.toArray(new String[0]);
-    }
-
-    /**
      * 处理数组访问
      *
      * @param obj  对象
@@ -1171,43 +1492,6 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
     }
 
     /**
-     * 通过反射获取字段值，增强版本支持getter方法
-     *
-     * @param obj       对象
-     * @param fieldName 字段名
-     * @return 字段值
-     */
-    private Object getFieldValue(Object obj, String fieldName) {
-        try {
-            // 首先尝试直接字段访问
-            Map<String, Field> fieldMap = getFieldMap(obj.getClass());
-            Field field = fieldMap.get(fieldName);
-            if (field != null) {
-                return field.get(obj);
-            }
-
-            // 如果字段不存在，尝试getter方法
-            String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
-            try {
-                var method = obj.getClass().getMethod(getterName);
-                return method.invoke(obj);
-            } catch (Exception e) {
-                // 尝试boolean类型的is方法
-                String isGetterName = "is" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
-                try {
-                    var isMethod = obj.getClass().getMethod(isGetterName);
-                    return isMethod.invoke(obj);
-                } catch (Exception ex) {
-                    log.debug("Failed to get field value via getter: {}.{}", obj.getClass().getSimpleName(), fieldName);
-                }
-            }
-        } catch (Exception e) {
-            log.debug("Failed to get field value: {}.{}", obj.getClass().getSimpleName(), fieldName, e);
-        }
-        return null;
-    }
-
-    /**
      * 清除段落中的所有runs
      *
      * @param paragraph 段落对象
@@ -1218,5 +1502,97 @@ public class TemplateWordDocumentGenerator implements WordDocumentGenerator {
             paragraph.removeRun(i);
         }
     }
-}
 
+    /**
+     * 判断是否为基本类型或包装类型
+     *
+     * @param clazz 类对象
+     * @return 是否为基本类型或包装类型
+     */
+    private boolean isPrimitiveOrWrapper(Class<?> clazz) {
+        return clazz.isPrimitive() ||
+                clazz == Boolean.class || clazz == Character.class ||
+                clazz == Byte.class || clazz == Short.class ||
+                clazz == Integer.class || clazz == Long.class ||
+                clazz == Float.class || clazz == Double.class;
+    }
+
+    /**
+     * 简单的数学表达式计算器
+     *
+     * @param expression 表达式
+     * @return 计算结果
+     */
+    private double evaluateSimpleMath(String expression) {
+        // 移除空格
+        expression = expression.replaceAll("\\s+", "");
+
+        // 处理括号
+        while (expression.contains("(")) {
+            int start = expression.lastIndexOf('(');
+            int end = expression.indexOf(')', start);
+            if (end == -1) throw new IllegalArgumentException("Mismatched parentheses");
+
+            String subExpr = expression.substring(start + 1, end);
+            double result = evaluateSimpleMath(subExpr);
+            expression = expression.substring(0, start) + result + expression.substring(end + 1);
+        }
+
+        // 处理加减法
+        if (expression.contains("+") || expression.contains("-")) {
+            for (int i = expression.length() - 1; i >= 0; i--) {
+                char c = expression.charAt(i);
+                if ((c == '+' || c == '-') && i > 0) {
+                    String left = expression.substring(0, i);
+                    String right = expression.substring(i + 1);
+                    if (c == '+') {
+                        return evaluateSimpleMath(left) + evaluateSimpleMath(right);
+                    } else {
+                        return evaluateSimpleMath(left) - evaluateSimpleMath(right);
+                    }
+                }
+            }
+        }
+
+        // 处理乘除法
+        if (expression.contains("*") || expression.contains("/")) {
+            for (int i = expression.length() - 1; i >= 0; i--) {
+                char c = expression.charAt(i);
+                if (c == '*' || c == '/') {
+                    String left = expression.substring(0, i);
+                    String right = expression.substring(i + 1);
+                    if (c == '*') {
+                        return evaluateSimpleMath(left) * evaluateSimpleMath(right);
+                    } else {
+                        double rightVal = evaluateSimpleMath(right);
+                        if (rightVal == 0) throw new ArithmeticException("Division by zero");
+                        return evaluateSimpleMath(left) / rightVal;
+                    }
+                }
+            }
+        }
+
+        // 解析数字
+        try {
+            return Double.parseDouble(expression);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid number: " + expression);
+        }
+    }
+
+    /**
+     * 格式化值
+     *
+     * @param value 值对象
+     * @return 格式化后的字符串
+     */
+    private String formatValue(Object value) {
+        return switch (value) {
+            case null -> DEFAULT_NULL_VALUE;
+            case Date date -> DEFAULT_DATE_FORMATTER.format(date.toInstant()
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
+            case LocalDateTime localDateTime -> localDateTime.format(DEFAULT_DATE_FORMATTER);
+            default -> value.toString();
+        };
+    }
+}
