@@ -1,6 +1,8 @@
 package com.gls.athena.starter.excel.support;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
@@ -9,12 +11,14 @@ import lombok.experimental.Accessors;
  * @author george
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Accessors(chain = true)
 public class ExcelErrorMessage {
     /**
      * 行号
      */
-    private Integer line;
+    private Integer rowIndex;
     /**
      * 字段名
      */
@@ -22,10 +26,9 @@ public class ExcelErrorMessage {
     /**
      * 错误信息
      */
-    private String errorMessage;
+    private String message;
     /**
      * 错误值
      */
-    private Object errorValue;
-
+    private String errorValue;
 }
