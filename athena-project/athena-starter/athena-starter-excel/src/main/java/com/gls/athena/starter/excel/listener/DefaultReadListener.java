@@ -264,10 +264,10 @@ public class DefaultReadListener<T> implements IReadListener<T> {
         // 遍历校验结果中的错误信息，并将每个错误信息添加到errors集合中
         result.getErrorMessages().forEach(error ->
                 errors.add(new ExcelErrorMessage()
-                        .setRowIndex(rowIndex)
+                        .setLine(rowIndex)
                         .setFieldName(error.getPropertyName())
-                        .setMessage(error.getMessage())
-                        .setErrorValue(String.valueOf(error.getValue())))
+                        .setErrorMessage(error.getMessage())
+                        .setErrorValue(error.getValue()))
         );
     }
 
