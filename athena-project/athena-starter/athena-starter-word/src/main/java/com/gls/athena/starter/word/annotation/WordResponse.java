@@ -27,5 +27,5 @@ public @interface WordResponse {
     /**
      * 生成器类
      */
-    Class<WordGenerator> generator() default WordGenerator.class;
+    Class<? extends WordGenerator> generator() default WordGenerator.class;
 }

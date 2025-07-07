@@ -2,9 +2,12 @@ package com.gls.athena.starter.word.handler;
 
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.config.WordProperties;
+import com.gls.athena.starter.word.generator.WordGenerator;
 import com.gls.athena.starter.word.generator.WordGeneratorManager;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -25,15 +28,12 @@ import java.time.format.DateTimeFormatter;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class WordResponseHandler implements HandlerMethodReturnValueHandler {
 
     private final WordGeneratorManager generatorManager;
     private final WordProperties wordProperties;
-
-    public WordResponseHandler(WordGeneratorManager generatorManager, WordProperties wordProperties) {
-        this.generatorManager = generatorManager;
-        this.wordProperties = wordProperties;
-    }
+    private final ApplicationContext applicationContext;
 
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {
@@ -74,7 +74,15 @@ public class WordResponseHandler implements HandlerMethodReturnValueHandler {
 
             // 生成Word文档
             try (OutputStream outputStream = response.getOutputStream()) {
-                generatorManager.generate(returnValue, templatePath, outputStream);
+                // 检查是否指定了自定义生成器
+                if (wordResponse.generator() != WordGenerator.class) {
+                    // 使用自定义生成器
+                    WordGenerator customGenerator = getCustomGenerator(wordResponse.generator());
+                    customGenerator.generate(returnValue, templatePath, outputStream);
+                } else {
+                    // 使用默认的生成器管理器
+                    generatorManager.generate(returnValue, templatePath, outputStream);
+                }
                 outputStream.flush();
             }
 
@@ -148,5 +156,23 @@ public class WordResponseHandler implements HandlerMethodReturnValueHandler {
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         response.setHeader("Pragma", "no-cache");
         response.setHeader("Expires", "0");
+    }
+
+    /**
+     * 获取自定义生成器实例
+     */
+    private WordGenerator getCustomGenerator(Class<? extends WordGenerator> generatorClass) {
+        try {
+            // 先尝试从Spring容器中获取
+            return applicationContext.getBean(generatorClass);
+        } catch (Exception e) {
+            // 如果容器中没有，则创建新实例
+            try {
+                return generatorClass.getDeclaredConstructor().newInstance();
+            } catch (Exception ex) {
+                log.error("无法创建自定义生成器实例: {}", generatorClass.getName(), ex);
+                throw new RuntimeException("无法创建自定义生成器: " + generatorClass.getName(), ex);
+            }
+        }
     }
 }

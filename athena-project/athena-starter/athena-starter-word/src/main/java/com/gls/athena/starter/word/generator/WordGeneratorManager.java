@@ -1,5 +1,6 @@
 package com.gls.athena.starter.word.generator;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -13,13 +14,10 @@ import java.util.List;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class WordGeneratorManager {
 
     private final List<WordGenerator> generators;
-
-    public WordGeneratorManager(List<WordGenerator> generators) {
-        this.generators = generators;
-    }
 
     /**
      * 生成Word文档

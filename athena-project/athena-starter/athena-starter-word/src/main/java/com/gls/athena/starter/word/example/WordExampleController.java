@@ -1,6 +1,9 @@
 package com.gls.athena.starter.word.example;
 
 import com.gls.athena.starter.word.annotation.WordResponse;
+import com.gls.athena.starter.word.generator.ExcelStyleWordGenerator;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,6 +59,26 @@ public class WordExampleController {
     }
 
     /**
+     * 使用自定义生成器 - Excel风格表格
+     */
+    @GetMapping("/export/excel-style")
+    @WordResponse(
+            fileName = "Excel风格报告",
+            generator = ExcelStyleWordGenerator.class
+    )
+    public Map<String, Object> exportWithCustomGenerator() {
+        return Map.of(
+                "订单号", "ORD-2025-001",
+                "客户名称", "阿里巴巴科技有限公司",
+                "订单金额", 58999.99,
+                "订单状态", "已完成",
+                "创建时间", "2025-01-07 10:30:00",
+                "支付方式", "银行转账",
+                "备注", "重要客户，优先处理"
+        );
+    }
+
+    /**
      * 使用类级别注解
      */
     @GetMapping("/export/class-level")
@@ -66,6 +89,8 @@ public class WordExampleController {
     /**
      * 员工数据DTO
      */
+    @Data
+    @AllArgsConstructor
     public static class EmployeeData {
         private String name;
         private Integer age;
@@ -73,69 +98,17 @@ public class WordExampleController {
         private String department;
         private List<String> skills;
         private Map<String, String> performance;
-
-        public EmployeeData(String name, Integer age, String position, String department,
-                            List<String> skills, Map<String, String> performance) {
-            this.name = name;
-            this.age = age;
-            this.position = position;
-            this.department = department;
-            this.skills = skills;
-            this.performance = performance;
-        }
-
-        // Getters
-        public String getName() {
-            return name;
-        }
-
-        public Integer getAge() {
-            return age;
-        }
-
-        public String getPosition() {
-            return position;
-        }
-
-        public String getDepartment() {
-            return department;
-        }
-
-        public List<String> getSkills() {
-            return skills;
-        }
-
-        public Map<String, String> getPerformance() {
-            return performance;
-        }
     }
 
     /**
      * 简单数据DTO
      */
+    @Data
+    @AllArgsConstructor
     @WordResponse(fileName = "简单数据报告")
     public static class SimpleData {
         private String title;
         private String description;
         private Integer value;
-
-        public SimpleData(String title, String description, Integer value) {
-            this.title = title;
-            this.description = description;
-            this.value = value;
-        }
-
-        // Getters
-        public String getTitle() {
-            return title;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public Integer getValue() {
-            return value;
-        }
     }
 }
