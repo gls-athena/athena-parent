@@ -1,11 +1,10 @@
 package com.gls.athena.starter.pdf.config;
 
-import com.gls.athena.starter.pdf.factory.PdfProcessingStrategyFactory;
 import com.gls.athena.starter.pdf.handler.PdfResponseHandler;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 
@@ -14,33 +13,27 @@ import java.util.List;
 
 /**
  * PDF配置类
- * 应用依赖注入和配置模式
  *
- * @author george
+ * @author athena
  */
-@AutoConfiguration
-@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+@Configuration
+@EnableConfigurationProperties(PdfProperties.class)
 public class PdfConfig {
 
     @Resource
-    private RequestMappingHandlerAdapter handlerAdapter;
+    private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
 
     @Resource
-    private PdfProcessingStrategyFactory strategyFactory;
+    private PdfResponseHandler pdfResponseHandler;
 
     @PostConstruct
     public void init() {
-        initReturnValueHandlers();
-    }
-
-    private void initReturnValueHandlers() {
-        List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
-        handlers.add(new PdfResponseHandler(strategyFactory));
-
-        if (handlerAdapter.getReturnValueHandlers() != null) {
-            handlers.addAll(handlerAdapter.getReturnValueHandlers());
+        List<HandlerMethodReturnValueHandler> returnValueHandlers = requestMappingHandlerAdapter.getReturnValueHandlers();
+        List<HandlerMethodReturnValueHandler> newHandlers = new ArrayList<>();
+        newHandlers.add(pdfResponseHandler);
+        if (returnValueHandlers != null) {
+            newHandlers.addAll(returnValueHandlers);
         }
-
-        handlerAdapter.setReturnValueHandlers(handlers);
+        requestMappingHandlerAdapter.setReturnValueHandlers(newHandlers);
     }
 }

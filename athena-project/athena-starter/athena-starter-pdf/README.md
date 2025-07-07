@@ -1,107 +1,272 @@
-# PDF插件设计模式优化总结
+# Athena PDF Starter 使用指南
 
-## 优化前的问题
+## 概述
 
-### 1. 违反单一职责原则
+Athena PDF Starter 提供了一个基于注解的PDF文档生成功能，支持HTML模板渲染和默认数据生成，基于OpenPDF实现。
 
-- `PdfUtil`工具类承担了HTTP响应处理、PDF生成、字体加载等多重职责
-- `PdfResponseHandler`直接处理不同类型的PDF生成逻辑
+## 核心特性
 
-### 2. 违反开闭原则
+- 🚀 **注解驱动**: 使用 `@PdfResponse` 注解轻松导出PDF文档
+- 📄 **多模板支持**: 支持HTML模板和纯数据生成
+- 🎨 **自定义生成器**: 支持自定义PDF生成器实现
+- 📱 **内联显示**: 支持浏览器内查看或下载
+- ⚡ **职责单一**: 清晰的分层架构，易于扩展和维护
+- 🎯 **自动配置**: Spring Boot自动配置，开箱即用
 
-- `PdfResponseHandler`中使用switch语句处理不同模板类型
-- 新增模板类型需要修改现有代码
+## 架构设计
 
-### 3. 缺乏设计模式应用
+### 核心组件
 
-- 没有策略模式来处理不同的PDF生成策略
-- 没有工厂模式来管理策略实例
-- 缺乏门面模式来简化客户端使用
+1. **PdfGenerator**: PDF生成器接口
+    - `HtmlPdfGenerator`: HTML模板生成器（基于OpenPDF + 飞行渲染器）
+    - `DefaultPdfGenerator`: 默认数据生成器（基于OpenPDF）
 
-### 4. 异常处理不统一
+2. **PdfGeneratorManager**: 生成器管理器，负责选择合适的生成器
 
-- 异常处理分散在各个类中
-- 缺乏统一的异常处理策略
+3. **PdfResponseHandler**: HTTP响应处理器，拦截@PdfResponse注解
 
-## 优化后的设计模式应用
+4. **PdfProperties**: 配置属性类
 
-### 1. 策略模式 (Strategy Pattern)
+## 快速开始
 
-- **接口**: `PdfProcessingStrategy`
-- **具体策略**:
-    - `HtmlTemplatePdfStrategy` - HTML模板处理
-    - `PdfTemplatePdfStrategy` - PDF模板处理
-- **优势**: 支持运行时切换算法，易于扩展新的模板类型
+### 1. 添加依赖
 
-### 2. 工厂模式 (Factory Pattern)
+```xml
 
-- **工厂类**: `PdfProcessingStrategyFactory`
-- **功能**: 根据模板类型返回对应的处理策略
-- **优势**: 集中管理策略创建，降低客户端复杂度
+<dependency>
+    <groupId>com.gls.athena.starter.pdf</groupId>
+    <artifactId>athena-starter-pdf</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
 
-### 3. 门面模式 (Facade Pattern)
+### 2. 配置属性（可选）
 
-- **门面类**: `PdfService`
-- **功能**: 为客户端提供简化的PDF操作接口
-- **优势**: 隐藏子系统复杂性，提供统一的访问入口
+```yaml
+athena:
+  pdf:
+    default-template-path: classpath:templates/pdf/
+    default-file-prefix: document
+    cache-enabled: true
+    cache-size: 100
+    page-settings:
+      page-size: A4
+      orientation: PORTRAIT
+      margin-top: 20
+      margin-bottom: 20
+      margin-left: 20
+      margin-right: 20
+```
 
-### 4. 单一职责原则应用
+### 3. 使用方式
 
-- **HttpResponseUtil**: 专门处理HTTP响应相关操作
-- **PdfUtil**: 专注于PDF核心处理功能
-- **PdfProcessingException**: 统一的异常处理
-
-### 5. 依赖注入模式
-
-- 所有组件通过Spring的依赖注入管理
-- 降低组件间的耦合度
-- 提高可测试性
-
-## 优化后的架构优势
-
-### 1. 可扩展性
-
-- 新增模板类型只需实现`PdfProcessingStrategy`接口
-- 无需修改现有代码，符合开闭原则
-
-### 2. 可维护性
-
-- 每个类职责单一，便于理解和维护
-- 代码结构清晰，层次分明
-
-### 3. 可测试性
-
-- 组件间松耦合，便于单元测试
-- 策略模式便于mock测试
-
-### 4. 性能优化
-
-- 策略工厂使用懒加载和缓存
-- 资源管理更加合理
-
-## 使用示例
+#### 方式一：默认生成（无模板）
 
 ```java
-// 使用注解方式
-@PdfResponse(filename = "report", template = "report.html", templateType = TemplateType.HTML)
-public ReportData generateReport() {
-    return new ReportData();
-}
 
-// 使用服务方式
-@Autowired
-private PdfService pdfService;
+@RestController
+public class ReportController {
 
-public byte[] generatePdf() {
-    Map<String, Object> data = new HashMap<>();
-    return pdfService.generatePdf(data, "template.html", TemplateType.HTML);
+    @GetMapping("/export/user")
+    @PdfResponse(fileName = "用户报告")
+    public Map<String, Object> exportUser() {
+        return Map.of(
+                "用户名", "张三",
+                "年龄", 25,
+                "部门", "技术部"
+        );
+    }
 }
 ```
 
-## 设计原则遵循
+#### 方式二：HTML模板生成
 
-1. **单一职责原则** ✅ - 每个类只有一个变化的理由
-2. **开闭原则** ✅ - 对扩展开放，对修改关闭
-3. **里氏替换原则** ✅ - 策略可以相互替换
-4. **接口隔离原则** ✅ - 接口精简，职责单一
-5. **依赖倒置原则** ✅ - 依赖抽象而非具体实现
+```java
+
+@GetMapping("/export/employee")
+@PdfResponse(
+        fileName = "员工报告",
+        template = "employee-report.html",
+        templateType = TemplateType.HTML
+)
+public EmployeeData exportEmployee() {
+    return new EmployeeData("李四", 28, "开发工程师");
+}
+```
+
+#### 方式三：自定义生成器
+
+```java
+
+@GetMapping("/export/report")
+@PdfResponse(
+        fileName = "销售报表",
+        generator = ReportStylePdfGenerator.class
+)
+public Map<String, Object> exportReport() {
+    return salesData;
+}
+```
+
+#### 方式四：内联显示
+
+```java
+
+@GetMapping("/view/catalog")
+@PdfResponse(
+        fileName = "产品目录",
+        inline = true  // 浏览器内查看
+)
+public List<ProductData> viewCatalog() {
+    return productList;
+}
+```
+
+## 模板制作
+
+### HTML模板语法
+
+支持简单的变量替换语法：
+
+- `{{variable}}`: 简单变量替换
+- `{{object.property}}`: 嵌套属性访问
+
+### HTML模板示例
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>员工报告</title>
+    <style>
+        body {
+            font-family: 'SimSun', serif;
+        }
+
+        .header {
+            text-align: center;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-table th, .info-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>员工信息报告</h1>
+</div>
+
+<table class="info-table">
+    <tr>
+        <td>姓名</td>
+        <td>{{name}}</td>
+    </tr>
+    <tr>
+        <td>年龄</td>
+        <td>{{age}}</td>
+    </tr>
+    <tr>
+        <td>职位</td>
+        <td>{{position}}</td>
+    </tr>
+</table>
+</body>
+</html>
+```
+
+## 扩展开发
+
+### 自定义生成器
+
+```java
+
+@Component
+public class CustomPdfGenerator implements PdfGenerator {
+
+    @Override
+    public void generate(Object data, String template, TemplateType templateType,
+                         OutputStream outputStream) throws Exception {
+        // 自定义生成逻辑
+        Document document = new Document();
+        PdfWriter.getInstance(document, outputStream);
+        document.open();
+
+        // 添加内容...
+
+        document.close();
+    }
+
+    @Override
+    public boolean supports(TemplateType templateType) {
+        return templateType == TemplateType.DATA;
+    }
+}
+```
+
+## 注解属性说明
+
+| 属性           | 类型           | 默认值                | 说明                   |
+|--------------|--------------|--------------------|----------------------|
+| fileName     | String       | ""                 | 文件名，为空时自动生成          |
+| template     | String       | ""                 | 模板路径                 |
+| generator    | Class        | PdfGenerator.class | 自定义生成器类              |
+| templateType | TemplateType | AUTO               | 模板类型（AUTO/HTML/DATA） |
+| inline       | boolean      | false              | 是否内联显示               |
+
+## 模板类型说明
+
+- **AUTO**: 自动检测，根据模板文件扩展名判断
+- **HTML**: HTML模板类型，使用HtmlPdfGenerator
+- **DATA**: 纯数据类型，使用DefaultPdfGenerator
+
+## 配置说明
+
+| 属性                        | 默认值                      | 说明      |
+|---------------------------|--------------------------|---------|
+| default-template-path     | classpath:templates/pdf/ | 默认模板路径  |
+| temp-path                 | 系统临时目录                   | 临时文件路径  |
+| default-file-prefix       | document                 | 默认文件名前缀 |
+| cache-enabled             | true                     | 是否启用缓存  |
+| cache-size                | 100                      | 缓存大小    |
+| page-settings.page-size   | A4                       | 页面大小    |
+| page-settings.orientation | PORTRAIT                 | 页面方向    |
+
+## 最佳实践
+
+1. **模板管理**: 将HTML模板放在 `src/main/resources/templates/pdf/` 目录下
+2. **字体支持**: OpenPDF支持中文字体，确保CSS中指定正确的字体
+3. **性能优化**: 启用缓存来提高模板加载性能
+4. **错误处理**: 生成失败时会返回JSON错误信息
+5. **文件命名**: 使用有意义的文件名，支持中文
+
+## 注意事项
+
+1. HTML模板必须是有效的XHTML格式
+2. CSS样式需要内联或在`<style>`标签中定义
+3. 不支持JavaScript
+4. 图片需要使用绝对路径或base64编码
+5. 表格和布局推荐使用CSS Grid或Flexbox
+
+## 依赖版本
+
+- OpenPDF: 1.3.30
+- Spring Boot: 兼容当前项目版本
+- Jackson: 用于数据转换
+
+## 示例项目
+
+查看 `PdfExampleController` 类获取完整的使用示例，包括：
+
+- 默认数据生成
+- HTML模板渲染
+- 自定义生成器
+- 内联显示
+- 类级别注解

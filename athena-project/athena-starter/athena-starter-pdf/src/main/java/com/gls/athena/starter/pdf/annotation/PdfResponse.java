@@ -1,31 +1,42 @@
 package com.gls.athena.starter.pdf.annotation;
 
 import com.gls.athena.starter.pdf.config.TemplateType;
+import com.gls.athena.starter.pdf.generator.PdfGenerator;
 
 import java.lang.annotation.*;
 
 /**
- * PdfResponse 注解
+ * 将响应转换为PDF文档的注解
  *
- * @author george
+ * @author athena
  */
-@Documented
-@Target({ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Documented
 public @interface PdfResponse {
-    /**
-     * 文件名(不含扩展名)
-     */
-    String filename() default "document";
 
     /**
-     * 模板名
+     * 文档文件名(默认使用当前时间)
+     */
+    String fileName() default "";
+
+    /**
+     * 模板路径
      */
     String template() default "";
 
     /**
+     * 生成器类
+     */
+    Class<? extends PdfGenerator> generator() default PdfGenerator.class;
+
+    /**
      * 模板类型
      */
-    TemplateType templateType() default TemplateType.HTML;
+    TemplateType templateType() default TemplateType.AUTO;
 
+    /**
+     * 是否内联显示（true=浏览器内显示，false=下载）
+     */
+    boolean inline() default false;
 }

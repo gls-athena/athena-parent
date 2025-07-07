@@ -1,27 +1,73 @@
 package com.gls.athena.starter.pdf.config;
 
-import cn.hutool.extra.template.TemplateConfig;
-import com.gls.athena.common.core.constant.BaseProperties;
-import com.gls.athena.common.core.constant.IConstants;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
- * @author george
+ * PDF配置属性
+ *
+ * @author athena
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + ".pdf")
-public class PdfProperties extends BaseProperties {
+@ConfigurationProperties(prefix = "athena.pdf")
+public class PdfProperties {
+
     /**
-     * HTML模板配置
+     * 默认模板路径
      */
-    @NestedConfigurationProperty
-    private TemplateConfig templateConfig = new TemplateConfig("template", TemplateConfig.ResourceMode.CLASSPATH);
+    private String defaultTemplatePath = "classpath:templates/pdf/";
+
     /**
-     * 字体路径
+     * 临时文件路径
      */
-    private String fontPath = "fonts";
+    private String tempPath = System.getProperty("java.io.tmpdir");
+
+    /**
+     * 默认文件名前缀
+     */
+    private String defaultFilePrefix = "document";
+
+    /**
+     * 是否启用缓存
+     */
+    private boolean cacheEnabled = true;
+
+    /**
+     * 缓存大小
+     */
+    private int cacheSize = 100;
+
+    /**
+     * 默认字体路径
+     */
+    private String defaultFontPath = "classpath:fonts/";
+
+    /**
+     * 页面设置
+     */
+    private PageSettings pageSettings = new PageSettings();
+
+    /**
+     * 页面设置
+     */
+    @Data
+    public static class PageSettings {
+        /**
+         * 页面大小（A4, A3, LETTER等）
+         */
+        private String pageSize = "A4";
+
+        /**
+         * 页面方向（PORTRAIT, LANDSCAPE）
+         */
+        private String orientation = "PORTRAIT";
+
+        /**
+         * 页边距（毫米）
+         */
+        private float marginTop = 20;
+        private float marginBottom = 20;
+        private float marginLeft = 20;
+        private float marginRight = 20;
+    }
 }

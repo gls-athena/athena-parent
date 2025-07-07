@@ -1,32 +1,23 @@
 package com.gls.athena.starter.pdf.config;
 
-import com.gls.athena.common.bean.base.IEnum;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
- * @author george
+ * PDF模板类型枚举
+ *
+ * @author athena
  */
-
-@Getter
-@RequiredArgsConstructor
-public enum TemplateType implements IEnum<String> {
+public enum TemplateType {
     /**
-     * HTML模板
+     * 自动检测模板类型
      */
-    HTML("html", "HTML模板"),
-    /**
-     * PDF模板
-     */
-    PDF("pdf", "PDF模板"),
-    ;
+    AUTO,
 
     /**
-     * 编码
+     * HTML模板类型
      */
-    private final String code;
+    HTML,
+
     /**
-     * 名称
+     * 纯数据生成类型
      */
-    private final String name;
+    DATA
 }

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>员工报告</title>
+    <style>
+        body {
+            font-family: 'SimSun', serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #7f8c8d;
+        }
+
+        .info-section {
+            margin: 20px 0;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .info-table th, .info-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .info-table th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+
+        .info-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skill-tag {
+            background-color: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #95a5a6;
+            border-top: 1px solid #ecf0f1;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="title">员工信息报告</div>
+    <div class="subtitle">Employee Information Report</div>
+</div>
+
+<div class="info-section">
+    <table class="info-table">
+        <tr>
+            <th>项目</th>
+            <th>信息</th>
+        </tr>
+        <tr>
+            <td><strong>姓名</strong></td>
+            <td>{{name}}</td>
+        </tr>
+        <tr>
+            <td><strong>年龄</strong></td>
+            <td>{{age}} 岁</td>
+        </tr>
+        <tr>
+            <td><strong>职位</strong></td>
+            <td>{{position}}</td>
+        </tr>
+        <tr>
+            <td><strong>部门</strong></td>
+            <td>{{department}}</td>
+        </tr>
+        <tr>
+            <td><strong>薪资</strong></td>
+            <td>¥{{salary}}</td>
+        </tr>
+        <tr>
+            <td><strong>入职时间</strong></td>
+            <td>{{hireDate}}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="info-section">
+    <h3>技能清单</h3>
+    <div class="skills-list">
+        {{#skills}}
+        <span class="skill-tag">{{.}}</span>
+        {{/skills}}
+    </div>
+</div>
+
+<div class="footer">
+    <p>本报告由 Athena PDF Starter 自动生成</p>
+    <p>生成时间：{{currentDate}}</p>
+</div>
+</body>
+</html>
