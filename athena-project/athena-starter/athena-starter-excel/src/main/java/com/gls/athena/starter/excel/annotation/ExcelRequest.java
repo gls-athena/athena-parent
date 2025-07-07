@@ -63,4 +63,14 @@ public @interface ExcelRequest {
      * </p>
      */
     Class<? extends IReadListener> readListener() default DefaultReadListener.class;
+
+    /**
+     * 是否允许空结果
+     * <p>
+     * 设置为true时，即使Excel解析后没有数据也不会抛出异常
+     * 设置为false时，如果解析结果为空会抛出异常
+     * 默认为false，保持与之前版本的兼容性
+     * </p>
+     */
+    boolean allowEmptyResult() default false;
 }
