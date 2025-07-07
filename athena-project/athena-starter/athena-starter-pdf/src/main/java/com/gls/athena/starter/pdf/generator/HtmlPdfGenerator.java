@@ -37,7 +37,11 @@ public class HtmlPdfGenerator implements PdfGenerator {
     public void generate(Object data, String template, TemplateType templateType, OutputStream outputStream) throws Exception {
         try {
             // 渲染HTML模板
-            TemplateConfig config = new TemplateConfig(pdfProperties.getDefaultTemplatePath(), TemplateConfig.ResourceMode.CLASSPATH);
+            TemplateConfig config = new TemplateConfig("", TemplateConfig.ResourceMode.CLASSPATH);
+            if (template.startsWith("classpath:")) {
+                // 去掉classpath前缀
+                template = template.substring("classpath:".length());
+            }
             String html = TemplateUtil.createEngine(config).getTemplate(template).render(convertToMap(data));
             log.debug("渲染HTML模板成功: template={}", template);
 
