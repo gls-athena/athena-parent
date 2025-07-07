@@ -1,0 +1,36 @@
+# Athena 日志SDK配置示例
+athena:
+  log:
+    # 性能监控配置
+    performance:
+      # 是否启用性能监控
+      enabled: true
+      # 超时阈值（毫秒）
+      timeout-threshold: 5000
+      # 是否记录方法参数
+      log-args: true
+      # 是否记录方法返回值
+      log-result: true
+
+    # Kafka配置
+    kafka:
+      # 是否启用Kafka发送
+      enabled: true
+      # Kafka主题
+      topic: athena-log
+      # 方法日志消息key
+      method-log-key: method-log
+      # 通用方法消息key
+      method-key: method
+
+# Spring异步配置
+spring:
+  task:
+    execution:
+      pool:
+        # 核心线程数
+        core-size: 2
+        # 最大线程数
+        max-size: 8
+        # 队列容量
+        queue-capacity: 200

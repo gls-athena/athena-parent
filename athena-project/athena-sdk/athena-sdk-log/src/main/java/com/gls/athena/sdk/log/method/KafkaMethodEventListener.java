@@ -31,11 +31,25 @@ public class KafkaMethodEventListener implements IMethodEventListener {
      */
     @Override
     public void onMethodEvent(MethodDto methodDto) {
-        // 根据方法类型生成对应的Kafka消息key
-        String key = getKafkaKey(methodDto);
-        // 记录发送日志并执行消息发送
-        log.info("发送方法日志: {}", methodDto);
-        kafkaTemplate.send(logProperties.getKafka().getTopic(), key, methodDto);
+        // 检查Kafka发送是否启用
+        if (!logProperties.getKafka().isEnabled()) {
+            log.debug("Kafka日志发送已禁用，跳过发送");
+            return;
+        }
+
+        try {
+            // 根据方法类型生成对应的Kafka消息key
+            String key = getKafkaKey(methodDto);
+            String topic = logProperties.getKafka().getTopic();
+
+            // 记录发送日志并执行消息发送
+            log.debug("发送方法日志到Kafka: topic={}, key={}", topic, key);
+            kafkaTemplate.send(topic, key, methodDto);
+
+        } catch (Exception e) {
+            // Kafka发送失败不应影响主业务流程
+            log.error("Kafka方法日志发送失败: {}", e.getMessage(), e);
+        }
     }
 
     /**
