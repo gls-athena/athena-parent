@@ -1,15 +1,13 @@
 package com.gls.athena.starter.aliyun.oss.support;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import com.aliyun.oss.OSS;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.WritableResource;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
-import java.util.concurrent.ExecutorService;
 
 /**
  * 阿里云OSS资源访问实现类，提供对OSS对象的读写操作。
@@ -22,8 +20,8 @@ import java.util.concurrent.ExecutorService;
  *
  * <p>使用示例：
  * <pre>
- * // 创建OSS资源
- * OssResource resource = new OssResource("oss://my-bucket/path/to/file.txt");
+ * // 通过工厂创建OSS资源
+ * OssResource resource = ossResourceFactory.createResource("oss://my-bucket/path/to/file.txt");
  *
  * // 写入内容
  * try (OutputStream out = resource.getOutputStream()) {
@@ -40,37 +38,32 @@ import java.util.concurrent.ExecutorService;
  * @see WritableResource
  * @see Resource
  */
+@Slf4j
+@RequiredArgsConstructor
 public class OssResource implements WritableResource {
-    /**
-     * OSS资源的URI位置，格式为：oss://bucketName/objectKey
-     */
-    private final URI location;
 
     /**
-     * OSS存储空间名称，从URI的authority部分获取
+     * OSS URI 解析器，负责解析和验证 URI
      */
-    private final String bucketName;
+    private final OssUriParser uriParser;
 
     /**
-     * OSS对象键，从URI的path部分获取，去除开头的'/'
+     * OSS 客户端服务，负责基本的 OSS 操作
      */
-    private final String objectKey;
+    private final OssClientService ossClientService;
 
     /**
-     * 构造函数，初始化OSS资源。
-     *
-     * @param location 资源位置，格式为oss://bucketName/objectKey
+     * OSS 流服务，负责输入输出流操作
      */
-    public OssResource(String location) {
-        this.location = URI.create(location);
-        this.bucketName = this.location.getAuthority();
-        this.objectKey = StrUtil.isEmpty(this.location.getPath()) ? "" : this.location.getPath().substring(1);
-    }
+    private final OssStreamService ossStreamService;
+
+    /**
+     * OSS 元数据服务，负责元数据操作
+     */
+    private final OssMetadataService ossMetadataService;
 
     /**
      * 获取OSS对象的输出流，用于写入数据。
-     *
-     * <p>使用管道流实现异步上传，避免内存占用过高。</p>
      *
      * @return 用于写入数据的输出流
      * @throws FileNotFoundException 当目标文件不存在时
@@ -79,22 +72,14 @@ public class OssResource implements WritableResource {
     @Override
     public OutputStream getOutputStream() throws IOException {
         if (!exists()) {
-            throw new FileNotFoundException(String.format("目标文件不存在: %s", location));
+            throw new FileNotFoundException(String.format("目标文件不存在: %s", uriParser.getUri()));
         }
 
-        PipedInputStream inputStream = new PipedInputStream();
-        PipedOutputStream outputStream = new PipedOutputStream(inputStream);
+        if (uriParser.isBucket()) {
+            throw new IllegalStateException(String.format("无法对存储空间创建输出流: %s", uriParser.getUri()));
+        }
 
-        ExecutorService ossTaskExecutor = SpringUtil.getBean(ExecutorService.class);
-        ossTaskExecutor.submit(() -> {
-            try (InputStream is = inputStream) {
-                SpringUtil.getBean(OSS.class).putObject(bucketName, objectKey, is);
-            } catch (IOException e) {
-                throw new RuntimeException("OSS文件上传失败", e);
-            }
-        });
-
-        return outputStream;
+        return ossStreamService.getOutputStream(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -108,21 +93,13 @@ public class OssResource implements WritableResource {
     @Override
     public InputStream getInputStream() throws IOException {
         if (!exists()) {
-            throw new FileNotFoundException(String.format("文件不存在: %s", location));
+            throw new FileNotFoundException(String.format("文件不存在: %s", uriParser.getUri()));
         }
-        if (isBucket()) {
-            throw new IllegalStateException(String.format("无法对存储空间创建输入流: %s", location));
+        if (uriParser.isBucket()) {
+            throw new IllegalStateException(String.format("无法对存储空间创建输入流: %s", uriParser.getUri()));
         }
-        return SpringUtil.getBean(OSS.class).getObject(bucketName, objectKey).getObjectContent();
-    }
 
-    /**
-     * 判断当前资源是否为存储空间（Bucket）。
-     *
-     * @return true - 当前资源为存储空间；false - 当前资源为对象
-     */
-    private boolean isBucket() {
-        return StrUtil.isEmpty(objectKey);
+        return ossStreamService.getInputStream(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -132,8 +109,9 @@ public class OssResource implements WritableResource {
      */
     @Override
     public boolean exists() {
-        OSS oss = SpringUtil.getBean(OSS.class);
-        return isBucket() ? oss.doesBucketExist(bucketName) : oss.doesObjectExist(bucketName, objectKey);
+        return uriParser.isBucket()
+                ? ossClientService.doesBucketExist(uriParser.getBucketName())
+                : ossClientService.doesObjectExist(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -144,7 +122,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public URL getURL() throws IOException {
-        return this.location.toURL();
+        return uriParser.getUri().toURL();
     }
 
     /**
@@ -155,7 +133,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public URI getURI() throws IOException {
-        return this.location;
+        return uriParser.getUri();
     }
 
     /**
@@ -177,10 +155,10 @@ public class OssResource implements WritableResource {
      */
     @Override
     public long contentLength() throws IOException {
-        if (isBucket()) {
+        if (uriParser.isBucket()) {
             return 0;
         }
-        return SpringUtil.getBean(OSS.class).getObjectMetadata(bucketName, objectKey).getContentLength();
+        return ossMetadataService.getContentLength(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -191,10 +169,10 @@ public class OssResource implements WritableResource {
      */
     @Override
     public long lastModified() throws IOException {
-        if (isBucket()) {
+        if (uriParser.isBucket()) {
             return 0;
         }
-        return SpringUtil.getBean(OSS.class).getObjectMetadata(bucketName, objectKey).getLastModified().getTime();
+        return ossMetadataService.getLastModified(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -206,7 +184,10 @@ public class OssResource implements WritableResource {
      */
     @Override
     public Resource createRelative(String relativePath) throws IOException {
-        return new OssResource(relativePath);
+        // 构建新的完整路径
+        String newLocation = buildRelativePath(relativePath);
+        OssUriParser newUriParser = new OssUriParser(newLocation);
+        return new OssResource(newUriParser, ossClientService, ossStreamService, ossMetadataService);
     }
 
     /**
@@ -216,7 +197,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public String getFilename() {
-        return isBucket() ? bucketName : objectKey;
+        return uriParser.isBucket() ? uriParser.getBucketName() : extractFilename(uriParser.getObjectKey());
     }
 
     /**
@@ -226,6 +207,41 @@ public class OssResource implements WritableResource {
      */
     @Override
     public String getDescription() {
-        return String.format("OSS资源 [%s]", location);
+        return String.format("OSS资源 [%s]", uriParser.getUri());
+    }
+
+    /**
+     * 构建相对路径的完整 OSS URI。
+     *
+     * @param relativePath 相对路径
+     * @return 完整的 OSS URI
+     */
+    private String buildRelativePath(String relativePath) {
+        if (uriParser.isBucket()) {
+            return String.format("oss://%s/%s", uriParser.getBucketName(), relativePath);
+        } else {
+            // 获取当前对象键的父路径
+            String parentPath = getParentPath(uriParser.getObjectKey());
+            String newObjectKey = parentPath.isEmpty()
+                    ? relativePath
+                    : parentPath + "/" + relativePath;
+            return String.format("oss://%s/%s", uriParser.getBucketName(), newObjectKey);
+        }
+    }
+
+    /**
+     * 获取对象键的父路径。
+     */
+    private String getParentPath(String objectKey) {
+        int lastSlashIndex = objectKey.lastIndexOf('/');
+        return lastSlashIndex > 0 ? objectKey.substring(0, lastSlashIndex) : "";
+    }
+
+    /**
+     * 从对象键中提取文件名。
+     */
+    private String extractFilename(String objectKey) {
+        int lastSlashIndex = objectKey.lastIndexOf('/');
+        return lastSlashIndex >= 0 ? objectKey.substring(lastSlashIndex + 1) : objectKey;
     }
 }

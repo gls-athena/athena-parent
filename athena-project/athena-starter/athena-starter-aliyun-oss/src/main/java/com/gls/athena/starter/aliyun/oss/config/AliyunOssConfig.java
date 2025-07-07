@@ -5,10 +5,14 @@ import com.aliyun.oss.OSSClientBuilder;
 import com.gls.athena.starter.aliyun.core.config.AliyunCoreProperties;
 import com.gls.athena.starter.aliyun.oss.endpoint.OssEndpoint;
 import com.gls.athena.starter.aliyun.oss.support.OssProtocolResolver;
+import com.gls.athena.starter.aliyun.oss.support.OssResourceFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * 阿里云OSS自动配置类
@@ -56,14 +60,34 @@ public class AliyunOssConfig {
     }
 
     /**
+     * 创建OSS任务执行器，用于异步上传等操作。
+     *
+     * @return ExecutorService 线程池执行器
+     */
+    @Bean("ossTaskExecutor")
+    @ConditionalOnMissingBean(name = "ossTaskExecutor")
+    public ExecutorService ossTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("oss-task-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.initialize();
+        return executor.getThreadPoolExecutor();
+    }
+
+    /**
      * 创建并注册OSS协议解析器Bean到Spring容器。
      *
+     * @param ossResourceFactory OSS资源工厂
      * @return OSS协议解析器实例，该实例将用于解析OSS协议的资源定位
      */
     @Bean
     @ConditionalOnMissingBean
-    public OssProtocolResolver ossProtocolResolver() {
-        return new OssProtocolResolver();
+    public OssProtocolResolver ossProtocolResolver(OssResourceFactory ossResourceFactory) {
+        return new OssProtocolResolver(ossResourceFactory);
     }
 
     /**
