@@ -115,10 +115,14 @@
 MessageUtil.sendSms("13800138000","SMS_001",params);
 
 // 发送邮件
-MessageUtil.sendEmail("user@example.com","标题","内容","EMAIL_001",params);
+MessageUtil.
+
+sendEmail("user@example.com","标题","内容","EMAIL_001",params);
 
 // 发送站内信
-MessageUtil.sendSiteMessage("userId","标题","内容");
+MessageUtil.
+
+sendSiteMessage("userId","标题","内容");
 ```
 
 ### 高级使用
@@ -126,12 +130,16 @@ MessageUtil.sendSiteMessage("userId","标题","内容");
 ```java
 // 自定义构建和发布
 MessageDto smsMessage = MessageBuilder.buildSms("13800138000", "SMS_001", params);
-MessagePublisher.publish(smsMessage);
+MessagePublisher.
+
+publish(smsMessage);
 
 // 直接使用Kafka发送器（在Spring容器中）
 @Autowired
 private KafkaMessageSender kafkaMessageSender;
-kafkaMessageSender.send(messageDto);
+kafkaMessageSender.
+
+send(messageDto);
 ```
 
 ## 配置说明

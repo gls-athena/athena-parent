@@ -1,57 +1,56 @@
 package com.gls.athena.starter.jasper.config;
 
 import com.gls.athena.starter.jasper.handler.JasperResponseHandler;
-import com.gls.athena.starter.jasper.support.JasperHelper;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.Resource;
+import com.gls.athena.starter.jasper.service.DataConversionService;
+import com.gls.athena.starter.jasper.service.JasperReportService;
+import com.gls.athena.starter.jasper.service.JasperResponseService;
+import com.gls.athena.starter.jasper.strategy.IReportHandler;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
+import org.springframework.context.annotation.Bean;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Jasper报告配置类 - 专门负责Bean的配置和注册
+ *
  * @author george
  */
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class JasperConfig {
-    /**
-     * 请求处理适配器
-     */
-    @Resource
-    private RequestMappingHandlerAdapter handlerAdapter;
-    /**
-     * pdf配置
-     */
-    @Resource
-    private JasperHelper jasperHelper;
 
     /**
-     * 初始化方法
+     * 创建数据转换服务Bean
      */
-    @PostConstruct
-    public void init() {
-        // 初始化返回值处理器，用于处理返回的Excel相关数据
-        initReturnValueHandlers();
+    @Bean
+    public DataConversionService dataConversionService() {
+        return new DataConversionService();
     }
 
     /**
-     * 初始化返回值处理器
+     * 创建Jasper报告服务Bean
      */
-    private void initReturnValueHandlers() {
-        // 创建一个新的返回值处理器列表，并添加默认的ExcelResponseHandler
-        List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
-        handlers.add(new JasperResponseHandler(jasperHelper));
+    @Bean
+    public JasperReportService jasperReportService(List<IReportHandler> reportHandlers) {
+        return new JasperReportService(reportHandlers);
+    }
 
-        // 如果handlerAdapter中已经存在返回值处理器，则将其添加到列表中
-        if (handlerAdapter.getReturnValueHandlers() != null) {
-            handlers.addAll(handlerAdapter.getReturnValueHandlers());
-        }
+    /**
+     * 创建Jasper响应服务Bean
+     */
+    @Bean
+    public JasperResponseService jasperResponseService() {
+        return new JasperResponseService();
+    }
 
-        // 将配置好的处理器列表设置到handlerAdapter中
-        handlerAdapter.setReturnValueHandlers(handlers);
+    /**
+     * 创建Jasper响应处理器Bean
+     */
+    @Bean
+    public JasperResponseHandler jasperResponseHandler(JasperReportService jasperReportService,
+                                                       JasperResponseService jasperResponseService,
+                                                       DataConversionService dataConversionService) {
+        return new JasperResponseHandler(jasperReportService, jasperResponseService, dataConversionService);
     }
 }
