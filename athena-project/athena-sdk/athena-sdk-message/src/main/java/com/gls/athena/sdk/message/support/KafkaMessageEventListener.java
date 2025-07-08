@@ -1,33 +1,24 @@
 package com.gls.athena.sdk.message.support;
 
-import com.gls.athena.sdk.message.config.MessageProperties;
 import com.gls.athena.sdk.message.domain.MessageDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 
 /**
- * kafka消息事件监听器
+ * Kafka消息事件监听器
+ * 职责：专门负责监听消息事件并委托给发送器处理
  *
  * @author george
  */
 @Slf4j
 @RequiredArgsConstructor
 public class KafkaMessageEventListener implements IMessageEventListener {
-    /**
-     * 短信配置
-     */
-    private final MessageProperties messageProperties;
-    /**
-     * kafka模板
-     */
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    private final KafkaMessageSender kafkaMessageSender;
 
     @Override
     public void onMessageEvent(MessageDto messageDto) {
-        log.info("发送消息: {}", messageDto);
-        String key = messageDto.getType().name();
-        String topic = messageProperties.getKafka().getTopic();
-        kafkaTemplate.send(topic, key, messageDto);
+        log.debug("接收到消息事件: {}", messageDto);
+        kafkaMessageSender.send(messageDto);
     }
 }
