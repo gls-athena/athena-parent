@@ -1,9 +1,9 @@
 package com.gls.athena.starter.excel.strategy;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.poi.excel.cell.CellUtil;
 import cn.idev.excel.metadata.Head;
 import cn.idev.excel.write.merge.AbstractMergeStrategy;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -15,6 +15,7 @@ import java.util.List;
  *
  * @author george
  */
+@RequiredArgsConstructor
 public class ColumnMergeStrategy extends AbstractMergeStrategy {
     /**
      * 忽略的值
@@ -24,17 +25,6 @@ public class ColumnMergeStrategy extends AbstractMergeStrategy {
      * 合并列索引
      */
     private final List<Integer> columnIndexes;
-
-    /**
-     * 构造方法
-     *
-     * @param columnIndexes 合并列索引
-     * @param ignoreValues  忽略的值
-     */
-    public ColumnMergeStrategy(List<Integer> columnIndexes, Object... ignoreValues) {
-        this.columnIndexes = columnIndexes;
-        this.ignoreValues = CollUtil.newArrayList(ignoreValues);
-    }
 
     /**
      * 合并单元格

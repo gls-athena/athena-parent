@@ -1,9 +1,9 @@
 package com.gls.athena.starter.excel.strategy;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.poi.excel.cell.CellUtil;
 import cn.idev.excel.metadata.Head;
 import cn.idev.excel.write.merge.AbstractMergeStrategy;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 
@@ -14,6 +14,7 @@ import java.util.List;
  *
  * @author george
  */
+@RequiredArgsConstructor
 public class RowMergeStrategy extends AbstractMergeStrategy {
 
     /**
@@ -24,17 +25,6 @@ public class RowMergeStrategy extends AbstractMergeStrategy {
      * 合并行的值
      */
     private final List<Object> rowValues;
-
-    /**
-     * 构造方法
-     *
-     * @param columnIndex 列索引
-     * @param rowValues   行的值
-     */
-    public RowMergeStrategy(Integer columnIndex, Object... rowValues) {
-        this.columnIndex = columnIndex;
-        this.rowValues = CollUtil.newArrayList(rowValues);
-    }
 
     /**
      * 合并单元格
