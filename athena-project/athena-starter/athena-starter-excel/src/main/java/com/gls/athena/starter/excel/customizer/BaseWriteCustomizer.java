@@ -1,0 +1,185 @@
+package com.gls.athena.starter.excel.customizer;
+
+import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.idev.excel.converters.Converter;
+import cn.idev.excel.write.handler.WriteHandler;
+import cn.idev.excel.write.metadata.WriteBasicParameter;
+import com.gls.athena.common.core.base.ICustomizer;
+import com.gls.athena.starter.excel.annotation.ExcelConfig;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
+
+import java.util.*;
+
+/**
+ * Excel写入基础参数转换器
+ * <p>
+ * 用于将ExcelConfig注解配置转换为EasyExcel的WriteBasicParameter参数对象
+ * 支持基础参数配置和写入相关参数配置的转换
+ * </p>
+ *
+ * @param <Parameter> 继承自WriteBasicParameter的参数类型
+ * @author athena-starter-excel
+ * @since 1.0.0
+ */
+@RequiredArgsConstructor
+public abstract class BaseWriteCustomizer<Parameter extends WriteBasicParameter> implements ICustomizer<Parameter> {
+
+    private final ExcelConfig config;
+
+    @Override
+    public void customize(Parameter parameter) {
+        customizeBasic(parameter);
+        customizeWriteBasic(parameter);
+        customizeWrite(parameter);
+    }
+
+    /**
+     * 配置写入参数
+     * <p>
+     * 包括自定义处理器、样式、合并等写入时的特定配置
+     * </p>
+     *
+     * @param parameter 写入基础参数对象
+     */
+    protected abstract void customizeWrite(Parameter parameter);
+
+    /**
+     * 转换基础参数配置
+     * <p>
+     * 包括表头、实体类、转换器、本地化、缓存等基础配置
+     * </p>
+     *
+     * @param parameter 写入基础参数对象
+     */
+    private void customizeBasic(Parameter parameter) {
+        // 设置表头信息，支持多级表头（用逗号分隔）
+        if (ObjUtil.isNotEmpty(config.head())) {
+            List<List<String>> head = Arrays.stream(config.head())
+                    .map(s -> StrUtil.split(s, StrUtil.COMMA))
+                    .toList();
+            parameter.setHead(head);
+        }
+
+        // 设置数据对应的实体类
+        if (ObjUtil.isNotNull(config.clazz())) {
+            parameter.setClazz(config.clazz());
+        }
+
+        // 设置自定义转换器列表
+        if (ObjUtil.isNotEmpty(config.converter())) {
+            List<Converter<?>> customConverterList = Optional.ofNullable(parameter.getCustomConverterList())
+                    .orElse(new ArrayList<>());
+
+            Arrays.stream(config.converter())
+                    .map(BeanUtils::instantiateClass)
+                    .forEach(customConverterList::add);
+
+            parameter.setCustomConverterList(customConverterList);
+        }
+
+        // 设置是否自动去除字符串两端空格
+        if (ObjUtil.isNotNull(config.autoTrim())) {
+            parameter.setAutoTrim(config.autoTrim());
+        }
+
+        // 设置是否使用1904窗口系统（主要用于Mac Excel兼容性）
+        if (ObjUtil.isNotNull(config.use1904windowing())) {
+            parameter.setUse1904windowing(config.use1904windowing());
+        }
+
+        // 设置本地化信息
+        if (StrUtil.isNotBlank(config.locale())) {
+            Locale locale = Locale.forLanguageTag(config.locale());
+            parameter.setLocale(locale);
+        }
+
+        // 设置是否使用科学计数法格式
+        if (ObjUtil.isNotNull(config.useScientificFormat())) {
+            parameter.setUseScientificFormat(config.useScientificFormat());
+        }
+
+        // 设置字段缓存位置
+        if (ObjUtil.isNotNull(config.filedCacheLocation())) {
+            parameter.setFiledCacheLocation(config.filedCacheLocation());
+        }
+    }
+
+    /**
+     * 转换写入相关的基础参数
+     * <p>
+     * 包括表头、列包含/排除、样式、合并等写入时的特定配置
+     * </p>
+     *
+     * @param parameter 写入基础参数对象
+     */
+    private void customizeWriteBasic(Parameter parameter) {
+        // 设置相对表头行索引
+        if (ObjUtil.isNotNull(config.relativeHeadRowIndex())) {
+            parameter.setRelativeHeadRowIndex(config.relativeHeadRowIndex());
+        }
+
+        // 设置是否需要表头
+        if (ObjUtil.isNotNull(config.needHead())) {
+            parameter.setNeedHead(config.needHead());
+        }
+
+        // 设置自定义写入处理器列表
+        if (ObjUtil.isNotEmpty(config.writeHandler())) {
+            List<WriteHandler> customWriteHandlerList = Optional.ofNullable(parameter.getCustomWriteHandlerList())
+                    .orElse(new ArrayList<>());
+
+            Arrays.stream(config.writeHandler())
+                    .map(BeanUtils::instantiateClass)
+                    .forEach(customWriteHandlerList::add);
+
+            parameter.setCustomWriteHandlerList(customWriteHandlerList);
+        }
+
+        // 设置是否使用默认样式
+        if (ObjUtil.isNotNull(config.useDefaultStyle())) {
+            parameter.setUseDefaultStyle(config.useDefaultStyle());
+        }
+
+        // 设置是否自动合并表头
+        if (ObjUtil.isNotNull(config.automaticMergeHead())) {
+            parameter.setAutomaticMergeHead(config.automaticMergeHead());
+        }
+
+        // 设置排除的列索引列表
+        if (ObjUtil.isNotEmpty(config.excludeColumnIndexes())) {
+            List<Integer> excludeColumnIndexes = Arrays.stream(config.excludeColumnIndexes())
+                    .boxed()
+                    .toList();
+            parameter.setExcludeColumnIndexes(excludeColumnIndexes);
+        }
+
+        // 设置排除的列字段名列表
+        if (ObjUtil.isNotEmpty(config.excludeColumnFieldNames())) {
+            List<String> excludeColumnFieldNames = Arrays.stream(config.excludeColumnFieldNames())
+                    .toList();
+            parameter.setExcludeColumnFieldNames(excludeColumnFieldNames);
+        }
+
+        // 设置包含的列索引列表
+        if (ObjUtil.isNotEmpty(config.includeColumnIndexes())) {
+            List<Integer> includeColumnIndexes = Arrays.stream(config.includeColumnIndexes())
+                    .boxed()
+                    .toList();
+            parameter.setIncludeColumnIndexes(includeColumnIndexes);
+        }
+
+        // 设置包含的列字段名列表
+        if (ObjUtil.isNotEmpty(config.includeColumnFieldNames())) {
+            List<String> includeColumnFieldNames = Arrays.stream(config.includeColumnFieldNames())
+                    .toList();
+            parameter.setIncludeColumnFieldNames(includeColumnFieldNames);
+        }
+
+        // 设置是否按包含列排序
+        if (ObjUtil.isNotNull(config.orderByIncludeColumn())) {
+            parameter.setOrderByIncludeColumn(config.orderByIncludeColumn());
+        }
+    }
+}

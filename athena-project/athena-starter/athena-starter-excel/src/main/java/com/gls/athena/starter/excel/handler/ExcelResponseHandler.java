@@ -11,9 +11,9 @@ import cn.idev.excel.write.metadata.fill.FillConfig;
 import cn.idev.excel.write.metadata.fill.FillWrapper;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.annotation.ExcelSheet;
-import com.gls.athena.starter.excel.customizer.ExcelWriterCustomizer;
 import com.gls.athena.starter.excel.customizer.WriteSheetCustomizer;
 import com.gls.athena.starter.excel.customizer.WriteTableCustomizer;
+import com.gls.athena.starter.excel.customizer.WriteWorkbookCustomizer;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -136,7 +136,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
      */
     private void exportToExcel(Object data, OutputStream outputStream, ExcelResponse excelResponse) {
         // 使用try-with-resources确保ExcelWriter正确关闭
-        try (ExcelWriter excelWriter = ExcelWriterCustomizer.build(outputStream, excelResponse)) {
+        try (ExcelWriter excelWriter = WriteWorkbookCustomizer.getExcelWriter(excelResponse, outputStream)) {
             // 根据是否使用模板选择不同的导出方式
             if (StrUtil.isEmpty(excelResponse.template())) {
                 // 无模板情况下的导出逻辑
@@ -193,7 +193,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
      */
     private void fillToSheet(Object data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
         // 构建可写入的工作表对象
-        WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
+        WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(excelSheet);
         FillConfig fillConfig = FillConfig.builder().forceNewRow(true).build();
 
         // 处理集合类型数据
@@ -269,10 +269,10 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
      */
     private void writeToSheet(List<?> data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
         // 构建基础工作表配置
-        WriteSheet writeSheet = WriteSheetCustomizer.build(excelSheet);
+        WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(excelSheet);
 
         // 获取工作表内所有表格配置
-        List<WriteTable> writeTables = WriteTableCustomizer.build(CollUtil.toList(excelSheet.tables()));
+        List<WriteTable> writeTables = WriteTableCustomizer.getWriteTables(excelSheet.tables());
 
         // 处理无表格或单表格的特殊情况
         if (writeTables.isEmpty()) {

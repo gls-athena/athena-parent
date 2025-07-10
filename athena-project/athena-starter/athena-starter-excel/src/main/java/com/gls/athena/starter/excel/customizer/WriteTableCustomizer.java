@@ -1,74 +1,51 @@
 package com.gls.athena.starter.excel.customizer;
 
-import cn.idev.excel.write.builder.ExcelWriterTableBuilder;
+import cn.hutool.core.util.ObjUtil;
 import cn.idev.excel.write.metadata.WriteTable;
 import com.gls.athena.starter.excel.annotation.ExcelTable;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Excel表格写入构建器的自定义配置类
- * 用于定制Excel表格写入时的Table相关参数
+ * Excel表格写入转换器
+ * <p>
+ * 用于将ExcelTable注解配置转换为EasyExcel的WriteTable参数对象。
+ * WriteTable主要用于在单个Excel工作表中创建多个表格区域，
+ * 每个表格可以有独立的配置和数据源。
+ * </p>
  *
- * @author george
+ * @author athena-starter-excel
+ * @since 1.0.0
  */
-public class WriteTableCustomizer extends BaseWriterCustomizer<ExcelWriterTableBuilder> {
+public class WriteTableCustomizer extends BaseWriteCustomizer<WriteTable> {
 
-    private final ExcelTable table;
+    private final ExcelTable excelTable;
 
-    /**
-     * 初始化表格构建器自定义配置
-     *
-     * @param table Excel表格注解配置
-     */
-    private WriteTableCustomizer(ExcelTable table) {
-        super(table.config());
-        this.table = table;
+    private WriteTableCustomizer(ExcelTable excelTable) {
+        super(excelTable.config());
+        this.excelTable = excelTable;
     }
 
-    /**
-     * 构建WriteTable对象
-     * <p>
-     * 该方法通过ExcelWriterTableBuilder和WriteTableBuilderCustomizer，将ExcelTable配置转换为WriteTable对象。
-     *
-     * @param excelTable 需要转换的Excel表格数据对象，包含表格的配置和数据信息
-     * @return WriteTable 构建完成的WriteTable对象，可用于后续的写入操作
-     */
-    public static WriteTable build(ExcelTable excelTable) {
-        // 初始化构建器并进行自定义配置
-        ExcelWriterTableBuilder builder = new ExcelWriterTableBuilder();
-        WriteTableCustomizer customizer = new WriteTableCustomizer(excelTable);
-        customizer.customize(builder);
-
-        return builder.build();
+    public static WriteTable getWriteTable(ExcelTable excelTable) {
+        WriteTable writeTable = new WriteTable();
+        WriteTableCustomizer writeTableCustomizer = new WriteTableCustomizer(excelTable);
+        writeTableCustomizer.customize(writeTable);
+        return writeTable;
     }
 
-    /**
-     * 将ExcelTable数组转换为WriteTable列表
-     * 此方法使用Stream API来遍历每个ExcelTable实例，并将其转换为WriteTable对象，最后收集到一个列表中
-     *
-     * @param excelTables ExcelTable数组，包含待转换的Excel表格信息
-     * @return 转换后的WriteTable对象列表
-     */
-    public static List<WriteTable> build(List<ExcelTable> excelTables) {
-        // 将多个ExcelTable转换为WriteTable列表
-        return excelTables.stream()
-                .map(WriteTableCustomizer::build)
-                .collect(Collectors.toList());
+    public static List<WriteTable> getWriteTables(ExcelTable... tables) {
+        return getWriteTables(List.of(tables));
     }
 
-    /**
-     * 执行自定义配置
-     * 该方法用于对Excel表格构建器进行自定义配置，主要设置表格序号等参数。
-     * 首先调用父类的customize方法进行基础配置，然后设置表格的序号。
-     *
-     * @param builder Excel表格构建器，用于构建和配置Excel表格
-     */
+    public static List<WriteTable> getWriteTables(List<ExcelTable> tables) {
+        return tables.stream().map(WriteTableCustomizer::getWriteTable).toList();
+    }
+
     @Override
-    public void configure(ExcelWriterTableBuilder builder) {
-        // 设置表格的序号
-        builder.tableNo(table.tableNo());
+    protected void customizeWrite(WriteTable writeTable) {
+        // 设置表格编号，用于标识工作表中的不同表格区域
+        if (ObjUtil.isNotEmpty(excelTable.tableNo())) {
+            writeTable.setTableNo(excelTable.tableNo());
+        }
     }
-
 }
