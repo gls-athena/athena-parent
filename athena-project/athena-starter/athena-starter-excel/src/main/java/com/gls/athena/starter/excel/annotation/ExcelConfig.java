@@ -25,6 +25,13 @@ public @interface ExcelConfig {
     String[] head() default {};
 
     /**
+     * Excel表头对应的字段名
+     *
+     * @return 字段名数组，支持多级表头配置，默认为空数组
+     */
+    Class<?> clazz() default Object.class;
+
+    /**
      * 数据类型转换器
      *
      * @return 自定义转换器类数组，用于特殊数据类型的转换，默认为空数组
@@ -128,4 +135,11 @@ public @interface ExcelConfig {
      * @return true表示按照include配置的顺序排序，false表示使用默认顺序，默认为false
      */
     boolean orderByIncludeColumn() default false;
+
+    /**
+     * 科学计数法设置
+     *
+     * @return true表示使用科学计数法，false表示不使用科学计数法，默认为false
+     */
+    boolean useScientificFormat() default false;
 }

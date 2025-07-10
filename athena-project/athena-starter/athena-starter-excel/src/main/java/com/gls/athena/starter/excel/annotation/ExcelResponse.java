@@ -117,4 +117,14 @@ public @interface ExcelResponse {
      * @return 导出的文件名
      */
     String filename();
+
+    /**
+     * 是否强制使用InputStream
+     * <p>
+     * true: 强制使用InputStream进行数据处理
+     * false: 根据文件大小选择使用InputStream或FileChannel进行数据处理
+     *
+     * @return 是否强制使用InputStream
+     */
+    boolean mandatoryUseInputStream() default false;
 }
