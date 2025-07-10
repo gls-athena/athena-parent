@@ -32,49 +32,68 @@ import java.util.Map;
 
 /**
  * Excel响应处理器
- * 处理带有@ExcelResponse注解的方法返回值，将数据写入Excel文件并返回给客户端。
+ * <p>
+ * 该类实现了Spring MVC的HandlerMethodReturnValueHandler接口，
+ * 用于处理标注了@ExcelResponse注解的控制器方法的返回值，
+ * 将返回的数据自动导出为Excel文件并通过HTTP响应返回给客户端。
+ * <p>
+ * 主要功能：
+ * 1. 支持基于模板的Excel填充导出
+ * 2. 支持动态生成Excel表格导出
+ * 3. 支持多工作表导出
+ * 4. 支持多表格导出
+ * 5. 自动设置HTTP响应头，实现文件下载
  *
  * @author george
  */
 @Slf4j
 public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
 
+    /**
+     * Excel文件的MIME类型常量
+     */
     private static final String EXCEL_CONTENT_TYPE = "application/vnd.ms-excel";
+    /**
+     * Content-Disposition头的格式化字符串常量
+     */
     private static final String CONTENT_DISPOSITION_FORMAT = "attachment;filename=%s";
+    /**
+     * 最大文件名长度常量
+     */
     private static final int MAX_FILENAME_LENGTH = 255;
 
     /**
-     * 判断当前处理器是否支持给定的方法返回类型
+     * 判断是否支持处理指定的返回值类型
      *
-     * @param returnType 方法返回类型参数对象，包含方法元数据信息
-     * @return boolean 返回true表示支持该返回类型（方法带有@ExcelResponse注解），否则返回false
+     * @param returnType 方法返回值类型参数
+     * @return 如果方法标注了@ExcelResponse注解则返回true，否则返回false
      */
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {
-        // 通过检查方法是否包含@ExcelResponse注解来确定是否支持该返回类型
         return returnType.hasMethodAnnotation(ExcelResponse.class);
     }
 
     /**
-     * 处理Excel响应返回值，将数据写入Excel并输出到响应流中
+     * 处理方法返回值，将数据导出为Excel文件
      *
-     * @param returnValue  控制器方法返回的数据对象
-     * @param returnType   方法参数信息，包含方法注解等元数据
-     * @param mavContainer ModelAndView容器，用于标记请求处理状态
-     * @param webRequest   原生Web请求对象，用于获取输出流
-     * @throws Exception 当Excel写入过程中发生错误时抛出
+     * @param returnValue  方法的返回值数据
+     * @param returnType   方法返回值类型参数
+     * @param mavContainer ModelAndView容器
+     * @param webRequest   Web请求对象
+     * @throws Exception 导出过程中可能抛出的异常
      */
     @Override
     public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-        // 标记请求已处理
+        // 标记请求已处理，阻止Spring MVC继续处理
         mavContainer.setRequestHandled(true);
-        // 获取Excel响应的配置信息
+
+        // 获取@ExcelResponse注解配置
         ExcelResponse excelResponse = returnType.getMethodAnnotation(ExcelResponse.class);
         if (excelResponse == null) {
             throw new IllegalArgumentException("方法返回值必须使用@ExcelResponse注解标记");
         }
 
-        // 创建Excel输出流并写入数据
+        // 获取输出流并导出Excel数据
         try (OutputStream outputStream = getOutputStream(webRequest, excelResponse.filename(), excelResponse.excelType().getValue())) {
             exportToExcel(returnValue, outputStream, excelResponse);
         } catch (IOException e) {
@@ -84,17 +103,37 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
     }
 
     /**
-     * 获取用于Excel文件下载的输出流
+     * 获取HTTP响应输出流，并设置相应的响应头
      *
-     * @param webRequest NativeWebRequest对象，用于获取HttpServletResponse
-     * @param fileName   要下载的文件名（不含扩展名）
-     * @param excelType  Excel文件扩展名（如".xlsx"）
-     * @return OutputStream 用于写入Excel文件数据的输出流
-     * @throws IOException              如果获取输出流失败
-     * @throws IllegalArgumentException 如果参数无效或无法获取HttpServletResponse
+     * @param webRequest Web请求对象
+     * @param fileName   导出的文件名
+     * @param excelType  Excel文件类型后缀（如.xlsx、.xls）
+     * @return HTTP响应输出流
+     * @throws IOException 获取输出流时可能抛出的IO异常
      */
     private OutputStream getOutputStream(NativeWebRequest webRequest, String fileName, String excelType) throws IOException {
-        // 参数校验
+        // 验证参数有效性
+        validateParams(fileName, excelType);
+
+        // 获取HTTP响应对象
+        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+        if (response == null) {
+            throw new IllegalArgumentException("无法获取HttpServletResponse");
+        }
+
+        // 设置响应头
+        setupResponseHeaders(response, fileName, excelType);
+        return response.getOutputStream();
+    }
+
+    /**
+     * 验证文件名和文件类型参数的有效性
+     *
+     * @param fileName  文件名
+     * @param excelType Excel文件类型后缀
+     * @throws IllegalArgumentException 参数无效时抛出异常
+     */
+    private void validateParams(String fileName, String excelType) {
         if (StrUtil.isEmpty(fileName)) {
             throw new IllegalArgumentException("文件名不能为空");
         }
@@ -104,45 +143,49 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         if (fileName.length() > MAX_FILENAME_LENGTH - excelType.length()) {
             throw new IllegalArgumentException("文件名过长");
         }
-
-        // 获取并验证响应对象
-        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
-        if (response == null) {
-            throw new IllegalArgumentException("无法获取HttpServletResponse");
-        }
-
-        // 设置响应头
-        response.setContentType(EXCEL_CONTENT_TYPE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
-        // 安全编码文件名
-        String sanitizedFileName = fileName.replaceAll("[\\x00-\\x1F\\x7F\"\\\\/:*?<>|]", "_");
-        String encodedFileName = URLUtil.encode(sanitizedFileName, StandardCharsets.UTF_8);
-        String fullFileName = encodedFileName + excelType;
-
-        // 设置内容处置和跨域头
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_FORMAT, fullFileName));
-        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
-        return response.getOutputStream();
     }
 
     /**
-     * 将数据导出到Excel文件
+     * 设置HTTP响应头，配置文件下载相关信息
      *
-     * @param data          要导出的数据对象，非空
-     * @param outputStream  输出流，用于写入Excel文件，非空
-     * @param excelResponse Excel导出配置对象，包含导出模板、样式等信息，非空
-     * @throws RuntimeException 当导出过程中发生异常时抛出
+     * @param response  HTTP响应对象
+     * @param fileName  文件名
+     * @param excelType Excel文件类型后缀
+     */
+    private void setupResponseHeaders(HttpServletResponse response, String fileName, String excelType) {
+        // 设置内容类型为Excel文件
+        response.setContentType(EXCEL_CONTENT_TYPE);
+        // 设置字符编码为UTF-8
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        // 清理文件名中的非法字符，防止文件名注入攻击
+        String sanitizedFileName = fileName.replaceAll("[\\x00-\\x1F\\x7F\"\\\\/:*?<>|]", "_");
+        // URL编码文件名，支持中文文件名
+        String encodedFileName = URLUtil.encode(sanitizedFileName, StandardCharsets.UTF_8);
+        // 拼接完整的文件名（包含扩展名）
+        String fullFileName = encodedFileName + excelType;
+
+        // 设置Content-Disposition头，指示浏览器下载文件
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_FORMAT, fullFileName));
+        // 设置CORS相关头，允许前端获取Content-Disposition头
+        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+    }
+
+    /**
+     * 将数据导出为Excel文件
+     *
+     * @param data          要导出的数据
+     * @param outputStream  输出流
+     * @param excelResponse Excel响应配置
      */
     private void exportToExcel(Object data, OutputStream outputStream, ExcelResponse excelResponse) {
-        // 使用try-with-resources确保ExcelWriter正确关闭
         try (ExcelWriter excelWriter = WriteWorkbookCustomizer.getExcelWriter(excelResponse, outputStream)) {
-            // 根据是否使用模板选择不同的导出方式
+            // 根据是否有模板选择不同的导出方式
             if (StrUtil.isEmpty(excelResponse.template())) {
-                // 无模板情况下的导出逻辑
+                // 无模板：动态生成Excel表格
                 writeToExcel(convertToList(data), excelWriter, excelResponse);
             } else {
-                // 使用模板填充的导出逻辑
+                // 有模板：基于模板填充数据
                 fillToExcel(data, excelWriter, excelResponse);
             }
         } catch (Exception e) {
@@ -152,159 +195,137 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
     }
 
     /**
-     * 将数据填充到Excel文件中
+     * 基于模板填充数据到Excel
      *
-     * @param data          要填充的数据，可以是单个对象或对象列表
-     * @param excelWriter   Excel写入工具，用于实际写入Excel文件
-     * @param excelResponse Excel响应对象，包含Excel的配置信息（如sheet配置）
-     * @throws IllegalArgumentException 如果参数不合法或数据与sheet不匹配
+     * @param data          要填充的数据
+     * @param excelWriter   Excel写入器
+     * @param excelResponse Excel响应配置
      */
     private void fillToExcel(Object data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
-        // 检查sheet配置是否存在
-        ExcelSheet[] excelSheets = excelResponse.sheets();
-        if (excelSheets == null || excelSheets.length == 0) {
-            throw new IllegalArgumentException("ExcelResponse中必须包含至少一个sheet配置");
-        }
+        ExcelSheet[] sheets = excelResponse.sheets();
+        validateSheets(sheets);
 
-        // 单sheet处理：直接使用原始数据填充
-        if (excelSheets.length == 1) {
-            fillToSheet(data, excelWriter, excelSheets[0]);
+        // 单个工作表处理
+        if (sheets.length == 1) {
+            fillToSheet(data, excelWriter, sheets[0]);
             return;
         }
 
-        // 多sheet处理：将数据按sheet顺序分配
+        // 多个工作表处理：将数据转换为列表，按索引分配给不同工作表
         List<?> dataList = convertToList(data);
-        for (ExcelSheet excelSheet : excelSheets) {
-            int sheetNo = excelSheet.sheetNo();
-            if (sheetNo < 0 || sheetNo >= dataList.size()) {
-                throw new IllegalArgumentException("sheetNo " + sheetNo + "超出数据范围(0-" + (dataList.size() - 1) + ")");
-            }
-            Object sheetData = dataList.get(sheetNo);
-            fillToSheet(sheetData, excelWriter, excelSheet);
+        for (ExcelSheet sheet : sheets) {
+            validateSheetNo(sheet.sheetNo(), dataList.size());
+            fillToSheet(dataList.get(sheet.sheetNo()), excelWriter, sheet);
         }
     }
 
     /**
-     * 将数据填充到Excel工作表中
+     * 向指定工作表填充数据
      *
-     * @param data        要填充的数据，支持集合类型或普通Java对象
-     * @param excelWriter Excel写入工具实例，用于执行填充操作
-     * @param excelSheet  Excel工作表配置信息
+     * @param data        要填充的数据
+     * @param excelWriter Excel写入器
+     * @param excelSheet  工作表配置
      */
     private void fillToSheet(Object data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
-        // 构建可写入的工作表对象
         WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(excelSheet);
+        // 配置填充选项：强制换行
         FillConfig fillConfig = FillConfig.builder().forceNewRow(true).build();
 
-        // 处理集合类型数据
+        // 如果数据是集合类型，直接填充
         if (data instanceof Collection) {
             excelWriter.fill(data, fillConfig, writeSheet);
             return;
         }
 
-        // 将Bean对象转换为Map结构
+        // 如果数据是对象，转换为Map进行填充
         Map<String, Object> dataMap = BeanUtil.beanToMap(data);
-        Map<String, Object> fillMap = new HashMap<>(dataMap.size());
+        Map<String, Object> fillMap = new HashMap<>();
 
-        // 遍历Map处理每个字段
+        // 遍历数据Map，区分集合属性和普通属性
         dataMap.forEach((key, value) -> {
-            if (value instanceof Collection<?> column) {
-                // 集合类型字段单独填充（如多行数据）
-                excelWriter.fill(new FillWrapper(key, column), fillConfig, writeSheet);
+            if (value instanceof Collection<?> collection) {
+                // 集合属性使用FillWrapper包装后填充
+                excelWriter.fill(new FillWrapper(key, collection), fillConfig, writeSheet);
             } else {
-                // 非集合类型字段暂存
+                // 普通属性放入fillMap中
                 fillMap.put(key, value);
             }
         });
 
-        // 填充剩余的非集合类型字段
+        // 填充普通属性
         if (!fillMap.isEmpty()) {
             excelWriter.fill(fillMap, fillConfig, writeSheet);
         }
     }
 
     /**
-     * 将数据写入Excel文件
+     * 动态生成Excel表格（无模板方式）
      *
-     * @param data          要写入的数据列表，可以是任意类型的对象列表
-     * @param excelWriter   Excel写入工具，用于实际执行Excel写入操作
-     * @param excelResponse Excel响应对象，包含Excel工作表配置信息
-     * @throws IllegalArgumentException  如果参数不合法
-     * @throws IndexOutOfBoundsException 如果sheetNo超出数据范围
+     * @param data          要写入的数据列表
+     * @param excelWriter   Excel写入器
+     * @param excelResponse Excel响应配置
      */
     private void writeToExcel(List<?> data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
-        // 参数校验
         if (CollUtil.isEmpty(data)) {
             throw new IllegalArgumentException("数据列表不能为空");
         }
 
-        ExcelSheet[] excelSheets = excelResponse.sheets();
-        if (excelSheets == null || excelSheets.length == 0) {
-            throw new IllegalArgumentException("Excel工作表配置不能为空");
-        }
+        ExcelSheet[] sheets = excelResponse.sheets();
+        validateSheets(sheets);
 
-        // 如果只有一个工作表，直接将所有数据写入该工作表
-        if (excelSheets.length == 1) {
-            writeToSheet(data, excelWriter, excelSheets[0]);
+        // 单个工作表处理
+        if (sheets.length == 1) {
+            writeToSheet(data, excelWriter, sheets[0]);
             return;
         }
 
-        // 多个工作表时，根据sheetNo从数据中获取对应分页数据并写入
-        for (ExcelSheet excelSheet : excelSheets) {
-            int sheetNo = excelSheet.sheetNo();
-            if (sheetNo < 0 || sheetNo >= data.size()) {
-                throw new IndexOutOfBoundsException("Sheet number " + sheetNo + " is out of data bounds");
-            }
-            List<?> sheetData = convertToList(data.get(sheetNo));
-            writeToSheet(sheetData, excelWriter, excelSheet);
+        // 多个工作表处理：按工作表索引分配数据
+        for (ExcelSheet sheet : sheets) {
+            validateSheetNo(sheet.sheetNo(), data.size());
+            List<?> sheetData = convertToList(data.get(sheet.sheetNo()));
+            writeToSheet(sheetData, excelWriter, sheet);
         }
     }
 
     /**
-     * 将数据写入Excel工作表
+     * 向指定工作表写入数据
      *
-     * @param data        待写入的数据列表，支持泛型
-     * @param excelWriter Excel写入工具实例
-     * @param excelSheet  Excel工作表配置信息
+     * @param data        要写入的数据列表
+     * @param excelWriter Excel写入器
+     * @param excelSheet  工作表配置
      */
     private void writeToSheet(List<?> data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
-        // 构建基础工作表配置
         WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(excelSheet);
-
-        // 获取工作表内所有表格配置
         List<WriteTable> writeTables = WriteTableCustomizer.getWriteTables(excelSheet.tables());
 
-        // 处理无表格或单表格的特殊情况
+        // 无表格配置：直接写入工作表
         if (writeTables.isEmpty()) {
             writeToTable(data, excelWriter, writeSheet, null);
             return;
         }
+
+        // 单个表格：直接写入
         if (writeTables.size() == 1) {
             writeToTable(data, excelWriter, writeSheet, writeTables.getFirst());
             return;
         }
 
-        // 多表格情况：按表格编号匹配数据分区写入
+        // 多个表格：按表格索引分配数据
         for (WriteTable writeTable : writeTables) {
             int tableNo = writeTable.getTableNo();
-            // 添加边界检查
-            if (tableNo < 0 || tableNo >= data.size()) {
-                log.warn("表格编号超出范围，将忽略该表格：{}", tableNo);
-                throw new IllegalArgumentException("表格编号超出数据范围: " + tableNo);
-            }
+            validateTableNo(tableNo, data.size());
             List<?> tableData = convertToList(data.get(tableNo));
             writeToTable(tableData, excelWriter, writeSheet, writeTable);
         }
     }
 
     /**
-     * 将数据列表写入Excel表格
+     * 向指定表格写入数据
      *
-     * @param data        要写入的数据列表，列表元素类型必须一致且非空
-     * @param excelWriter Excel写入工具实例，用于执行实际写入操作
-     * @param writeSheet  工作表配置对象，定义写入的目标工作表
-     * @param writeTable  表格配置对象（可选），若存在则用于定义表格样式和结构；若为null则直接使用工作表配置
-     * @throws IllegalArgumentException 如果数据列表为空或元素类型不一致
+     * @param data        要写入的数据列表
+     * @param excelWriter Excel写入器
+     * @param writeSheet  工作表对象
+     * @param writeTable  表格对象（可为null）
      */
     private void writeToTable(List<?> data, ExcelWriter excelWriter, WriteSheet writeSheet, WriteTable writeTable) {
         // 检查数据列表是否为空
@@ -324,38 +345,71 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
 
         // 根据writeTable是否存在决定不同的写入策略
         if (writeTable != null) {
+            // 有表格配置：设置数据类型并写入表格
             writeTable.setClazz(clazz);
             excelWriter.write(data, writeSheet, writeTable);
         } else {
+            // 无表格配置：设置数据类型并写入工作表
             writeSheet.setClazz(clazz);
             excelWriter.write(data, writeSheet);
         }
     }
 
     /**
-     * 将输入对象转换为List类型
+     * 验证工作表配置是否有效
      *
-     * @param value 需要转换的对象，不能为null且必须为List类型
-     * @return 转换后的List对象
-     * @throws NullPointerException     当输入对象为null时抛出
-     * @throws IllegalArgumentException 当输入对象不是List类型，或List为空时抛出
+     * @param sheets 工作表配置数组
+     * @throws IllegalArgumentException 配置无效时抛出异常
      */
-    private List<?> convertToList(Object value) {
-        // 检查输入对象是否为null
-        if (value == null) {
-            throw new NullPointerException("数据不能为空");
+    private void validateSheets(ExcelSheet[] sheets) {
+        if (sheets == null || sheets.length == 0) {
+            throw new IllegalArgumentException("Excel工作表配置不能为空");
         }
+    }
 
-        // 检查并处理List类型输入
-        if (value instanceof List<?> list) {
-            // 检查List是否为空
-            if (CollUtil.isEmpty(list)) {
-                throw new IllegalArgumentException("数据列表不能为空");
-            }
+    /**
+     * 验证工作表索引是否在有效范围内
+     *
+     * @param sheetNo  工作表索引
+     * @param dataSize 数据大小
+     * @throws IllegalArgumentException 索引超出范围时抛出异常
+     */
+    private void validateSheetNo(int sheetNo, int dataSize) {
+        if (sheetNo < 0 || sheetNo >= dataSize) {
+            throw new IllegalArgumentException("sheetNo " + sheetNo + "超出数据范围(0-" + (dataSize - 1) + ")");
+        }
+    }
+
+    /**
+     * 验证表格索引是否在有效范围内
+     *
+     * @param tableNo  表格索引
+     * @param dataSize 数据大小
+     * @throws IllegalArgumentException 索引超出范围时抛出异常
+     */
+    private void validateTableNo(int tableNo, int dataSize) {
+        if (tableNo < 0 || tableNo >= dataSize) {
+            throw new IllegalArgumentException("tableNo " + tableNo + "超出数据范围(0-" + (dataSize - 1) + ")");
+        }
+    }
+
+    /**
+     * 将对象转换为列表
+     * 如果对象本身就是List，直接返回；
+     * 如果是Collection，转换为List；
+     * 否则将单个对象包装成单元素列表
+     *
+     * @param data 要转换的数据对象
+     * @return 转换后的列表
+     */
+    private List<?> convertToList(Object data) {
+        if (data instanceof List<?> list) {
             return list;
         }
-
-        // 非List类型输入处理
-        throw new IllegalArgumentException("数据类型错误");
+        if (data instanceof Collection<?> collection) {
+            return collection.stream().toList();
+        }
+        return List.of(data);
     }
+
 }
