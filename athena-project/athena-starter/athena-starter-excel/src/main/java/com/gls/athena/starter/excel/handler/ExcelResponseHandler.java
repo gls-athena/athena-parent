@@ -1,7 +1,6 @@
 package com.gls.athena.starter.excel.handler;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.idev.excel.ExcelWriter;
@@ -30,10 +29,6 @@ import java.util.*;
 
 /**
  * Excel响应处理器
- * <p>
- * 该类实现了Spring MVC的HandlerMethodReturnValueHandler接口，
- * 用于处理标注了@ExcelResponse注解的控制器方法的返回值，
- * 将返回的数据自动导出为Excel文件并通过HTTP响应返回给客户端。
  *
  * @author george
  */
@@ -43,6 +38,8 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
     private static final String EXCEL_CONTENT_TYPE = "application/vnd.ms-excel";
     private static final String CONTENT_DISPOSITION_FORMAT = "attachment;filename=%s";
     private static final int MAX_FILENAME_LENGTH = 255;
+    private static final String ILLEGAL_FILENAME_CHARS = "[\\x00-\\x1F\\x7F\"\\\\/:*?<>|]";
+    private static final FillConfig DEFAULT_FILL_CONFIG = FillConfig.builder().forceNewRow(true).build();
 
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {
@@ -54,10 +51,8 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
                                   @NonNull ModelAndViewContainer mavContainer, @NonNull NativeWebRequest webRequest) throws Exception {
         mavContainer.setRequestHandled(true);
 
-        ExcelResponse excelResponse = returnType.getMethodAnnotation(ExcelResponse.class);
-        if (excelResponse == null) {
-            throw new IllegalArgumentException("方法返回值必须使用@ExcelResponse注解标记");
-        }
+        ExcelResponse excelResponse = Optional.ofNullable(returnType.getMethodAnnotation(ExcelResponse.class))
+                .orElseThrow(() -> new IllegalArgumentException("方法返回值必须使用@ExcelResponse注解标记"));
 
         try (OutputStream outputStream = getOutputStream(webRequest, excelResponse.filename(), excelResponse.excelType().getValue())) {
             exportToExcel(returnValue, outputStream, excelResponse);
@@ -68,7 +63,9 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
     }
 
     private OutputStream getOutputStream(NativeWebRequest webRequest, String fileName, String excelType) throws IOException {
-        validateFileName(fileName, excelType);
+        assert StrUtil.isNotBlank(fileName) : "文件名不能为空";
+        assert StrUtil.isNotBlank(excelType) : "Excel类型不能为空";
+        assert fileName.length() <= MAX_FILENAME_LENGTH - excelType.length() : "文件名过长";
 
         HttpServletResponse response = Optional.ofNullable(webRequest.getNativeResponse(HttpServletResponse.class))
                 .orElseThrow(() -> new IllegalArgumentException("无法获取HttpServletResponse"));
@@ -77,20 +74,11 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         return response.getOutputStream();
     }
 
-    private void validateFileName(String fileName, String excelType) {
-        if (StrUtil.isEmpty(fileName) || StrUtil.isEmpty(excelType)) {
-            throw new IllegalArgumentException("文件名和文件类型不能为空");
-        }
-        if (fileName.length() > MAX_FILENAME_LENGTH - excelType.length()) {
-            throw new IllegalArgumentException("文件名过长");
-        }
-    }
-
     private void setupResponseHeaders(HttpServletResponse response, String fileName, String excelType) {
         response.setContentType(EXCEL_CONTENT_TYPE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        String sanitizedFileName = fileName.replaceAll("[\\x00-\\x1F\\x7F\"\\\\/:*?<>|]", "_");
+        String sanitizedFileName = fileName.replaceAll(ILLEGAL_FILENAME_CHARS, "_");
         String encodedFileName = URLUtil.encode(sanitizedFileName, StandardCharsets.UTF_8);
         String fullFileName = encodedFileName + excelType;
 
@@ -112,25 +100,18 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
     }
 
     private void fillToExcel(Object data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
-        ExcelSheet[] sheets = validateAndGetSheets(excelResponse);
-
-        if (sheets.length == 1) {
-            fillToSheet(data, excelWriter, sheets[0]);
-        } else {
-            List<?> dataList = convertToList(data);
-            for (ExcelSheet sheet : sheets) {
-                validateIndex(sheet.sheetNo(), dataList.size(), "sheetNo");
-                fillToSheet(dataList.get(sheet.sheetNo()), excelWriter, sheet);
-            }
-        }
+        List<ExcelSheet> sheets = validateAndGetSheets(excelResponse);
+        sheets.forEach(sheet -> {
+            Object sheetData = sheets.size() == 1 ? data : getDataByIndex(convertToList(data), sheet.sheetNo());
+            fillToSheet(sheetData, excelWriter, sheet);
+        });
     }
 
     private void fillToSheet(Object data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
         WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(excelSheet);
-        FillConfig fillConfig = FillConfig.builder().forceNewRow(true).build();
 
         if (data instanceof Collection) {
-            excelWriter.fill(data, fillConfig, writeSheet);
+            excelWriter.fill(data, DEFAULT_FILL_CONFIG, writeSheet);
             return;
         }
 
@@ -139,32 +120,23 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
 
         dataMap.forEach((key, value) -> {
             if (value instanceof Collection<?> collection) {
-                excelWriter.fill(new FillWrapper(key, collection), fillConfig, writeSheet);
+                excelWriter.fill(new FillWrapper(key, collection), DEFAULT_FILL_CONFIG, writeSheet);
             } else {
                 fillMap.put(key, value);
             }
         });
 
         if (!fillMap.isEmpty()) {
-            excelWriter.fill(fillMap, fillConfig, writeSheet);
+            excelWriter.fill(fillMap, DEFAULT_FILL_CONFIG, writeSheet);
         }
     }
 
     private void writeToExcel(List<?> data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
-        if (CollUtil.isEmpty(data)) {
-            throw new IllegalArgumentException("数据列表不能为空");
-        }
-
-        ExcelSheet[] sheets = validateAndGetSheets(excelResponse);
-
-        if (sheets.length == 1) {
-            writeToSheet(data, excelWriter, sheets[0]);
-        } else {
-            for (ExcelSheet sheet : sheets) {
-                validateIndex(sheet.sheetNo(), data.size(), "sheetNo");
-                writeToSheet(convertToList(data.get(sheet.sheetNo())), excelWriter, sheet);
-            }
-        }
+        List<ExcelSheet> sheets = validateAndGetSheets(excelResponse);
+        sheets.forEach(sheet -> {
+            List<?> sheetData = sheets.size() == 1 ? data : convertToList(getDataByIndex(data, sheet.sheetNo()));
+            writeToSheet(sheetData, excelWriter, sheet);
+        });
     }
 
     private void writeToSheet(List<?> data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
@@ -173,24 +145,16 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
 
         if (writeTables.isEmpty()) {
             writeData(data, excelWriter, writeSheet, null);
-        } else if (writeTables.size() == 1) {
-            writeData(data, excelWriter, writeSheet, writeTables.getFirst());
         } else {
-            for (WriteTable writeTable : writeTables) {
-                int tableNo = writeTable.getTableNo();
-                validateIndex(tableNo, data.size(), "tableNo");
-                writeData(convertToList(data.get(tableNo)), excelWriter, writeSheet, writeTable);
-            }
+            writeTables.forEach(writeTable -> {
+                List<?> tableData = writeTables.size() == 1 ? data : convertToList(getDataByIndex(data, writeTable.getTableNo()));
+                writeData(tableData, excelWriter, writeSheet, writeTable);
+            });
         }
     }
 
     private void writeData(List<?> data, ExcelWriter excelWriter, WriteSheet writeSheet, WriteTable writeTable) {
-        if (CollUtil.isEmpty(data)) {
-            throw new IllegalArgumentException("数据列表不能为空");
-        }
-
         Class<?> clazz = validateDataConsistency(data);
-
         if (writeTable != null) {
             writeTable.setClazz(clazz);
             excelWriter.write(data, writeSheet, writeTable);
@@ -200,28 +164,27 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         }
     }
 
+    private Object getDataByIndex(List<?> data, int index) {
+        if (index < 0 || index >= data.size()) {
+            throw new IllegalArgumentException("索引" + " " + index + "超出数据范围(0-" + (data.size() - 1) + ")");
+        }
+        return data.get(index);
+    }
+
     private Class<?> validateDataConsistency(List<?> data) {
         Class<?> clazz = data.getFirst().getClass();
-        for (Object item : data) {
-            if (item == null || !clazz.equals(item.getClass())) {
-                throw new IllegalArgumentException("数据列表元素类型不一致或包含null元素");
-            }
+        if (data.stream().anyMatch(item -> item == null || !clazz.equals(item.getClass()))) {
+            throw new IllegalArgumentException("数据列表元素类型不一致或包含null元素");
         }
         return clazz;
     }
 
-    private ExcelSheet[] validateAndGetSheets(ExcelResponse excelResponse) {
+    private List<ExcelSheet> validateAndGetSheets(ExcelResponse excelResponse) {
         ExcelSheet[] sheets = excelResponse.sheets();
         if (sheets == null || sheets.length == 0) {
             throw new IllegalArgumentException("Excel工作表配置不能为空");
         }
-        return sheets;
-    }
-
-    private void validateIndex(int index, int dataSize, String indexName) {
-        if (index < 0 || index >= dataSize) {
-            throw new IllegalArgumentException(indexName + " " + index + "超出数据范围(0-" + (dataSize - 1) + ")");
-        }
+        return List.of(sheets);
     }
 
     private List<?> convertToList(Object data) {
@@ -232,5 +195,4 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
             default -> List.of(data);
         };
     }
-
 }
