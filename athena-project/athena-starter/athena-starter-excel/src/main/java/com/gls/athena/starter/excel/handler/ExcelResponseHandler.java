@@ -54,27 +54,30 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         ExcelResponse excelResponse = Optional.ofNullable(returnType.getMethodAnnotation(ExcelResponse.class))
                 .orElseThrow(() -> new IllegalArgumentException("方法返回值必须使用@ExcelResponse注解标记"));
 
-        try (OutputStream outputStream = getOutputStream(webRequest, excelResponse.filename(), excelResponse.excelType().getValue())) {
-            exportToExcel(returnValue, outputStream, excelResponse);
+        try (OutputStream outputStream = createOutputStream(webRequest, excelResponse)) {
+            exportExcel(returnValue, outputStream, excelResponse);
         } catch (IOException e) {
             log.error("导出Excel文件时发生错误", e);
             throw e;
         }
     }
 
-    private OutputStream getOutputStream(NativeWebRequest webRequest, String fileName, String excelType) throws IOException {
-        assert StrUtil.isNotBlank(fileName) : "文件名不能为空";
-        assert StrUtil.isNotBlank(excelType) : "Excel类型不能为空";
-        assert fileName.length() <= MAX_FILENAME_LENGTH - excelType.length() : "文件名过长";
-
+    private OutputStream createOutputStream(NativeWebRequest webRequest, ExcelResponse excelResponse) throws IOException {
         HttpServletResponse response = Optional.ofNullable(webRequest.getNativeResponse(HttpServletResponse.class))
                 .orElseThrow(() -> new IllegalArgumentException("无法获取HttpServletResponse"));
 
-        setupResponseHeaders(response, fileName, excelType);
-        return response.getOutputStream();
-    }
+        String fileName = excelResponse.filename();
+        String excelType = excelResponse.excelType().getValue();
 
-    private void setupResponseHeaders(HttpServletResponse response, String fileName, String excelType) {
+        // 验证文件名
+        if (StrUtil.isBlank(fileName)) {
+            throw new IllegalArgumentException("文件名不能为空");
+        }
+        if (fileName.length() > MAX_FILENAME_LENGTH - excelType.length()) {
+            throw new IllegalArgumentException("文件名过长");
+        }
+
+        // 设置响应头
         response.setContentType(EXCEL_CONTENT_TYPE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
@@ -84,14 +87,18 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
 
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_FORMAT, fullFileName));
         response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+
+        return response.getOutputStream();
     }
 
-    private void exportToExcel(Object data, OutputStream outputStream, ExcelResponse excelResponse) {
+    private void exportExcel(Object data, OutputStream outputStream, ExcelResponse excelResponse) {
         try (ExcelWriter excelWriter = WriteWorkbookCustomizer.getExcelWriter(excelResponse, outputStream)) {
-            if (StrUtil.isEmpty(excelResponse.template())) {
-                writeToExcel(convertToList(data), excelWriter, excelResponse);
+            List<ExcelSheet> sheets = getValidatedSheets(excelResponse);
+
+            if (StrUtil.isNotEmpty(excelResponse.template())) {
+                fillTemplateExcel(data, excelWriter, sheets);
             } else {
-                fillToExcel(data, excelWriter, excelResponse);
+                writeDataExcel(data, excelWriter, sheets);
             }
         } catch (Exception e) {
             log.error("Excel导出失败: {}", e.getMessage(), e);
@@ -99,62 +106,65 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         }
     }
 
-    private void fillToExcel(Object data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
-        List<ExcelSheet> sheets = validateAndGetSheets(excelResponse);
-        sheets.forEach(sheet -> {
-            Object sheetData = sheets.size() == 1 ? data : getDataByIndex(convertToList(data), sheet.sheetNo());
-            fillToSheet(sheetData, excelWriter, sheet);
-        });
-    }
+    private void fillTemplateExcel(Object data, ExcelWriter excelWriter, List<ExcelSheet> sheets) {
+        for (ExcelSheet sheet : sheets) {
+            Object sheetData = getDataAtIndex(data, sheets, sheet.sheetNo());
+            WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(sheet);
 
-    private void fillToSheet(Object data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
-        WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(excelSheet);
-
-        if (data instanceof Collection) {
-            excelWriter.fill(data, DEFAULT_FILL_CONFIG, writeSheet);
-            return;
-        }
-
-        Map<String, Object> dataMap = BeanUtil.beanToMap(data);
-        Map<String, Object> fillMap = new HashMap<>();
-
-        dataMap.forEach((key, value) -> {
-            if (value instanceof Collection<?> collection) {
-                excelWriter.fill(new FillWrapper(key, collection), DEFAULT_FILL_CONFIG, writeSheet);
-            } else {
-                fillMap.put(key, value);
+            if (sheetData instanceof Collection) {
+                excelWriter.fill(sheetData, DEFAULT_FILL_CONFIG, writeSheet);
+                continue;
             }
-        });
 
-        if (!fillMap.isEmpty()) {
-            excelWriter.fill(fillMap, DEFAULT_FILL_CONFIG, writeSheet);
+            // 处理复杂对象填充
+            Map<String, Object> dataMap = BeanUtil.beanToMap(sheetData);
+            Map<String, Object> simpleData = new HashMap<>();
+
+            for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
+                if (entry.getValue() instanceof Collection<?> collection) {
+                    excelWriter.fill(new FillWrapper(entry.getKey(), collection), DEFAULT_FILL_CONFIG, writeSheet);
+                } else {
+                    simpleData.put(entry.getKey(), entry.getValue());
+                }
+            }
+
+            if (!simpleData.isEmpty()) {
+                excelWriter.fill(simpleData, DEFAULT_FILL_CONFIG, writeSheet);
+            }
         }
     }
 
-    private void writeToExcel(List<?> data, ExcelWriter excelWriter, ExcelResponse excelResponse) {
-        List<ExcelSheet> sheets = validateAndGetSheets(excelResponse);
-        sheets.forEach(sheet -> {
-            List<?> sheetData = sheets.size() == 1 ? data : convertToList(getDataByIndex(data, sheet.sheetNo()));
-            writeToSheet(sheetData, excelWriter, sheet);
-        });
-    }
+    private void writeDataExcel(Object data, ExcelWriter excelWriter, List<ExcelSheet> sheets) {
+        List<?> dataList = normalizeToList(data);
 
-    private void writeToSheet(List<?> data, ExcelWriter excelWriter, ExcelSheet excelSheet) {
-        WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(excelSheet);
-        List<WriteTable> writeTables = WriteTableCustomizer.getWriteTables(excelSheet.tables());
+        for (ExcelSheet sheet : sheets) {
+            List<?> sheetData = normalizeToList(getDataAtIndex(dataList, sheets, sheet.sheetNo()));
+            WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(sheet);
+            List<WriteTable> writeTables = WriteTableCustomizer.getWriteTables(sheet.tables());
 
-        if (writeTables.isEmpty()) {
-            writeData(data, excelWriter, writeSheet, null);
-        } else {
-            writeTables.forEach(writeTable -> {
-                List<?> tableData = writeTables.size() == 1 ? data : convertToList(getDataByIndex(data, writeTable.getTableNo()));
-                writeData(tableData, excelWriter, writeSheet, writeTable);
-            });
+            if (writeTables.isEmpty()) {
+                writeDataToSheet(sheetData, excelWriter, writeSheet, null);
+            } else {
+                for (WriteTable writeTable : writeTables) {
+                    List<?> tableData = normalizeToList(getDataAtIndex(sheetData, writeTables, writeTable.getTableNo()));
+                    writeDataToSheet(tableData, excelWriter, writeSheet, writeTable);
+                }
+            }
         }
     }
 
-    private void writeData(List<?> data, ExcelWriter excelWriter, WriteSheet writeSheet, WriteTable writeTable) {
-        Class<?> clazz = validateDataConsistency(data);
+    private void writeDataToSheet(List<?> data, ExcelWriter excelWriter, WriteSheet writeSheet, WriteTable writeTable) {
+        if (data.isEmpty()) {
+            throw new IllegalArgumentException("数据列表不能为空");
+        }
+
+        Class<?> clazz = data.getFirst().getClass();
+        for (Object item : data) {
+            if (item == null || !clazz.equals(item.getClass())) {
+                throw new IllegalArgumentException("数据列表元素类型不一致或包含null元素");
+            }
+        }
+
         if (writeTable != null) {
             writeTable.setClazz(clazz);
             excelWriter.write(data, writeSheet, writeTable);
@@ -164,22 +174,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         }
     }
 
-    private Object getDataByIndex(List<?> data, int index) {
-        if (index < 0 || index >= data.size()) {
-            throw new IllegalArgumentException("索引" + " " + index + "超出数据范围(0-" + (data.size() - 1) + ")");
-        }
-        return data.get(index);
-    }
-
-    private Class<?> validateDataConsistency(List<?> data) {
-        Class<?> clazz = data.getFirst().getClass();
-        if (data.stream().anyMatch(item -> item == null || !clazz.equals(item.getClass()))) {
-            throw new IllegalArgumentException("数据列表元素类型不一致或包含null元素");
-        }
-        return clazz;
-    }
-
-    private List<ExcelSheet> validateAndGetSheets(ExcelResponse excelResponse) {
+    private List<ExcelSheet> getValidatedSheets(ExcelResponse excelResponse) {
         ExcelSheet[] sheets = excelResponse.sheets();
         if (sheets == null || sheets.length == 0) {
             throw new IllegalArgumentException("Excel工作表配置不能为空");
@@ -187,11 +182,22 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         return List.of(sheets);
     }
 
-    private List<?> convertToList(Object data) {
+    private Object getDataAtIndex(Object data, List<?> containers, int index) {
+        if (containers.size() == 1) {
+            return data;
+        }
+        List<?> dataList = normalizeToList(data);
+        if (index < 0 || index >= dataList.size()) {
+            throw new IllegalArgumentException("索引 " + index + " 超出数据范围(0-" + (dataList.size() - 1) + ")");
+        }
+        return dataList.get(index);
+    }
+
+    private List<?> normalizeToList(Object data) {
         return switch (data) {
+            case null -> Collections.emptyList();
             case List<?> list -> list;
             case Collection<?> collection -> new ArrayList<>(collection);
-            case null -> Collections.emptyList();
             default -> List.of(data);
         };
     }
