@@ -7,10 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.OutputStream;
-import java.util.List;
 
 /**
- * PDF生成器管理服务
+ * 简化的PDF生成器管理服务
  *
  * @author athena
  */
@@ -19,20 +18,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PdfGeneratorManager {
 
-    private final List<PdfGenerator> generators;
+    private static final String HTML_EXTENSION = ".html";
+    private static final String HTM_EXTENSION = ".htm";
+
+    private final PdfGenerator generator;
 
     /**
      * 生成PDF文档
-     *
-     * @param data         数据对象
-     * @param template     模板路径
-     * @param templateType 模板类型
-     * @param outputStream 输出流
-     * @throws Exception 生成异常
      */
     public void generate(Object data, String template, TemplateType templateType, OutputStream outputStream) throws Exception {
         TemplateType actualType = determineTemplateType(template, templateType);
-        PdfGenerator generator = selectGenerator(actualType);
+        log.debug("使用统一生成器处理模板类型: {}", actualType);
         generator.generate(data, template, actualType, outputStream);
     }
 
@@ -50,27 +46,10 @@ public class PdfGeneratorManager {
         }
 
         String lowerTemplate = template.toLowerCase();
-        if (lowerTemplate.endsWith(".html") || lowerTemplate.endsWith(".htm")) {
+        if (lowerTemplate.endsWith(HTML_EXTENSION) || lowerTemplate.endsWith(HTM_EXTENSION)) {
             return TemplateType.HTML;
         }
 
         return TemplateType.DATA;
-    }
-
-    /**
-     * 选择合适的生成器
-     *
-     * @param templateType 模板类型
-     * @return PDF生成器
-     */
-    private PdfGenerator selectGenerator(TemplateType templateType) {
-        for (PdfGenerator generator : generators) {
-            if (generator.supports(templateType)) {
-                log.debug("选择生成器: {} 处理模板类型: {}", generator.getClass().getSimpleName(), templateType);
-                return generator;
-            }
-        }
-
-        throw new RuntimeException("没有找到合适的PDF生成器处理模板类型: " + templateType);
     }
 }

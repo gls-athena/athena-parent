@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * PDF配置类
+ * PDF配置类（简化版）
  *
  * @author athena
  */

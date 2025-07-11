@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * PDF响应处理器
+ * PDF响应处理器（优化版）
  *
  * @author athena
  */
@@ -30,6 +30,10 @@ import java.time.format.DateTimeFormatter;
 @Component
 @RequiredArgsConstructor
 public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
+
+    private static final String PDF_EXTENSION = ".pdf";
+    private static final String CLASSPATH_PREFIX = "classpath:";
+    private static final String ROOT_PATH = "/";
 
     private final PdfGeneratorManager generatorManager;
     private final PdfProperties pdfProperties;
@@ -42,8 +46,10 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
     }
 
     @Override
-    public void handleReturnValue(Object returnValue, MethodParameter returnType,
-                                  ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
+    public void handleReturnValue(Object returnValue,
+                                  MethodParameter returnType,
+                                  ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest) throws Exception {
 
         // 标记请求已处理，不再进行视图渲染
         mavContainer.setRequestHandled(true);
@@ -115,15 +121,15 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
     private String generateFileName(String configuredFileName) {
         if (StringUtils.hasText(configuredFileName)) {
             // 如果没有扩展名，添加.pdf
-            if (!configuredFileName.toLowerCase().endsWith(".pdf")) {
-                configuredFileName += ".pdf";
+            if (!configuredFileName.toLowerCase().endsWith(PDF_EXTENSION)) {
+                configuredFileName += PDF_EXTENSION;
             }
             return configuredFileName;
         }
 
         // 使用默认文件名格式：prefix_yyyyMMdd_HHmmss.pdf
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        return pdfProperties.getDefaultFilePrefix() + "_" + timestamp + ".pdf";
+        return pdfProperties.getFilePrefix() + "_" + timestamp + PDF_EXTENSION;
     }
 
     /**
@@ -135,8 +141,8 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
         }
 
         // 如果是相对路径，添加默认模板路径前缀
-        if (!template.startsWith("classpath:") && !template.startsWith("/")) {
-            return pdfProperties.getDefaultTemplatePath() + template;
+        if (!template.startsWith(CLASSPATH_PREFIX) && !template.startsWith(ROOT_PATH)) {
+            return pdfProperties.getTemplatePath() + template;
         }
 
         return template;

@@ -2,7 +2,6 @@ package com.gls.athena.starter.pdf.example;
 
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import com.gls.athena.starter.pdf.config.TemplateType;
-import com.gls.athena.starter.pdf.generator.ReportStylePdfGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PDF文档导出示例Controller
+ * PDF文档导出示例Controller（简化版）
  *
  * @author athena
  */
@@ -57,26 +56,6 @@ public class PdfExampleController {
                 BigDecimal.valueOf(15000),
                 LocalDate.of(2022, 3, 10),
                 List.of("Java", "Spring Boot", "MySQL", "Redis")
-        );
-    }
-
-    /**
-     * 使用自定义生成器 - 报表风格
-     */
-    @GetMapping("/export/report-style")
-    @PdfResponse(
-            fileName = "销售报表",
-            generator = ReportStylePdfGenerator.class
-    )
-    public Map<String, Object> exportWithCustomGenerator() {
-        return Map.of(
-                "总销售额", 2580000.00,
-                "订单数量", 1250,
-                "客户数量", 350,
-                "平均订单金额", 2064.00,
-                "退款率", 2.3,
-                "客户满意度", 98.5,
-                "本月增长率", 15.8
         );
     }
 
