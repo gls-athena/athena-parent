@@ -136,10 +136,4 @@ public @interface ExcelConfig {
      */
     boolean orderByIncludeColumn() default false;
 
-    /**
-     * 科学计数法设置
-     *
-     * @return true表示使用科学计数法，false表示不使用科学计数法，默认为false
-     */
-    boolean useScientificFormat() default false;
 }

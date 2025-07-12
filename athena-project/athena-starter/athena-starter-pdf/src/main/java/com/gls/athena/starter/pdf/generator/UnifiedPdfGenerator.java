@@ -1,15 +1,14 @@
 package com.gls.athena.starter.pdf.generator;
 
+import cn.hutool.extra.template.TemplateConfig;
+import cn.hutool.extra.template.TemplateUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gls.athena.starter.pdf.config.PdfProperties;
 import com.gls.athena.starter.pdf.config.TemplateType;
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import cn.hutool.extra.template.TemplateConfig;
-import cn.hutool.extra.template.TemplateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openpdf.pdf.ITextRenderer;
@@ -64,7 +63,7 @@ public class UnifiedPdfGenerator implements PdfGenerator {
         }
         // AUTO模式下自动判断
         return StringUtils.hasText(template) &&
-               (template.toLowerCase().endsWith(".html") || template.toLowerCase().endsWith(".htm"));
+                (template.toLowerCase().endsWith(".html") || template.toLowerCase().endsWith(".htm"));
     }
 
     /**
@@ -75,11 +74,11 @@ public class UnifiedPdfGenerator implements PdfGenerator {
             // 渲染HTML模板
             TemplateConfig config = new TemplateConfig("", TemplateConfig.ResourceMode.CLASSPATH);
             String templatePath = template.startsWith("classpath:") ?
-                                  template.substring("classpath:".length()) : template;
+                    template.substring("classpath:".length()) : template;
 
             String html = TemplateUtil.createEngine(config)
-                                     .getTemplate(templatePath)
-                                     .render(convertToMap(data));
+                    .getTemplate(templatePath)
+                    .render(convertToMap(data));
 
             // HTML转PDF
             ITextRenderer renderer = new ITextRenderer();
