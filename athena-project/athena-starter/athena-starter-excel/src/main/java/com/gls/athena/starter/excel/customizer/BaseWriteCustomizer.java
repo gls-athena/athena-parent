@@ -95,10 +95,10 @@ public abstract class BaseWriteCustomizer<Parameter extends WriteBasicParameter>
             parameter.setLocale(locale);
         }
 
-        // 设置是否使用科学计数法格式
-        if (ObjUtil.isNotNull(config.useScientificFormat())) {
-            parameter.setUseScientificFormat(config.useScientificFormat());
-        }
+//        // 设置是否使用科学计数法格式
+//        if (ObjUtil.isNotNull(config.useScientificFormat())) {
+//            parameter.setUseScientificFormat(config.useScientificFormat());
+//        }
 
         // 设置字段缓存位置
         if (ObjUtil.isNotNull(config.filedCacheLocation())) {
