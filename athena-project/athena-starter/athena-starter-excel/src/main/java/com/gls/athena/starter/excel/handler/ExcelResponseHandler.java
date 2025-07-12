@@ -214,12 +214,9 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
      * @param sheets      工作表配置列表
      */
     private void writeDataExcel(Object data, ExcelWriter excelWriter, List<ExcelSheet> sheets) {
-        // 将数据标准化为列表格式
-        List<?> dataList = normalizeToList(data);
-
         for (ExcelSheet sheet : sheets) {
             // 根据工作表索引获取对应的数据
-            List<?> sheetData = normalizeToList(getDataAtIndex(dataList, sheets, sheet.sheetNo()));
+            Object sheetData = getDataAtIndex(data, sheets, sheet.sheetNo());
             WriteSheet writeSheet = WriteSheetCustomizer.getWriteSheet(sheet);
             List<WriteTable> writeTables = WriteTableCustomizer.getWriteTables(sheet.tables());
 
@@ -229,7 +226,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
             } else {
                 // 有配置表格，按表格分别写入数据
                 for (WriteTable writeTable : writeTables) {
-                    List<?> tableData = normalizeToList(getDataAtIndex(sheetData, writeTables, writeTable.getTableNo()));
+                    Object tableData = getDataAtIndex(sheetData, writeTables, writeTable.getTableNo());
                     writeDataToSheet(tableData, excelWriter, writeSheet, writeTable);
                 }
             }
@@ -244,14 +241,16 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
      * @param writeSheet  工作表配置
      * @param writeTable  表格配置，可为null
      */
-    private void writeDataToSheet(List<?> data, ExcelWriter excelWriter, WriteSheet writeSheet, WriteTable writeTable) {
-        if (data.isEmpty()) {
+    private void writeDataToSheet(Object data, ExcelWriter excelWriter, WriteSheet writeSheet, WriteTable writeTable) {
+        // 标准化数据为List格式
+        List<?> dataList = normalizeToList(data);
+        if (dataList.isEmpty()) {
             throw new IllegalArgumentException("数据列表不能为空");
         }
 
         // 验证数据类型一致性
-        Class<?> clazz = data.getFirst().getClass();
-        for (Object item : data) {
+        Class<?> clazz = dataList.getFirst().getClass();
+        for (Object item : dataList) {
             if (item == null || !clazz.equals(item.getClass())) {
                 throw new IllegalArgumentException("数据列表元素类型不一致或包含null元素");
             }
@@ -260,10 +259,10 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
         // 根据是否有表格配置选择写入方式
         if (writeTable != null) {
             writeTable.setClazz(clazz);
-            excelWriter.write(data, writeSheet, writeTable);
+            excelWriter.write(dataList, writeSheet, writeTable);
         } else {
             writeSheet.setClazz(clazz);
-            excelWriter.write(data, writeSheet);
+            excelWriter.write(dataList, writeSheet);
         }
     }
 
