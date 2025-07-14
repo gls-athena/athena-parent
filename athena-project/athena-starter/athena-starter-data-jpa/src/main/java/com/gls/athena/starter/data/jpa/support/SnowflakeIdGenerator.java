@@ -7,37 +7,45 @@ import org.hibernate.id.IdentifierGenerator;
 
 /**
  * Snowflake ID生成器
- * 用于生成分布式环境下的唯一ID
+ * <p>
+ * 基于Snowflake算法的分布式唯一ID生成器，用于Hibernate实体的主键生成。
+ * 支持通过workerId和datacenterId配置来确保分布式环境下的ID唯一性。
  *
  * @author george
+ * @see IdentifierGenerator
+ * @see SnowflakeId
  */
 @RequiredArgsConstructor
 public class SnowflakeIdGenerator implements IdentifierGenerator {
 
+    /**
+     * Snowflake配置信息
+     */
     private final SnowflakeId snowflakeId;
 
     /**
-     * 生成分布式唯一ID
+     * 生成唯一标识符
      * <p>
-     * 该方法根据Snowflake算法的配置生成一个全局唯一的ID。如果workerId和datacenterId都为0，
-     * 则使用默认的Snowflake实例生成ID；否则，使用指定的workerId和datacenterId创建Snowflake实例并生成ID。
+     * 根据配置的workerId和datacenterId生成分布式唯一ID：
+     * <ul>
+     *   <li>当workerId和datacenterId均为0时，使用默认Snowflake实例</li>
+     *   <li>否则使用指定的workerId和datacenterId创建专用实例</li>
+     * </ul>
      *
-     * @param session Hibernate会话对象，用于与数据库进行交互
-     * @param object  需要生成唯一ID的实体对象
-     * @return 生成的唯一ID，类型为Object
+     * @param session Hibernate会话实现
+     * @param object  实体对象
+     * @return 生成的唯一ID
      */
     @Override
     public Object generate(SharedSessionContractImplementor session, Object object) {
-        // 获取当前Snowflake实例的workerId和datacenterId
         long workerId = snowflakeId.workerId();
         long datacenterId = snowflakeId.datacenterId();
 
-        // 根据workerId和datacenterId的值决定使用哪种方式生成唯一ID
-        // 使用默认的Snowflake实例生成ID
         if (workerId == 0 && datacenterId == 0) {
+            // 使用默认Snowflake实例
             return IdUtil.getSnowflakeNextId();
         }
-        // 使用指定的workerId和datacenterId生成ID
+        // 使用指定配置的Snowflake实例
         return IdUtil.getSnowflake(workerId, datacenterId).nextId();
     }
 
