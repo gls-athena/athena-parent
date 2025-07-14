@@ -13,7 +13,7 @@ import java.util.Optional;
 /**
  * User对象的Jackson反序列化器
  * <p>
- * 该���继承自BaseDeserializer，负责将JSON数据反序列化为User对象。
+ * 继承自BaseDeserializer，负责将JSON数据反序列化为User对象。
  * 支持用户基本信息（用户名、密码、邮箱等）以及关联对象（角色、组织）的反序列化。
  * </p>
  *
