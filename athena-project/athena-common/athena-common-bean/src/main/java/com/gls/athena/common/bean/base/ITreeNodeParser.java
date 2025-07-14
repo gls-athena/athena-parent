@@ -6,32 +6,35 @@ import cn.hutool.core.lang.tree.parser.NodeParser;
 
 /**
  * 树节点解析器
- * 用于将实现了 ITreeNode 接口的实体类解析为树形结构节点
+ * <p>
+ * 实现Hutool树形结构的节点解析器接口，用于将实现了{@link ITreeNode}接口的实体对象
+ * 转换为{@link Tree}树形结构节点。
  *
- * @param <T> 树节点类型，必须实现 ITreeNode 接口
+ * @param <T> 树节点类型，必须实现{@link ITreeNode}接口
  * @author george
+ * @see NodeParser
+ * @see ITreeNode
  */
 public class ITreeNodeParser<T extends ITreeNode> implements NodeParser<T, Long> {
+
     /**
-     * 将源数据实体解析为树节点
+     * 解析源对象为树节点
      * <p>
-     * 该函数用于将一个实现了 ITreeNode 接口的源数据实体对象解析为树节点实体，并将解析后的数据存储在目标树节点实体中。
-     * 解析过程包括设置节点的基本属性（如ID、父节点ID、名称、排序权重）以及扩展属性（如编码、描述、类型等）。
-     * 最后，将源对象的所有属性复制到树节点的扩展属性中。
+     * 将实现了{@link ITreeNode}接口的源对象解析为Hutool的{@link Tree}节点，
+     * 包括设置基本属性（ID、父节点ID、名称、权重）和扩展属性。
      *
-     * @param object   源数据实体，实现了 ITreeNode 接口的对象，包含需要解析的树节点数据
-     * @param treeNode 目标树节点实体，用于存储解析后的树节点数据
+     * @param object   源数据对象，实现{@link ITreeNode}接口
+     * @param treeNode 目标树节点，用于存储解析后的数据
      */
     @Override
     public void parse(T object, Tree<Long> treeNode) {
-        // 设置节点基本属性
+        // 设置树节点基本属性
         treeNode.setId(object.getId());
         treeNode.setParentId(object.getParentId());
         treeNode.setName(object.getName());
         treeNode.setWeight(object.getSort());
 
-        // 将源对象的所有属性复制到树节点的扩展属性中
+        // 复制源对象所有属性到树节点扩展属性中
         treeNode.putAll(BeanUtil.beanToMap(object));
     }
-
 }
