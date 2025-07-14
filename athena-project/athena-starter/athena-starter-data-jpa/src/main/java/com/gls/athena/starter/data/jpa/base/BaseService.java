@@ -17,19 +17,21 @@ import java.util.Optional;
 /**
  * 通用基础服务实现类
  * <p>
- * 提供基础的 CRUD 操作实现，包括单条记录的增删改查、批量操作及分页查询等功能
+ * 提供基础的CRUD操作实现，包括单条记录的增删改查、批量操作及分页查询等功能。
+ * 所有操作都包含必要的参数校验和异常处理。
  *
- * @param <V> 视图对象类型，需继承 BaseVo
- * @param <E> 实体对象类型，需继承 BaseEntity
- * @param <C> 对象转换器类型，用于 VO 和实体对象的互相转换
+ * @param <V> 视图对象类型，继承BaseVo
+ * @param <E> 实体对象类型，继承BaseEntity
+ * @param <C> 对象转换器类型，用于VO和实体对象的相互转换
  * @param <R> 数据访问仓库类型，用于实体的持久化操作
  * @author george
+ * @since 1.0.0
  */
 public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
         C extends IConverter<V, E>, R extends IRepository<E>> implements IService<V> {
 
     /**
-     * 对象转换器，用于 VO 和实体对象的互相转换
+     * 对象转换器，用于VO和实体对象的相互转换
      */
     @Autowired
     protected C converter;
@@ -43,14 +45,11 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     /**
      * 新增记录
      * <p>
-     * 该方法用于将传入的视图对象保存到数据库中，并返回包含生成ID等信息的视图对象。
-     * 在保存之前，会进行以下校验：
-     * 1. 待新增对象不能为空；
-     * 2. 新增对象的ID必须为空。
-     * 保存过程中，视图对象会被转换为实体对象进行存储，保存后再将实体对象转换回视图对象返回。
+     * 将视图对象保存到数据库中。会校验对象不为空且ID为空。
      *
      * @param vo 待新增的视图对象，不能为空且ID必须为空
-     * @return 新增后的视图对象，包含生成的ID等信息
+     * @return 新增后的视图对象，包含生成的ID
+     * @throws IllegalArgumentException 当vo为空或ID不为空时
      */
     @Override
     public V insert(V vo) {
@@ -70,13 +69,11 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     /**
      * 更新记录
      * <p>
-     * 该方法用于更新数据库中的一条记录。首先会检查传入的视图对象及其ID是否为空，
-     * 然后检查数据库中是否存在对应的记录。如果存在，则将视图对象转换为实体对象并保存到数据库，
-     * 最后将更新后的实体对象转换回视图对象并返回。
+     * 根据ID更新数据库中的记录。会校验对象和ID不为空，且记录必须存在。
      *
-     * @param vo 待更新的视图对象，必须包含ID
+     * @param vo 待更新的视图对象，必须包含有效ID
      * @return 更新后的视图对象
-     * @throws IllegalArgumentException 当vo为空或id为空时抛出，或者待更新的记录不存在时抛出
+     * @throws IllegalArgumentException 当vo为空、ID为空或记录不存在时
      */
     @Override
     public V update(V vo) {
@@ -84,7 +81,7 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
         Assert.notNull(vo, "待更新对象不能为空");
         Assert.notNull(vo.getId(), "更新对象ID不能为空");
 
-        // 检查数据库中是否存在对应的记录
+        // 检查数据库中是否存在对应��记录
         if (!repository.existsById(vo.getId())) {
             throw new IllegalArgumentException("待更新的记录不存在");
         }
@@ -102,8 +99,8 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      *
      * @param id 记录ID，不能为空
      * @return true-删除成功；false-记录不存在
-     * @throws IllegalArgumentException 当id为空时抛出
-     * @throws RuntimeException         删除过程中发生异常时抛出
+     * @throws IllegalArgumentException 当id为空时
+     * @throws RuntimeException         删除过程中发生异常时
      */
     @Override
     public Boolean delete(Long id) {
@@ -125,12 +122,10 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
 
     /**
      * 根据ID查询单条记录
-     * <p>
-     * 该方法通过传入的记录ID，从数据仓库中查询对应的记录，并将其转换为视图对象返回。
-     * 如果查询的记录不存在，则返回null。
      *
      * @param id 记录ID，不能为空
      * @return 查询到的视图对象，不存在时返回null
+     * @throws IllegalArgumentException 当id为空时
      */
     @Override
     public V get(Long id) {
@@ -146,13 +141,9 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
 
     /**
      * 根据条件查询记录列表
-     * <p>
-     * 该方法接收一个视图对象（VO）作为查询条件，通过转换器将其转换为实体对象，
-     * 然后使用仓库（repository）查询符合条件的记录，最后将查询结果转换回视图对象列表。
-     * 如果传入的查询条件为null，则返回空列表。
      *
-     * @param vo 查询条件，以视图对象（VO）的形式传入
-     * @return 符合条件的视图对象列表，如果查询条件为null则返回空列表
+     * @param vo 查询条件，为null时返回空列表
+     * @return 符合条件的视图对象列表
      */
     @Override
     public List<V> list(V vo) {
@@ -164,23 +155,16 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
                 .map(repository::findAll)
                 // 将实体对象列表转换回视图对象列表
                 .map(converter::reverseList)
-                // 如果查询条件为null，返回空列表
+                // 如果查询条件为null，返回��列表
                 .orElse(Collections.emptyList());
     }
 
     /**
      * 分页查询记录
-     * <p>
-     * 该方法根据传入的分页请求对象，执行分页查询操作，并返回分页查询结果。
-     * 方法首先检查分页请求对象是否为空，若为空则抛出异常。若不为空，则依次执行以下操作：
-     * 1. 使用转换器将分页请求对象转换为适合查询的格式；
-     * 2. 调用仓库方法执行查询操作；
-     * 3. 使用转换器将查询结果转换为分页响应格式。
-     * 最终返回分页查询结果。
      *
-     * @param pageRequest 分页查询请求对象，包含页码、每页大小、查询条件等信息
-     * @return 分页查询结果对象，包含总记录数、当前页数据等信息
-     * @throws IllegalArgumentException 如果分页请求对象为空，则抛出此异常
+     * @param pageRequest 分页查询请求，包含页码、每页大小、查询条件等
+     * @return 分页查询结果，包含总记录数、当前页数据等
+     * @throws IllegalArgumentException 当pageRequest为空时
      */
     @Override
     public PageResponse<V> page(PageRequest<V> pageRequest) {
@@ -199,13 +183,11 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     /**
      * 批量保存记录
      * <p>
-     * 该方法用于将传入的视图对象列表批量保存到数据库中。如果传入的列表为空或包含空值，则返回 false。
-     * 该方法会过滤掉列表中的空值，并将有效的视图对象转换为实体对象后进行保存。
-     * 如果保存过程中发生异常，则抛出运行时异常。
+     * 过滤空值后批量保存视��对象列表。使用事务确保数据一致性。
      *
-     * @param vs 待保存的视图对象列表，允许为空或包含空值
-     * @return true-全部保存成功；false-存在保存失败的记录或传入的列表为空
-     * @throws RuntimeException 如果保存过程中发生异常，则抛出该异常
+     * @param vs 待保存的视图对象列表
+     * @return true-全部保存成功；false-列表为空或无有效数据
+     * @throws RuntimeException 保存过程中发生异常时
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

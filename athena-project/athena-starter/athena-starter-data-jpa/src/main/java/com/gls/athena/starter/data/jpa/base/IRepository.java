@@ -13,24 +13,32 @@ import java.util.List;
 
 /**
  * 基础数据访问接口
- * 提供实体的基本CRUD和分页查询功能
  *
- * @param <E> 实体类型
+ * <p>扩展了 Spring Data JPA 的 {@link JpaRepositoryImplementation}，
+ * 为继承 {@link BaseEntity} 的实体提供标准的 CRUD 操作和分页查询功能。
+ *
+ * <p>主要特性：
+ * <ul>
+ *   <li>基于实体属性的条件查询</li>
+ *   <li>统一的分页查询响应格式</li>
+ *   <li>与项目通用分页组件的集成</li>
+ * </ul>
+ *
+ * @param <E> 实体类型，必须继承 {@link BaseEntity}
  * @author george
+ * @since 1.0
  */
 @NoRepositoryBean
 public interface IRepository<E extends BaseEntity> extends JpaRepositoryImplementation<E, Long> {
 
     /**
      * 根据实体条件进行分页查询
-     * <p>
-     * 该方法通过传入的查询条件实体和分页参数，执行分页查询操作，并返回分页结果。
-     * 内部使用 `Example.of(criteria)` 将查询条件实体转换为 `Example` 对象，
-     * 然后调用 `findAll(Example, Pageable)` 方法进行查询。
      *
-     * @param criteria 查询条件实体，用于指定查询的过滤条件
-     * @param pageable 分页参数，包含分页信息如页码、每页大小等
-     * @return 分页结果，包含查询到的数据列表及分页信息
+     * <p>基于 {@link Example} 的查询匹配，自动处理非空属性作为查询条件。
+     *
+     * @param criteria 查询条件实体，非空属性将作为过滤条件
+     * @param pageable 分页参数
+     * @return 分页查询结果
      */
     default Page<E> findAll(E criteria, Pageable pageable) {
         return findAll(Example.of(criteria), pageable);
@@ -38,25 +46,24 @@ public interface IRepository<E extends BaseEntity> extends JpaRepositoryImplemen
 
     /**
      * 根据实体条件查询所有匹配记录
-     * <p>
-     * 该方法通过传入的实体对象作为查询条件，使用Example.of方法将其转换为Example对象，
-     * 并调用findAll方法查询所有符合条件的记录。
      *
-     * @param criteria 查询条件实体，用于构建查询条件
-     * @return 返回与查询条件匹配的实体列表
+     * <p>基于 {@link Example} 的查询匹配，自动处理非空属性作为查询条件。
+     *
+     * @param criteria 查询条件实体，非空属性将作为过滤条件
+     * @return 匹配的实体列表
      */
     default List<E> findAll(E criteria) {
         return findAll(Example.of(criteria));
     }
 
     /**
-     * 执行分页查询并转换为统一的分页响应格式
-     * <p>
-     * 该方法接收一个分页查询请求对象，将其转换为Spring Data JPA的Pageable对象，
-     * 然后根据查询参数和分页信息执行查询操作，最后将查询结果转换为统一的分页响应格式。
+     * 执行分页查询并转换为统一响应格式
      *
-     * @param pageRequest 分页查询请求对象，包含查询条件和分页参数
-     * @return 统一格式的分页响应，包含查询结果和分页信息
+     * <p>将项目标准的 {@link PageRequest} 转换为 Spring Data 的 {@link Pageable}，
+     * 执行查询后返回统一的 {@link PageResponse} 格式。
+     *
+     * @param pageRequest 分页查询请求，包含查询条件和分页参数
+     * @return 统一格式的分页响应
      */
     default PageResponse<E> findAll(PageRequest<E> pageRequest) {
         // 将分页请求对象转换为Spring Data JPA的Pageable对象

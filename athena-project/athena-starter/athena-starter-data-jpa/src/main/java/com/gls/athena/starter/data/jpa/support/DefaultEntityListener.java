@@ -11,34 +11,44 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 /**
- * JPA实体操作前的默认监听器
- * 用于自动填充实体的审计字段
+ * JPA实体默认监听器
+ * <p>
+ * 自动填充实体审计字段，包括创建人、更新人、时间戳等信息。
+ * 支持多租户场景下的数据隔离。
  *
  * @author george
+ * @since 1.0.0
  */
 @Slf4j
 @Component
 public class DefaultEntityListener {
 
     /**
-     * 实体保存前的处理
-     * 在实体对象持久化到数据库之前，自动填充审计字段，包括创建人、创建时间、更新人、更新时间等。
-     * 该方法通常由JPA的@PrePersist注解触发，确保在实体保存前执行。
+     * 实体持久化前处理
+     * <p>
+     * 自动设置创建和更新相关的审计字段，包括：
+     * <ul>
+     *     <li>租户ID - 多租户数据隔离</li>
+     *     <li>删除标志 - 逻辑删除标记</li>
+     *     <li>创建人信息 - 用户ID和姓名</li>
+     *     <li>创建时间 - 当前时间戳</li>
+     *     <li>更新人信息 - 用户ID和姓名</li>
+     *     <li>更新时间 - 当前时间戳</li>
+     * </ul>
      *
-     * @param entity 待保存的实体对象，必须继承自BaseEntity类
+     * @param entity 待保存的实体对象，需继承自{@link BaseEntity}
      */
     @PrePersist
     public void prePersist(BaseEntity entity) {
-        // 记录日志，输出当前处理的实体类名
-        log.debug("Entity pre persist processing: [{}]", entity.getClass().getSimpleName());
+        log.debug("Pre-persist processing for entity: {}", entity.getClass().getSimpleName());
 
-        // 获取当前用户上下文信息，包括用户ID、用户真实姓名、租户ID等
+        // 获取当前用户上下文信息
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
         String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
         Long tenantId = LoginUserHelper.getCurrentUserTenantId().orElse(IConstants.DEFAULT_TENANT_ID);
         Date now = new Date();
 
-        // 设置实体的审计字段，包括租户ID、删除标志、创建人、创建时间、更新人、更新时间等
+        // 设置审计字段
         entity.setTenantId(tenantId);
         entity.setDeleted(false);
         entity.setCreateUserId(userId);
@@ -50,22 +60,22 @@ public class DefaultEntityListener {
     }
 
     /**
-     * 实体更新前的处理函数，通常用于在实体更新之前自动执行。
-     * 该函数会更新实体的修改人和修改时间字段，确保在每次更新时记录最新的操作信息。
+     * 实体更新前处理
+     * <p>
+     * 自动更新修改人和修改时间字段，确保每次更新操作都能追踪到操作者信息。
      *
-     * @param entity 待更新的实体对象，必须继承自BaseEntity类。
+     * @param entity 待更新的实体对象，需继承自{@link BaseEntity}
      */
     @PreUpdate
     public void preUpdate(BaseEntity entity) {
-        // 记录实体更新前的日志信息，便于调试和追踪
-        log.debug("Entity pre update processing: [{}]", entity.getClass().getSimpleName());
+        log.debug("Pre-update processing for entity: {}", entity.getClass().getSimpleName());
 
-        // 获取当前用户信息并更新审计字段
+        // 获取当前用户信息并更新修改相关字段
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
         String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
+
         entity.setUpdateUserId(userId);
         entity.setUpdateUserName(userRealName);
         entity.setUpdateTime(new Date());
     }
-
 }
