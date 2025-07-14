@@ -40,7 +40,7 @@ public abstract class BaseVo implements IDomain {
      * 租户ID
      * <p>多租户架构中用于数据隔离的租户标识符</p>
      */
-    @ExcelProperty(value = "租���ID")
+    @ExcelProperty(value = "租户ID")
     @Schema(title = "租户ID", description = "多租户系统中的租户标识符，用于数据隔离", example = "100")
     private Long tenantId;
 
