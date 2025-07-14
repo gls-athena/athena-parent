@@ -10,32 +10,52 @@ import java.util.Optional;
 
 /**
  * 社交用户反序列化器
+ * <p>
+ * 用于将JSON数据反序列化为{@link SocialUser}对象，支持解析社交登录用户的相关信息
  *
  * @author lizy19
+ * @since 1.0
  */
 public class SocialUserDeserializer extends BaseDeserializer<SocialUser> {
+
     /**
-     * 根据JSON数据创建SocialUser实例
-     * 此方法用于解析表示社交用户信息的JSON数据，并将解析后的数据填充到SocialUser对象中
-     * 它处理的JSON数据可能包含用户属性、用户名、注册ID、关联的用户对象以及绑定状态
+     * 从JSON节点创建SocialUser实例
+     * <p>
+     * 解析JSON数据并构建完整的社交用户对象，包括用户属性、用户名、注册ID、关联用户和绑定状态
      *
-     * @param mapper ObjectMapper实例，用于将JSON数据映射到Java对象
-     * @param node   包含社交用户信息的JsonNode节点
-     * @return 返回一个填充了从JSON数据中提取的信息的SocialUser实例
+     * @param mapper JSON对象映射器
+     * @param node   包含社交用户数据的JSON节点
+     * @return 构建完成的SocialUser实例
      */
     @Override
     protected SocialUser createInstance(ObjectMapper mapper, JsonNode node) {
         SocialUser socialUser = new SocialUser();
-        // 尝试从JSON数据中获取并设置socialUser的attributes属性
-        Optional.ofNullable(node.get("attributes")).map(attributes -> mapper.convertValue(attributes, Map.class)).ifPresent(socialUser::setAttributes);
-        // 尝试从JSON数据中获取并设置socialUser的name属性
-        Optional.ofNullable(node.get("name")).map(JsonNode::asText).ifPresent(socialUser::setName);
-        // 尝试从JSON数据中获取并设置socialUser的registrationId属性
-        Optional.ofNullable(node.get("registrationId")).map(JsonNode::asText).ifPresent(socialUser::setRegistrationId);
-        // 尝试从JSON数据中获取并设置socialUser的user属性
-        Optional.ofNullable(node.get("user")).map(user -> mapper.convertValue(user, User.class)).ifPresent(socialUser::setUser);
-        // 尝试从JSON数据中获取并设置socialUser的bindStatus属性
-        Optional.ofNullable(node.get("bindStatus")).map(JsonNode::asBoolean).ifPresent(socialUser::setBindStatus);
+
+        // 设置用户属性映射
+        Optional.ofNullable(node.get("attributes"))
+                .map(attributes -> mapper.convertValue(attributes, Map.class))
+                .ifPresent(socialUser::setAttributes);
+
+        // 设置用户名
+        Optional.ofNullable(node.get("name"))
+                .map(JsonNode::asText)
+                .ifPresent(socialUser::setName);
+
+        // 设置社交平台注册ID
+        Optional.ofNullable(node.get("registrationId"))
+                .map(JsonNode::asText)
+                .ifPresent(socialUser::setRegistrationId);
+
+        // 设置关联的系统用户
+        Optional.ofNullable(node.get("user"))
+                .map(user -> mapper.convertValue(user, User.class))
+                .ifPresent(socialUser::setUser);
+
+        // 设置账号绑定状态
+        Optional.ofNullable(node.get("bindStatus"))
+                .map(JsonNode::asBoolean)
+                .ifPresent(socialUser::setBindStatus);
+
         return socialUser;
     }
 }
