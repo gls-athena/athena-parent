@@ -14,10 +14,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 默认缓存名称解析器
+ * 默认缓存解析器
  * <p>
- * 用于统一管理缓存键的生成规则，遵循 "className:cacheName" 的命名约定。
- * 当未指定缓存名称时，默认使用 "className:default" 作为缓存键。
+ * 统一管理缓存名称生成规则，按照 "className:cacheName" 格式命名。
+ * 未指定缓存名称时使用 "className:default"。
  *
  * @author george
  */
@@ -34,27 +34,24 @@ public class DefaultCacheResolver extends AbstractCacheResolver {
     }
 
     /**
-     * 解析目标类和方法的缓存名称，并返回格式化后的缓存名称列表。
-     * 该方法首先对目标类名进行规范化处理，然后通过AnnotationCacheOperationSource获取与目标方法相关的缓存操作。
-     * 如果存在缓存操作，则提取缓存名称并进行格式化处理；如果不存在缓存操作，则返回默认的缓存名称。
+     * 获取类和方法对应的缓存名称列表
      *
-     * @param beanClass 目标类的Class对象，不能为null
-     * @param method    目标方法的Method对象，不能为null
-     * @return 格式化后的缓存名称列表，包含规范化类名和缓存名称的组合
-     * @throws NullPointerException 当beanClass或method为null时抛出
+     * @param beanClass 目标类
+     * @param method    目标方法
+     * @return 格式化的缓存名称列表，格式为 "className:cacheName"
+     * @throws NullPointerException 参数为null时抛出
      */
     public static List<String> getCacheNames(Class<?> beanClass, Method method) {
-        // 检查参数是否为null，若为null则抛出NullPointerException
         Objects.requireNonNull(beanClass, "目标类不能为null");
         Objects.requireNonNull(method, "目标方法不能为null");
 
-        // 将类名转换为指定格式的符号形式
+        // 类名转换为kebab-case格式
         String normalizedClassName = StrUtil.toSymbolCase(beanClass.getSimpleName(), CLASS_NAME_SEPARATOR);
 
-        // 创建AnnotationCacheOperationSource实例，用于获取缓存操作
+        // 获取方法上的缓存操作
         AnnotationCacheOperationSource operationSource = new AnnotationCacheOperationSource(false);
 
-        // 获取与目标方法相关的缓存操作，并处理缓存名称
+        // 提取缓存名称并格式化
         return Optional.ofNullable(operationSource.getCacheOperations(method, beanClass))
                 .map(operations -> operations.stream()
                         .map(CacheOperation::getCacheNames)
@@ -68,16 +65,13 @@ public class DefaultCacheResolver extends AbstractCacheResolver {
     }
 
     /**
-     * 获取与给定缓存操作调用上下文相关的缓存名称集合。
-     * 该方法通过调用另一个重载方法 `getCacheNames(Class<?>, Method)` 来实现，
-     * 传递目标类和方法的参数。
+     * 解析缓存操作上下文中的缓存名称
      *
-     * @param context 缓存操作调用上下文，包含目标对象和方法的信息。
-     * @return 返回与目标类和方法相关的缓存名称集合。
+     * @param context 缓存操作调用上下文
+     * @return 缓存名称集合
      */
     @Override
     protected Collection<String> getCacheNames(CacheOperationInvocationContext<?> context) {
-        // 通过目标类和方法获取缓存名称集合
         List<String> cacheNames = getCacheNames(context.getTarget().getClass(), context.getMethod());
         log.info("缓存名称：{}", cacheNames);
         return cacheNames;
