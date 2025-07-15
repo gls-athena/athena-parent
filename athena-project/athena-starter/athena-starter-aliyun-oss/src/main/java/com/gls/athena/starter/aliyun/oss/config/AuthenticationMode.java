@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum AliyunAuthenticationModeEnum implements IEnum<String> {
+public enum AuthenticationMode implements IEnum<String> {
 
     /**
      * AccessKey认证模式（使用AccessKey ID和Secret进行身份验证）

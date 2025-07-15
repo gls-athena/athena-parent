@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
  * 阿里云OSS服务配置属性类。
  * <p>
  * 用于配置阿里云OSS客户端所需的各项参数，包括认证模式、地域、访问密钥等。
- * 支持多种认证方式，详见 {@link AliyunAuthenticationModeEnum}。
+ * 支持多种认证方式，详见 {@link AuthenticationMode}。
  * <ul>
  *   <li>AS_AK模式：使用AccessKeyId和AccessKeySecret进行认证</li>
  *   <li>STS模式：使用临时安全令牌进行认证</li>
@@ -35,9 +35,9 @@ public class AliyunOssProperties extends BaseProperties {
     /**
      * 认证模式，默认使用AS_AK模式
      *
-     * @see AliyunAuthenticationModeEnum
+     * @see AuthenticationMode
      */
-    private AliyunAuthenticationModeEnum authMode = AliyunAuthenticationModeEnum.AS_AK;
+    private AuthenticationMode authMode = AuthenticationMode.AS_AK;
 
     /**
      * 阿里云地域ID
