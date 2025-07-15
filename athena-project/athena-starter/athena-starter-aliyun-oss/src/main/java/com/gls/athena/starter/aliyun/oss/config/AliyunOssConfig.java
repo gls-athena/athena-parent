@@ -24,11 +24,23 @@ import java.util.concurrent.ExecutorService;
 public class AliyunOssConfig {
 
     /**
-     * 创建阿里云OSS客户端实例。
+     * 创建并返回阿里云OSS客户端实例。
+     * <p>
+     * 支持以下两种认证模式：
+     * <ul>
+     *   <li>AK/SK模式：使用AccessKeyId和AccessKeySecret进行认证</li>
+     *   <li>STS模式：使用临时安全令牌（SecurityToken）进行认证</li>
+     * </ul>
+     * <p>
+     * 参数校验：
+     * <ul>
+     *   <li>properties、endpoint、accessKeyId、accessKeySecret不能为空</li>
+     *   <li>STS模式下securityToken不能为空</li>
+     * </ul>
      *
-     * @param properties OSS配置属性，包含终端节点、认证信息、客户端配置等必要参数
-     * @return OSS 客户端实例，已根据认证模式完成初始化配置
-     * @throws IllegalArgumentException 当传入空参数、必要参数缺失或使用不支持的认证模式时抛出
+     * @param properties OSS配置属性，包含终端节点、认证信息、客户端配置等
+     * @return 已初始化的OSS客户端实例
+     * @throws IllegalArgumentException 参数为空、缺失或认证模式不支持时抛出
      */
     @Bean
     @ConditionalOnMissingBean
@@ -40,14 +52,14 @@ public class AliyunOssConfig {
         Assert.hasText(properties.getAccessKeySecret(), "AccessKeySecret must not be empty");
 
         // 处理基础AK/SK认证模式
-        if (AliyunAuthEnums.AS_AK.equals(properties.getAuthMode())) {
+        if (AliyunAuthenticationModeEnum.AS_AK.equals(properties.getAuthMode())) {
             return new OSSClientBuilder().build(properties.getEndpoint(),
                     properties.getAccessKeyId(), properties.getAccessKeySecret(), properties.getConfig()
             );
         }
 
         // 处理STS临时凭证认证模式
-        if (AliyunAuthEnums.STS.equals(properties.getAuthMode())) {
+        if (AliyunAuthenticationModeEnum.STS.equals(properties.getAuthMode())) {
             Assert.hasText(properties.getSecurityToken(), "SecurityToken must not be empty for STS mode");
             return new OSSClientBuilder().build(properties.getEndpoint(),
                     properties.getAccessKeyId(), properties.getAccessKeySecret(), properties.getSecurityToken(), properties.getConfig()

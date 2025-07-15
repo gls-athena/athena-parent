@@ -7,13 +7,21 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.URI;
 
 /**
- * OSS URI 解析器，负责解析和验证 OSS URI 格式。
- *
- * <p>支持的URI格式：
+ * OSS URI 解析器，用于解析和校验 OSS URI 格式。
+ * <p>
+ * 支持的 URI 格式：
  * <ul>
- *     <li>oss://bucketName/objectKey - 访问具体对象</li>
- *     <li>oss://bucketName - 访问存储空间</li>
+ *   <li><b>oss://bucketName/objectKey</b> —— 访问具体对象</li>
+ *   <li><b>oss://bucketName</b> —— 访问存储空间</li>
  * </ul>
+ * <p>
+ * 示例：
+ * <ul>
+ *   <li>oss://my-bucket/path/to/file.txt</li>
+ *   <li>oss://my-bucket</li>
+ * </ul>
+ * <p>
+ * 该类会自动识别 bucket 名称和 object key，并判断 URI 是否仅为 bucket。
  *
  * @author george
  */

@@ -11,9 +11,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 阿里云OSS监控端点
+ * 阿里云OSS监控端点。
  * <p>
- * 用于监控和展示OSS客户端的配置信息和运行状态。
+ * 该端点用于监控和展示OSS客户端的配置信息及运行状态，便于运维排查和系统监控。
+ * <ul>
+ *   <li>通过Spring应用上下文获取所有OSSClient实例</li>
+ *   <li>聚合并展示每个OSS客户端的注册名称、服务端节点、Bucket信息等</li>
+ *   <li>可扩展用于更多OSS运行时指标的采集</li>
+ * </ul>
+ * <p>
+ * 典型用法：
+ * <pre>
+ * 通过Spring Boot Actuator访问/actuator/oss端点获取OSS相关信息
+ * </pre>
  *
  * @author george
  */
@@ -24,16 +34,16 @@ public class OssEndpoint {
     private ApplicationContext applicationContext;
 
     /**
-     * 获取OSS客户端配置和状态信息。
+     * 获取OSS客户端的配置信息和运行状态。
      * <p>
-     * 通过Spring应用上下文获取所有OSSClient实例，并聚合以下信息：
-     * - 客户端在Spring容器中的注册名称
-     * - 服务端节点地址
-     * - 完整的客户端配置对象
-     * - 身份凭证信息
-     * - 当前账户下所有存储桶的名称列表
+     * 主要功能：
+     * <ul>
+     *   <li>遍历Spring容器中所有OSSClient实例</li>
+     *   <li>收集每个客户端的注册名称、endpoint、bucket等关键信息</li>
+     *   <li>返回聚合后的OSS客户端状态信息，便于监控和排查</li>
+     * </ul>
      *
-     * @return 返回嵌套的字典结构，外层字典的key为bean名称，value为对应客户端的详细信息字典。
+     * @return Map OSS客户端配置信息和状态的聚合视图
      */
     @ReadOperation
     public Map<String, Object> invoke() {

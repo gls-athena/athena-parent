@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.concurrent.ExecutorService;
 
 /**
- * OSS 流服务，负责处理 OSS 资源的输入输出流操作。
+ * OSS 流式操作服务，封装了 OSS 对象的输入流和输出流处理。
  *
  * @author george
  */
@@ -23,12 +23,12 @@ public class OssStreamService {
     private final ExecutorService ossTaskExecutor;
 
     /**
-     * 获取对象的输入流。
+     * 获取 OSS 对象的输入流。
      *
-     * @param bucketName bucket 名称
-     * @param objectKey  对象键
-     * @return 输入流
-     * @throws IOException 当获取输入流失败时
+     * @param bucketName OSS 存储空间名称
+     * @param objectKey  OSS 对象键（路径）
+     * @return 对象输入流
+     * @throws IOException 获取失败时抛出
      */
     public InputStream getInputStream(String bucketName, String objectKey) throws IOException {
         try {
@@ -40,12 +40,12 @@ public class OssStreamService {
     }
 
     /**
-     * 获取对象的输出流，使用管道流实现异步上传。
+     * 获取 OSS 对象的输出流，内部通过管道流实现异步上传。
      *
-     * @param bucketName bucket 名称
-     * @param objectKey  对象键
-     * @return 输出流
-     * @throws IOException 当创建输出流失败时
+     * @param bucketName OSS 存储空间名称
+     * @param objectKey  OSS 对象键（路径）
+     * @return 对象输出流
+     * @throws IOException 创建失败时抛出
      */
     public OutputStream getOutputStream(String bucketName, String objectKey) throws IOException {
         try {

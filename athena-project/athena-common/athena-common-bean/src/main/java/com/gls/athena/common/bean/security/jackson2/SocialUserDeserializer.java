@@ -13,7 +13,7 @@ import java.util.Optional;
  * <p>
  * 用于将JSON数据反序列化为{@link SocialUser}对象，支持解析社交登录用户的相关信息
  *
- * @author lizy19
+ * @author george
  * @since 1.0
  */
 public class SocialUserDeserializer extends BaseDeserializer<SocialUser> {

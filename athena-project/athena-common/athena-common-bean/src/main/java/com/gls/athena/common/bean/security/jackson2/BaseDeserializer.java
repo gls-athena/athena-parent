@@ -22,7 +22,7 @@ import java.util.Optional;
  * </ul>
  *
  * @param <T> 继承自BaseVo的目标类型
- * @author lizy19
+ * @author george
  */
 public abstract class BaseDeserializer<T extends BaseVo> extends JsonDeserializer<T> {
 

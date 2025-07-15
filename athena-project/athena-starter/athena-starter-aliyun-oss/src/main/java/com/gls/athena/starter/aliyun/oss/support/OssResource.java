@@ -13,25 +13,11 @@ import java.net.URI;
 import java.net.URL;
 
 /**
- * 阿里云OSS资源访问实现类，提供对OSS对象的读写操作。
- *
- * <p>支持的URI格式：
- * <ul>
- *     <li>oss://bucketName/objectKey - 访问具体对象</li>
- *     <li>oss://bucketName - 访问存储空间</li>
- * </ul>
- *
- * <p>使用示例：
+ * OSS 资源包装类，实现了 Spring 的 WritableResource 接口。
+ * <p>
+ * 用于通过 OSS URI 进行资源的读取与写入操作，支持流式处理和元数据管理。
  * <pre>
- * // 通过工厂创建OSS资源
- * OssResource resource = ossResourceFactory.createResource("oss://my-bucket/path/to/file.txt");
- *
- * // 写入内容
- * try (OutputStream out = resource.getOutputStream()) {
- *     out.write("Hello World".getBytes());
- * }
- *
- * // 读取内容
+ * // 读取内容示例：
  * try (InputStream in = resource.getInputStream()) {
  *     // 处理输入流
  * }

@@ -10,13 +10,13 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 
 /**
- * OSS协议解析器，专门负责解析以"oss://"开头的资源路径。
- *
- * <p>职责：
+ * OSS 协议解析器，用于处理以 "oss://" 开头的资源路径。
+ * <p>
+ * 主要职责：
  * <ul>
- *     <li>识别 OSS 协议的资源位置</li>
- *     <li>将协议解析委托给 OssResourceFactory</li>
- *     <li>注册自身到 ResourceLoader</li>
+ *   <li>识别并处理 OSS 协议资源路径</li>
+ *   <li>将解析任务委托给 OssResourceFactory</li>
+ *   <li>注册自身到 ResourceLoader 以支持自定义协议</li>
  * </ul>
  *
  * @author george
