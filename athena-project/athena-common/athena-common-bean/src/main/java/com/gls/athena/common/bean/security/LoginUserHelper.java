@@ -161,7 +161,7 @@ public class LoginUserHelper {
     /**
      * 获取当前用户的组织机构信息
      *
-     * @return ���织机构信息，如果未登录则返回空
+     * @return 组织机构信息，如果未登录则返回空
      */
     public Optional<? extends IOrganization> getCurrentUserOrganization() {
         return getCurrentUser().map(IUser::getOrganization);
