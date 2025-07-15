@@ -12,7 +12,10 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * 默认Word文档生成器（无模板）
+ * 默认Word文档生成器（无模板）。
+ * <p>
+ * 该生成器将数据以表格形式导出到Word文档，适用于无模板的简单导出场景。
+ * </p>
  *
  * @author athena
  */
@@ -20,10 +23,16 @@ import java.util.Map;
 @Component
 public class DefaultWordGenerator implements WordGenerator {
 
+    /**
+     * Jackson对象映射器，用于对象与Map的转换。
+     */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * 生成文档内容
+     * 生成Word文档内容，将数据以表格形式写入。
+     *
+     * @param document Word文档对象
+     * @param dataMap  需要导出的数据，key为字段名，value为字段值
      */
     private void generateContent(XWPFDocument document, Map<String, Object> dataMap) {
         if (dataMap.isEmpty()) {
@@ -36,12 +45,12 @@ public class DefaultWordGenerator implements WordGenerator {
         // 创建数据表格
         XWPFTable table = document.createTable();
 
-        // 设置表头
+        // 设置表头：字段名、值
         XWPFTableRow headerRow = table.getRow(0);
         headerRow.getCell(0).setText("字段名");
         headerRow.addNewTableCell().setText("值");
 
-        // 添加数据行
+        // 遍历数据，添加每一行
         for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
             XWPFTableRow dataRow = table.createRow();
             dataRow.getCell(0).setText(entry.getKey());

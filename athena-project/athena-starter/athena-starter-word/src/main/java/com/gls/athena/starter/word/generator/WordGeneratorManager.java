@@ -19,17 +19,23 @@ import java.util.List;
 public class WordGeneratorManager {
 
     /**
-     * 注入所有实现了WordGenerator接口的生成器。
+     * 注入所有实现了WordGenerator接口的生成器实例。
+     * <p>
+     * 通过Spring自动注入，支持多种Word导出实现（如模板导出、无模板导出等）。
+     * </p>
      */
     private final List<WordGenerator> generators;
 
     /**
-     * 根据注解选择合适的生成器并生成Word文档。
+     * 根据注解配置选择合适的生成器并生成Word文档。
+     * <p>
+     * 根据@WordResponse注解信息动态选择支持的WordGenerator实现，将数据导出为Word文档并写入输出流。
+     * </p>
      *
-     * @param data         需要导出的数据
-     * @param wordResponse Word导出注解信息
-     * @param outputStream 输出流
-     * @throws Exception 生成异常
+     * @param data         需要导出的数据对象
+     * @param wordResponse Word导出注解信息（包含模板、文件名等配置）
+     * @param outputStream Word文档输出流
+     * @throws Exception 生成或导出过程中发生的异常
      */
     public void generate(Object data, WordResponse wordResponse, OutputStream outputStream) throws Exception {
         WordGenerator generator = selectGenerator(wordResponse);
@@ -37,10 +43,14 @@ public class WordGeneratorManager {
     }
 
     /**
-     * 根据注解选择支持的Word生成器。
+     * 根据注解配置选择支持的Word生成器实现。
+     * <p>
+     * 遍历所有已注册的WordGenerator，找到第一个支持当前@WordResponse配置的生成器。
+     * </p>
      *
      * @param wordResponse Word导出注解信息
-     * @return 支持的Word生成器
+     * @return 支持该配置的Word生成器实例
+     * @throws RuntimeException 未找到合适的生成器时抛出
      */
     private WordGenerator selectGenerator(WordResponse wordResponse) {
         for (WordGenerator generator : generators) {

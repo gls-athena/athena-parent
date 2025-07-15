@@ -62,6 +62,17 @@ public class TemplateWordGenerator implements WordGenerator {
         return objectMapper.convertValue(data, Map.class);
     }
 
+    /**
+     * 根据模板和数据生成Word文档。
+     * <p>
+     * 使用POI-TL引擎加载指定模板，并将数据渲染到模板中，最终输出Word文档。
+     * </p>
+     *
+     * @param data         需要导出的数据对象
+     * @param wordResponse Word导出注解信息，包含模板路径等配置
+     * @param outputStream Word文档输出流
+     * @throws Exception 生成或渲染过程中发生的异常
+     */
     @Override
     public void generate(Object data, WordResponse wordResponse, OutputStream outputStream) throws Exception {
         String template = wordResponse.template();
@@ -69,10 +80,10 @@ public class TemplateWordGenerator implements WordGenerator {
             throw new IllegalArgumentException("模板路径不能为空");
         }
 
-        // 转换数据为Map格式
+        // 转换数据为Map格式，便于模板渲染
         Map<String, Object> dataMap = convertToMap(data);
 
-        // 配置POI-TL
+        // 配置POI-TL模板引擎
         Configure configure = Configure.builder()
                 .useSpringEL(false)
                 .build();
@@ -80,10 +91,10 @@ public class TemplateWordGenerator implements WordGenerator {
         try (InputStream templateStream = getTemplateInputStream(template);
              XWPFTemplate xwpfTemplate = XWPFTemplate.compile(templateStream, configure)) {
 
-            // 渲染模板
+            // 渲染模板，将数据填充到Word文档
             xwpfTemplate.render(dataMap);
 
-            // 输出到流
+            // 输出渲染后的文档到流
             xwpfTemplate.write(outputStream);
 
         } catch (Exception e) {
@@ -92,6 +103,12 @@ public class TemplateWordGenerator implements WordGenerator {
         }
     }
 
+    /**
+     * 判断是否支持当前注解配置（即模板路径不为空）。
+     *
+     * @param wordResponse Word导出注解信息
+     * @return 是否支持
+     */
     @Override
     public boolean supports(WordResponse wordResponse) {
         return StrUtil.isNotBlank(wordResponse.template());
