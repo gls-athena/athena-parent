@@ -1,4 +1,4 @@
-package com.gls.athena.starter.aliyun.oss.support;
+package com.gls.athena.starter.aliyun.oss.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

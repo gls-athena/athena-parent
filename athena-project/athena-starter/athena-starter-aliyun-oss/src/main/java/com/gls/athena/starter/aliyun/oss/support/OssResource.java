@@ -1,5 +1,8 @@
 package com.gls.athena.starter.aliyun.oss.support;
 
+import com.gls.athena.starter.aliyun.oss.service.OssClientService;
+import com.gls.athena.starter.aliyun.oss.service.OssMetadataService;
+import com.gls.athena.starter.aliyun.oss.service.OssStreamService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;

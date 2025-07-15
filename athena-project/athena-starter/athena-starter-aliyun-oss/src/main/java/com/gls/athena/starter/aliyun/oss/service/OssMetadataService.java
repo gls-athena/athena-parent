@@ -1,4 +1,4 @@
-package com.gls.athena.starter.aliyun.oss.support;
+package com.gls.athena.starter.aliyun.oss.service;
 
 import com.aliyun.oss.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
