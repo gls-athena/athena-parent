@@ -2,7 +2,6 @@ package com.gls.athena.starter.aliyun.oss.config;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import com.gls.athena.starter.aliyun.core.config.AliyunCoreProperties;
 import com.gls.athena.starter.aliyun.oss.endpoint.OssEndpoint;
 import com.gls.athena.starter.aliyun.oss.support.OssProtocolResolver;
 import com.gls.athena.starter.aliyun.oss.support.OssResourceFactory;
@@ -41,14 +40,14 @@ public class AliyunOssConfig {
         Assert.hasText(properties.getAccessKeySecret(), "AccessKeySecret must not be empty");
 
         // 处理基础AK/SK认证模式
-        if (AliyunCoreProperties.AuthMode.AS_AK.equals(properties.getAuthMode())) {
+        if (AliyunAuthEnums.AS_AK.equals(properties.getAuthMode())) {
             return new OSSClientBuilder().build(properties.getEndpoint(),
                     properties.getAccessKeyId(), properties.getAccessKeySecret(), properties.getConfig()
             );
         }
 
         // 处理STS临时凭证认证模式
-        if (AliyunCoreProperties.AuthMode.STS.equals(properties.getAuthMode())) {
+        if (AliyunAuthEnums.STS.equals(properties.getAuthMode())) {
             Assert.hasText(properties.getSecurityToken(), "SecurityToken must not be empty for STS mode");
             return new OSSClientBuilder().build(properties.getEndpoint(),
                     properties.getAccessKeyId(), properties.getAccessKeySecret(), properties.getSecurityToken(), properties.getConfig()
