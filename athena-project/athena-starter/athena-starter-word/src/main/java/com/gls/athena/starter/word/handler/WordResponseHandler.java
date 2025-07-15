@@ -1,25 +1,23 @@
 package com.gls.athena.starter.word.handler;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
 import com.gls.athena.starter.word.annotation.WordResponse;
-import com.gls.athena.starter.word.config.WordProperties;
-import com.gls.athena.starter.word.generator.WordGenerator;
 import com.gls.athena.starter.word.generator.WordGeneratorManager;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 /**
  * Word响应处理器
@@ -31,148 +29,90 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class WordResponseHandler implements HandlerMethodReturnValueHandler {
 
+    private static final int MAX_FILENAME_LENGTH = 255;
+    private static final String WORD_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    private static final String ILLEGAL_FILENAME_CHARS = "[\\x00-\\x1F\\x7F\"\\\\/:*?<>|]";
+    private static final String CONTENT_DISPOSITION_FORMAT = "attachment; filename=\"%s\"";
     private final WordGeneratorManager generatorManager;
-    private final WordProperties wordProperties;
-    private final ApplicationContext applicationContext;
 
+    /**
+     * 判断方法返回值是否支持@WordResponse注解。
+     *
+     * @param returnType 方法参数信息
+     * @return 是否支持
+     */
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {
-        return returnType.hasMethodAnnotation(WordResponse.class) ||
-                returnType.getContainingClass().isAnnotationPresent(WordResponse.class);
+        return returnType.hasMethodAnnotation(WordResponse.class);
     }
 
+    /**
+     * 处理带有@WordResponse注解的方法返回值，将数据导出为Word文档。
+     *
+     * @param returnValue  控制器方法返回值
+     * @param returnType   方法参数信息
+     * @param mavContainer ModelAndView容器
+     * @param webRequest   当前Web请求
+     * @throws Exception 处理异常
+     */
     @Override
     public void handleReturnValue(Object returnValue, MethodParameter returnType,
                                   ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
 
-        // 标记请求已处理，不再进行视图渲染
+        // 标记请求已被处理，防止其他处理器继续处理
         mavContainer.setRequestHandled(true);
 
-        // 获取注解配置
-        WordResponse wordResponse = getWordResponseAnnotation(returnType);
-        if (wordResponse == null) {
-            log.warn("未找到@WordResponse注解");
-            return;
-        }
+        // 获取@WordResponse注解配置
+        WordResponse wordResponse = Optional.ofNullable(returnType.getMethodAnnotation(WordResponse.class))
+                .orElseThrow(() -> new IllegalArgumentException("方法返回值必须使用@WordResponse注解标记"));
 
-        // 获取HttpServletResponse
-        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
-        if (response == null) {
-            log.error("无法获取HttpServletResponse");
-            return;
-        }
-
-        try {
-            // 生成文件名
-            String fileName = generateFileName(wordResponse.fileName());
-
-            // 设置响应头
-            setResponseHeaders(response, fileName);
-
-            // 获取模板路径
-            String templatePath = resolveTemplatePath(wordResponse.template());
-
-            // 生成Word文档
-            try (OutputStream outputStream = response.getOutputStream()) {
-                // 检查是否指定了自定义生成器
-                if (wordResponse.generator() != WordGenerator.class) {
-                    // 使用自定义生成器
-                    WordGenerator customGenerator = getCustomGenerator(wordResponse.generator());
-                    customGenerator.generate(returnValue, templatePath, outputStream);
-                } else {
-                    // 使用默认的生成器管理器
-                    generatorManager.generate(returnValue, templatePath, outputStream);
-                }
-                outputStream.flush();
-            }
-
-            log.info("Word文档生成成功, 文件名: {}, 模板: {}", fileName, templatePath);
-
-        } catch (Exception e) {
-            log.error("Word文档生成失败", e);
-            response.reset();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.setContentType("application/json;charset=utf-8");
-            response.getWriter().write("{\"error\":\"Word文档生成失败\"}");
+        // 创建输出流并导出Excel文件
+        try (OutputStream outputStream = createOutputStream(webRequest, wordResponse)) {
+            generatorManager.generate(returnValue, wordResponse, outputStream);
+        } catch (IOException e) {
+            log.error("导出Excel文件时发生错误", e);
+            throw e;
         }
     }
 
     /**
-     * 获取WordResponse注解
+     * 创建HTTP响应输出流，并设置响应头信息。
+     *
+     * @param webRequest   当前Web请求
+     * @param wordResponse Word导出注解信息
+     * @return 输出流
+     * @throws IOException IO异常
      */
-    private WordResponse getWordResponseAnnotation(MethodParameter returnType) {
-        WordResponse annotation = returnType.getMethodAnnotation(WordResponse.class);
-        if (annotation == null) {
-            annotation = returnType.getContainingClass().getAnnotation(WordResponse.class);
+    private OutputStream createOutputStream(NativeWebRequest webRequest, WordResponse wordResponse) throws IOException {
+        // 获取HTTP响应对象
+        HttpServletResponse response = Optional.ofNullable(webRequest.getNativeResponse(HttpServletResponse.class))
+                .orElseThrow(() -> new IllegalArgumentException("无法获取HttpServletResponse"));
+
+        String fileName = wordResponse.fileName();
+        String fileType = wordResponse.fileType();
+
+        // 验证文件名合法性
+        if (StrUtil.isBlank(fileName)) {
+            throw new IllegalArgumentException("文件名不能为空");
         }
-        return annotation;
-    }
-
-    /**
-     * 生成文件名
-     */
-    private String generateFileName(String configuredFileName) {
-        if (StringUtils.hasText(configuredFileName)) {
-            // 如果没有扩展名，添加.docx
-            if (!configuredFileName.toLowerCase().endsWith(".docx") &&
-                    !configuredFileName.toLowerCase().endsWith(".doc")) {
-                configuredFileName += ".docx";
-            }
-            return configuredFileName;
-        }
-
-        // 使用默认文件名格式：prefix_yyyyMMdd_HHmmss.docx
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        return wordProperties.getDefaultFilePrefix() + "_" + timestamp + ".docx";
-    }
-
-    /**
-     * 解析模板路径
-     */
-    private String resolveTemplatePath(String template) {
-        if (!StringUtils.hasText(template)) {
-            return null;
+        if (fileName.length() > MAX_FILENAME_LENGTH - fileType.length()) {
+            throw new IllegalArgumentException("文件名过长");
         }
 
-        // 如果是相对路径，添加默认模板路径前缀
-        if (!template.startsWith("classpath:") && !template.startsWith("/")) {
-            return wordProperties.getDefaultTemplatePath() + template;
-        }
+        // 设置响应头信息
+        response.setContentType(WORD_CONTENT_TYPE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        return template;
+        // 清理文件名中的非法字符并进行URL编码
+        String sanitizedFileName = fileName.replaceAll(ILLEGAL_FILENAME_CHARS, "_");
+        String encodedFileName = URLUtil.encode(sanitizedFileName, StandardCharsets.UTF_8);
+        String fullFileName = encodedFileName + fileType;
+
+        // 设置文件下载相关的响应头
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_FORMAT, fullFileName));
+        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+
+        return response.getOutputStream();
     }
 
-    /**
-     * 设置响应头
-     */
-    private void setResponseHeaders(HttpServletResponse response, String fileName) {
-        response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        response.setCharacterEncoding("UTF-8");
-
-        // 设置文件下载头
-        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
-        response.setHeader("Content-Disposition",
-                "attachment; filename=\"" + encodedFileName + "\"; filename*=UTF-8''" + encodedFileName);
-        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        response.setHeader("Pragma", "no-cache");
-        response.setHeader("Expires", "0");
-    }
-
-    /**
-     * 获取自定义生成器实例
-     */
-    private WordGenerator getCustomGenerator(Class<? extends WordGenerator> generatorClass) {
-        try {
-            // 先尝试从Spring容器中获取
-            return applicationContext.getBean(generatorClass);
-        } catch (Exception e) {
-            // 如果容器中没有，则创建新实例
-            try {
-                return generatorClass.getDeclaredConstructor().newInstance();
-            } catch (Exception ex) {
-                log.error("无法创建自定义生成器实例: {}", generatorClass.getName(), ex);
-                throw new RuntimeException("无法创建自定义生成器: " + generatorClass.getName(), ex);
-            }
-        }
-    }
 }

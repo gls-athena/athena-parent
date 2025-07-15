@@ -15,9 +15,14 @@ import java.lang.annotation.*;
 public @interface WordResponse {
 
     /**
-     * 文档文件名(默认使用当前时间)
+     * 文档文件名
      */
-    String fileName() default "";
+    String fileName() default "document.docx";
+
+    /**
+     * 文档文件类型(默认docx)
+     */
+    String fileType() default "docx";
 
     /**
      * 模板路径

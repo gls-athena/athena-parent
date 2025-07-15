@@ -1,8 +1,10 @@
 package com.gls.athena.starter.word.generator;
 
+import cn.hutool.core.util.StrUtil;
 import com.deepoove.poi.XWPFTemplate;
 import com.deepoove.poi.config.Configure;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gls.athena.starter.word.annotation.WordResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -24,41 +26,6 @@ import java.util.Map;
 public class TemplateWordGenerator implements WordGenerator {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Override
-    public void generate(Object data, String template, OutputStream outputStream) throws Exception {
-        if (!StringUtils.hasText(template)) {
-            throw new IllegalArgumentException("模板路径不能为空");
-        }
-
-        // 转换数据为Map格式
-        Map<String, Object> dataMap = convertToMap(data);
-
-        // 配置POI-TL
-        Configure configure = Configure.builder()
-                .useSpringEL(false)
-                .build();
-
-        try (InputStream templateStream = getTemplateInputStream(template);
-             XWPFTemplate xwpfTemplate = XWPFTemplate.compile(templateStream, configure)) {
-
-            // 渲染模板
-            xwpfTemplate.render(dataMap);
-
-            // 输出到流
-            xwpfTemplate.write(outputStream);
-
-        } catch (Exception e) {
-            log.error("生成Word文档失败，模板: {}", template, e);
-            throw new RuntimeException("生成Word文档失败", e);
-        }
-    }
-
-    @Override
-    public boolean supports(String template) {
-        return StringUtils.hasText(template) &&
-                (template.endsWith(".docx") || template.endsWith(".doc"));
-    }
 
     /**
      * 获取模板输入流
@@ -93,5 +60,40 @@ public class TemplateWordGenerator implements WordGenerator {
 
         // 使用Jackson转换为Map
         return objectMapper.convertValue(data, Map.class);
+    }
+
+    @Override
+    public void generate(Object data, WordResponse wordResponse, OutputStream outputStream) throws Exception {
+        String template = wordResponse.template();
+        if (!StringUtils.hasText(template)) {
+            throw new IllegalArgumentException("模板路径不能为空");
+        }
+
+        // 转换数据为Map格式
+        Map<String, Object> dataMap = convertToMap(data);
+
+        // 配置POI-TL
+        Configure configure = Configure.builder()
+                .useSpringEL(false)
+                .build();
+
+        try (InputStream templateStream = getTemplateInputStream(template);
+             XWPFTemplate xwpfTemplate = XWPFTemplate.compile(templateStream, configure)) {
+
+            // 渲染模板
+            xwpfTemplate.render(dataMap);
+
+            // 输出到流
+            xwpfTemplate.write(outputStream);
+
+        } catch (Exception e) {
+            log.error("生成Word文档失败，模板: {}", template, e);
+            throw new RuntimeException("生成Word文档失败", e);
+        }
+    }
+
+    @Override
+    public boolean supports(WordResponse wordResponse) {
+        return StrUtil.isNotBlank(wordResponse.template());
     }
 }

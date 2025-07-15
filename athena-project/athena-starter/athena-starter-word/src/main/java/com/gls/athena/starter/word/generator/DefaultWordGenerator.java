@@ -1,10 +1,11 @@
 package com.gls.athena.starter.word.generator;
 
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gls.athena.starter.word.annotation.WordResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.OutputStream;
 import java.util.Collection;
@@ -20,39 +21,6 @@ import java.util.Map;
 public class DefaultWordGenerator implements WordGenerator {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Override
-    public void generate(Object data, String template, OutputStream outputStream) throws Exception {
-        try (XWPFDocument document = new XWPFDocument()) {
-
-            // 添加标题
-            XWPFParagraph titleParagraph = document.createParagraph();
-            XWPFRun titleRun = titleParagraph.createRun();
-            titleRun.setText("数据报告");
-            titleRun.setBold(true);
-            titleRun.setFontSize(16);
-
-            // 添加空行
-            document.createParagraph();
-
-            // 转换数据并生成内容
-            Map<String, Object> dataMap = convertToMap(data);
-            generateContent(document, dataMap);
-
-            // 输出文档
-            document.write(outputStream);
-
-        } catch (Exception e) {
-            log.error("生成默认Word文档失败", e);
-            throw new RuntimeException("生成Word文档失败", e);
-        }
-    }
-
-    @Override
-    public boolean supports(String template) {
-        // 支持无模板或空模板
-        return !StringUtils.hasText(template);
-    }
 
     /**
      * 生成文档内容
@@ -117,5 +85,37 @@ public class DefaultWordGenerator implements WordGenerator {
 
         // 使用Jackson转换为Map
         return objectMapper.convertValue(data, Map.class);
+    }
+
+    @Override
+    public void generate(Object data, WordResponse template, OutputStream outputStream) throws Exception {
+        try (XWPFDocument document = new XWPFDocument()) {
+
+            // 添加标题
+            XWPFParagraph titleParagraph = document.createParagraph();
+            XWPFRun titleRun = titleParagraph.createRun();
+            titleRun.setText("数据报告");
+            titleRun.setBold(true);
+            titleRun.setFontSize(16);
+
+            // 添加空行
+            document.createParagraph();
+
+            // 转换数据并生成内容
+            Map<String, Object> dataMap = convertToMap(data);
+            generateContent(document, dataMap);
+
+            // 输出文档
+            document.write(outputStream);
+
+        } catch (Exception e) {
+            log.error("生成默认Word文档失败", e);
+            throw new RuntimeException("生成Word文档失败", e);
+        }
+    }
+
+    @Override
+    public boolean supports(WordResponse wordResponse) {
+        return StrUtil.isBlank(wordResponse.template()) && wordResponse.generator() == WordGenerator.class;
     }
 }
