@@ -35,26 +35,53 @@ public class DefaultWordGenerator implements WordGenerator {
      * @param dataMap  需要导出的数据，key为字段名，value为字段值
      */
     private void generateContent(XWPFDocument document, Map<String, Object> dataMap) {
-        if (dataMap.isEmpty()) {
-            XWPFParagraph paragraph = document.createParagraph();
-            XWPFRun run = paragraph.createRun();
-            run.setText("暂无数据");
-            return;
-        }
-
-        // 创建数据表格
         XWPFTable table = document.createTable();
-
         // 设置表头：字段名、值
         XWPFTableRow headerRow = table.getRow(0);
         headerRow.getCell(0).setText("字段名");
         headerRow.addNewTableCell().setText("值");
 
-        // 遍历数据，添加每一行
         for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
-            XWPFTableRow dataRow = table.createRow();
-            dataRow.getCell(0).setText(entry.getKey());
-            dataRow.getCell(1).setText(formatValue(entry.getValue()));
+            addRow(table, entry.getKey(), entry.getValue(), 0);
+        }
+        // 设置表格样式
+        beautifyTable(table);
+    }
+
+    /**
+     * 递归添加行，支持嵌套结构
+     */
+    private void addRow(XWPFTable table, String key, Object value, int level) {
+        XWPFTableRow dataRow = table.createRow();
+        String indent = "  ".repeat(level);
+        dataRow.getCell(0).setText(indent + key);
+        if (value instanceof Map<?, ?> map) {
+            dataRow.getCell(1).setText("对象(" + map.size() + "个属性)");
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                addRow(table, String.valueOf(entry.getKey()), entry.getValue(), level + 1);
+            }
+        } else if (value instanceof Collection<?> collection) {
+            dataRow.getCell(1).setText("集合(" + collection.size() + "个元素)");
+            int idx = 0;
+            for (Object item : collection) {
+                addRow(table, "[" + idx++ + "]", item, level + 1);
+            }
+        } else {
+            dataRow.getCell(1).setText(formatValue(value));
+        }
+    }
+
+    /**
+     * 美化表格样式
+     */
+    private void beautifyTable(XWPFTable table) {
+        table.setWidth("10000");
+        for (XWPFTableRow row : table.getRows()) {
+            for (XWPFTableCell cell : row.getTableCells()) {
+                cell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.CENTER);
+                cell.getCTTc().addNewTcPr().addNewShd().setFill("E7E6E6");
+                cell.getParagraphs().get(0).setSpacingAfter(0);
+            }
         }
     }
 
@@ -65,17 +92,12 @@ public class DefaultWordGenerator implements WordGenerator {
         if (value == null) {
             return "null";
         }
-
-        if (value instanceof Collection) {
-            Collection<?> collection = (Collection<?>) value;
+        if (value instanceof Collection<?> collection) {
             return "集合(" + collection.size() + "个元素)";
         }
-
-        if (value instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>) value;
+        if (value instanceof Map<?, ?> map) {
             return "对象(" + map.size() + "个属性)";
         }
-
         return String.valueOf(value);
     }
 

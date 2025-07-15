@@ -28,45 +28,47 @@ public class TemplateWordGenerator implements WordGenerator {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * 获取模板输入流
+     * 获取模板输入流，支持classpath路径。
+     *
+     * @param template 模板路径（支持classpath:前缀）
+     * @return 模板输入流
+     * @throws IOException 模板不存在或读取异常
      */
     private InputStream getTemplateInputStream(String template) throws IOException {
         Resource resource;
+        if (StrUtil.isBlank(template)) {
+            throw new IllegalArgumentException("模板路径不能为空");
+        }
         if (template.startsWith("classpath:")) {
             resource = new ClassPathResource(template.substring("classpath:".length()));
         } else {
             resource = new ClassPathResource(template);
         }
-
         if (!resource.exists()) {
             throw new IllegalArgumentException("模板文件不存在: " + template);
         }
-
         return resource.getInputStream();
     }
 
     /**
-     * 将数据对象转换为Map
+     * 将数据对象转换为Map，便于模板渲染。
+     *
+     * @param data 数据对象
+     * @return Map格式数据
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> convertToMap(Object data) {
         if (data == null) {
             return Map.of();
         }
-
         if (data instanceof Map) {
             return (Map<String, Object>) data;
         }
-
-        // 使用Jackson转换为Map
         return objectMapper.convertValue(data, Map.class);
     }
 
     /**
-     * 根据模板和数据生成Word文档。
-     * <p>
-     * 使用POI-TL引擎加载指定模板，并将数据渲染到模板中，最终输出Word文档。
-     * </p>
+     * 根据模板和数据生成Word文档，支持自定义POI-TL配置。
      *
      * @param data         需要导出的数据对象
      * @param wordResponse Word导出注解信息，包含模板路径等配置
@@ -79,24 +81,14 @@ public class TemplateWordGenerator implements WordGenerator {
         if (!StringUtils.hasText(template)) {
             throw new IllegalArgumentException("模板路径不能为空");
         }
-
-        // 转换数据为Map格式，便于模板渲染
         Map<String, Object> dataMap = convertToMap(data);
-
-        // 配置POI-TL模板引擎
         Configure configure = Configure.builder()
                 .useSpringEL(false)
                 .build();
-
         try (InputStream templateStream = getTemplateInputStream(template);
              XWPFTemplate xwpfTemplate = XWPFTemplate.compile(templateStream, configure)) {
-
-            // 渲染模板，将数据填充到Word文档
             xwpfTemplate.render(dataMap);
-
-            // 输出渲染后的文档到流
             xwpfTemplate.write(outputStream);
-
         } catch (Exception e) {
             log.error("生成Word文档失败，模板: {}", template, e);
             throw new RuntimeException("生成Word文档失败", e);
