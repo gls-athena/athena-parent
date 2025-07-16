@@ -45,6 +45,9 @@ public class WordResponseHandler implements HandlerMethodReturnValueHandler {
      * Content-Disposition 响应头格式。
      */
     private static final String CONTENT_DISPOSITION_FORMAT = "attachment; filename=\"%s\"";
+    /**
+     * Word 生成器管理器。
+     */
     private final WordGeneratorManager generatorManager;
 
     /**

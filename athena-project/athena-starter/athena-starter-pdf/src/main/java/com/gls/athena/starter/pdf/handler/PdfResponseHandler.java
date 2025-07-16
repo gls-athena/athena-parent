@@ -44,8 +44,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
     /**
      * PDF生成器管理器，负责选择合适的PDF生成器。
      */
-    @Resource
-    private PdfGeneratorManager generatorManager;
+    private final PdfGeneratorManager generatorManager;
 
     /**
      * 判断方法返回值是否支持 @PdfResponse 注解。
