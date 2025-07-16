@@ -2,17 +2,10 @@ package com.gls.athena.starter.pdf;
 
 import com.gls.athena.starter.pdf.config.PdfConfig;
 import com.gls.athena.starter.pdf.config.PdfProperties;
-import com.gls.athena.starter.pdf.generator.PdfGenerator;
-import com.gls.athena.starter.pdf.generator.PdfGeneratorManager;
-import com.gls.athena.starter.pdf.generator.UnifiedPdfGenerator;
-import com.gls.athena.starter.pdf.handler.PdfResponseHandler;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -27,24 +20,4 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableConfigurationProperties(PdfProperties.class)
 @Import({PdfConfig.class})
 public class PdfAutoConfig {
-
-    @Bean
-    @ConditionalOnMissingBean
-    public PdfGenerator pdfGenerator() {
-        return new UnifiedPdfGenerator();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public PdfGeneratorManager pdfGeneratorManager(PdfGenerator generator) {
-        return new PdfGeneratorManager(generator);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public PdfResponseHandler pdfResponseHandler(PdfGeneratorManager generatorManager,
-                                                 PdfProperties pdfProperties,
-                                                 ApplicationContext applicationContext) {
-        return new PdfResponseHandler(generatorManager, pdfProperties, applicationContext);
-    }
 }

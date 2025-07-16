@@ -143,6 +143,11 @@
                 <artifactId>athena-starter-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.gls.athena.starter.word</groupId>
+                <artifactId>athena-starter-word</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!-- Athena Security -->
             <dependency>
                 <groupId>com.gls.athena.security.core</groupId>

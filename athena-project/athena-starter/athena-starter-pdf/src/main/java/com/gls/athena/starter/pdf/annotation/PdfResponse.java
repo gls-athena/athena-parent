@@ -1,6 +1,5 @@
 package com.gls.athena.starter.pdf.annotation;
 
-import com.gls.athena.starter.pdf.config.TemplateType;
 import com.gls.athena.starter.pdf.generator.PdfGenerator;
 
 import java.lang.annotation.*;
@@ -29,14 +28,4 @@ public @interface PdfResponse {
      * 生成器类
      */
     Class<? extends PdfGenerator> generator() default PdfGenerator.class;
-
-    /**
-     * 模板类型
-     */
-    TemplateType templateType() default TemplateType.AUTO;
-
-    /**
-     * 是否内联显示（true=浏览器内显示，false=下载）
-     */
-    boolean inline() default false;
 }

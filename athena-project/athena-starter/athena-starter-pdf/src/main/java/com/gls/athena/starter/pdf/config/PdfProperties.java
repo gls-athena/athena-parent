@@ -1,7 +1,9 @@
 package com.gls.athena.starter.pdf.config;
 
+import cn.hutool.extra.template.TemplateConfig;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * PDF配置属性（简化版）
@@ -11,24 +13,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "athena.pdf")
 public class PdfProperties {
-
     /**
-     * 默认模板路径
+     * 模板配置
      */
-    private String templatePath = "classpath:templates/pdf/";
-
-    /**
-     * 默认文件名前缀
-     */
-    private String filePrefix = "document";
-
-    /**
-     * 页面大小（A4, A3, LETTER等）
-     */
-    private String pageSize = "A4";
-
-    /**
-     * 页面方向（PORTRAIT, LANDSCAPE）
-     */
-    private String orientation = "PORTRAIT";
+    @NestedConfigurationProperty
+    private TemplateConfig templateConfig = new TemplateConfig("", TemplateConfig.ResourceMode.CLASSPATH);
 }
