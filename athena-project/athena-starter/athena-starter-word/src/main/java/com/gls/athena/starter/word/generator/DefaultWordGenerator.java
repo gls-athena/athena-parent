@@ -80,7 +80,7 @@ public class DefaultWordGenerator implements WordGenerator {
             for (XWPFTableCell cell : row.getTableCells()) {
                 cell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.CENTER);
                 cell.getCTTc().addNewTcPr().addNewShd().setFill("E7E6E6");
-                cell.getParagraphs().get(0).setSpacingAfter(0);
+                cell.getParagraphs().getFirst().setSpacingAfter(0);
             }
         }
     }
