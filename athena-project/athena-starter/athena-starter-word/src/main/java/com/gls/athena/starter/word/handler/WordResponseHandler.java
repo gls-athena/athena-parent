@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
@@ -25,7 +24,6 @@ import java.util.Optional;
  * @author athena
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class WordResponseHandler implements HandlerMethodReturnValueHandler {
 

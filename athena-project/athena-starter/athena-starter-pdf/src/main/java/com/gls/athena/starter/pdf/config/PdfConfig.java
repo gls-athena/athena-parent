@@ -1,5 +1,6 @@
 package com.gls.athena.starter.pdf.config;
 
+import com.gls.athena.starter.pdf.generator.PdfGeneratorManager;
 import com.gls.athena.starter.pdf.handler.PdfResponseHandler;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -24,13 +25,13 @@ public class PdfConfig {
     private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
 
     @Resource
-    private PdfResponseHandler pdfResponseHandler;
+    private PdfGeneratorManager pdfGeneratorManager;
 
     @PostConstruct
     public void init() {
         List<HandlerMethodReturnValueHandler> returnValueHandlers = requestMappingHandlerAdapter.getReturnValueHandlers();
         List<HandlerMethodReturnValueHandler> newHandlers = new ArrayList<>();
-        newHandlers.add(pdfResponseHandler);
+        newHandlers.add(new PdfResponseHandler(pdfGeneratorManager));
         if (returnValueHandlers != null) {
             newHandlers.addAll(returnValueHandlers);
         }
