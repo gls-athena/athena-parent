@@ -103,6 +103,7 @@ public class TemplateWordGenerator implements WordGenerator {
      */
     @Override
     public boolean supports(WordResponse wordResponse) {
-        return StrUtil.isNotBlank(wordResponse.template());
+        return StrUtil.isNotBlank(wordResponse.template())
+                && wordResponse.generator() == WordGenerator.class;
     }
 }

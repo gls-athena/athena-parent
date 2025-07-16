@@ -37,5 +37,7 @@ public interface WordGenerator {
      * @param wordResponse Word导出注解信息
      * @return 是否支持该配置
      */
-    boolean supports(WordResponse wordResponse);
+    default boolean supports(WordResponse wordResponse) {
+        return wordResponse.generator().equals(this.getClass());
+    }
 }

@@ -147,6 +147,7 @@ public class DefaultWordGenerator implements WordGenerator {
 
     @Override
     public boolean supports(WordResponse wordResponse) {
-        return StrUtil.isBlank(wordResponse.template()) && wordResponse.generator() == WordGenerator.class;
+        return StrUtil.isBlank(wordResponse.template())
+                && wordResponse.generator() == WordGenerator.class;
     }
 }
