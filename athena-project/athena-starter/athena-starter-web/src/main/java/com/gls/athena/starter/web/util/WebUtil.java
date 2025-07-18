@@ -1,17 +1,24 @@
 package com.gls.athena.starter.web.util;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.extra.servlet.JakartaServletUtil;
 import cn.hutool.json.JSONUtil;
+import com.gls.athena.starter.web.enums.FileEnums;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
+import org.springframework.http.HttpHeaders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.WebUtils;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
@@ -23,6 +30,20 @@ import java.util.Optional;
  */
 @UtilityClass
 public class WebUtil {
+    /**
+     * HTTP响应头Content-Disposition的格式模板
+     */
+    private static final String CONTENT_DISPOSITION_FORMAT = "attachment;filename=%s";
+
+    /**
+     * 文件名最大长度限制
+     */
+    private static final int MAX_FILENAME_LENGTH = 255;
+
+    /**
+     * 文件名中的非法字符正则表达式
+     */
+    private static final String ILLEGAL_FILENAME_CHARS = "[\\x00-\\x1F\\x7F\"\\\\/:*?<>|]";
 
     /**
      * 将HttpServletRequest中的请求参数转换为MultiValueMap结构。
@@ -96,5 +117,48 @@ public class WebUtil {
             return JSONUtil.parseObj(body).getStr(parameterName);
         }
         return null;
+    }
+
+    /**
+     * 创建用于文件下载的输出流
+     *
+     * @param webRequest Web请求对象，用于获取HTTP响应
+     * @param fileName   文件名，用于验证并设置响应头
+     * @param fileType   文件类型，用于确定文件类型和内容类型
+     * @return OutputStream对象，用于输出文件数据
+     * @throws IOException 如果无法创建输出流
+     */
+    public OutputStream createOutputStream(NativeWebRequest webRequest, String fileName, String fileType) throws IOException {
+        // 获取HTTP响应对象
+        HttpServletResponse response = Optional.ofNullable(webRequest.getNativeResponse(HttpServletResponse.class))
+                .orElseThrow(() -> new IllegalArgumentException("无法获取HttpServletResponse"));
+
+        // 根据文件类型获取对应的文件枚举信息
+        FileEnums fileEnums = FileEnums.getFileEnums(fileType);
+        String extension = fileEnums.getExtension();
+
+        // 验证文件名合法性
+        if (StrUtil.isBlank(fileName)) {
+            throw new IllegalArgumentException("文件名不能为空");
+        }
+        if (fileName.length() > MAX_FILENAME_LENGTH - extension.length()) {
+            throw new IllegalArgumentException("文件名过长");
+        }
+
+        // 设置响应头信息
+        response.setContentType(fileEnums.getContentType());
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        // 清理文件名中的非法字符并进行URL编码
+        String sanitizedFileName = fileName.replaceAll(ILLEGAL_FILENAME_CHARS, "_");
+        String encodedFileName = URLUtil.encode(sanitizedFileName, StandardCharsets.UTF_8);
+        String fullFileName = encodedFileName + fileType;
+
+        // 设置文件下载相关的响应头
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_FORMAT, fullFileName));
+        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+
+        // 返回用于输出文件数据的输出流
+        return response.getOutputStream();
     }
 }

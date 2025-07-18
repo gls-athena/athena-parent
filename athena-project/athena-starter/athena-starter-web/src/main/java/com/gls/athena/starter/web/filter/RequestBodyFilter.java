@@ -1,4 +1,4 @@
-package com.gls.athena.starter.web.support;
+package com.gls.athena.starter.web.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

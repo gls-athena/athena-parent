@@ -14,17 +14,13 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.gls.athena.starter.web</groupId>
+            <artifactId>athena-starter-web</artifactId>
+        </dependency>
+        <dependency>
             <groupId>net.sf.jasperreports</groupId>
             <artifactId>jasperreports</artifactId>
             <version>7.0.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
         </dependency>
     </dependencies>
 

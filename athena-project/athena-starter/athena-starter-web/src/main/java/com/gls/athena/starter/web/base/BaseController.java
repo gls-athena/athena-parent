@@ -5,14 +5,10 @@ import com.gls.athena.common.bean.page.PageRequest;
 import com.gls.athena.common.bean.page.PageResponse;
 import com.gls.athena.common.core.base.IFeign;
 import com.gls.athena.common.core.base.IService;
-import com.gls.athena.starter.excel.annotation.ExcelRequest;
-import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
@@ -112,31 +108,6 @@ public abstract class BaseController<Vo extends BaseVo, S extends IService<Vo>> 
     @Operation(summary = "批量保存", description = "批量保存")
     public Boolean saveBatch(@RequestBody @Validated List<Vo> vos) {
         return service.saveBatch(vos);
-    }
-
-    /**
-     * 导入Excel数据
-     *
-     * @param vos 从Excel解析的视图对象列表
-     * @return 导入结果
-     */
-    @Operation(summary = "导入", description = "导入")
-    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Boolean importExcel(@ExcelRequest List<Vo> vos) {
-        return service.saveBatch(vos);
-    }
-
-    /**
-     * 导出数据到Excel
-     *
-     * @param vo 包含导出查询条件的视图对象
-     * @return 查询结果列表，将转换为Excel文件
-     */
-    @Operation(summary = "导出", description = "导出")
-    @PostMapping(value = "/export")
-    @ExcelResponse(filename = "导出数据")
-    public List<Vo> exportExcel(@RequestBody @Validated Vo vo) {
-        return service.list(vo);
     }
 
 }

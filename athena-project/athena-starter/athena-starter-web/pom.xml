@@ -22,10 +22,5 @@
             <artifactId>swagger-annotations-jakarta</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.gls.athena.starter.excel</groupId>
-            <artifactId>athena-starter-excel</artifactId>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 </project>
