@@ -2,14 +2,19 @@ package com.gls.athena.starter.pdf.generator;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.template.TemplateConfig;
 import cn.hutool.extra.template.TemplateUtil;
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import com.gls.athena.starter.pdf.config.PdfProperties;
+import com.lowagie.text.pdf.BaseFont;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.openpdf.pdf.ITextFontResolver;
 import org.openpdf.pdf.ITextRenderer;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
@@ -64,15 +69,16 @@ public class TemplatePdfGenerator implements PdfGenerator {
     private void generateHtmlPdf(Object data, String template, OutputStream outputStream) {
         try {
             // 渲染HTML模板
-            String templatePath = template.startsWith("classpath:") ?
-                    template.substring("classpath:".length()) : template;
+            TemplateConfig templateConfig = new TemplateConfig(pdfProperties.getCharset(), pdfProperties.getTemplatePath(), pdfProperties.getResourceMode());
 
-            String html = TemplateUtil.createEngine(pdfProperties.getTemplateConfig())
-                    .getTemplate(templatePath)
+            String html = TemplateUtil.createEngine(templateConfig)
+                    .getTemplate(template)
                     .render(convertToMap(data));
 
             // HTML转PDF
             ITextRenderer renderer = new ITextRenderer();
+            // 设置字体解析器，添加所需的字体文件
+            addClasspathFonts(renderer, pdfProperties.getFontPath());
             renderer.setDocumentFromString(html);
             renderer.layout();
             renderer.createPDF(outputStream);
@@ -98,5 +104,52 @@ public class TemplatePdfGenerator implements PdfGenerator {
             return map;
         }
         return BeanUtil.beanToMap(data);
+    }
+
+    /**
+     * 为ITextRenderer添加类路径下的字体资源
+     * <p>
+     * 该方法从类路径的/fonts目录加载字体文件，并将其添加到渲染器的字体解析器中。
+     * 字体将使用IDENTITY_H编码（支持Unicode字符）且不嵌入PDF文档。
+     *
+     * @param renderer 需要添加字体的ITextRenderer实例
+     * @param fontPath 字体路径，默认为"fonts"
+     * @throws IOException 如果无法读取字体目录或字体文件时抛出
+     */
+    private void addClasspathFonts(ITextRenderer renderer, String fontPath) throws IOException {
+
+        // 标准化路径处理
+        String path = normalizeClasspathPath(fontPath);
+
+        org.springframework.core.io.Resource[] resources = new PathMatchingResourcePatternResolver()
+                .getResources("classpath:" + path + "*.*");
+
+        ITextFontResolver fontResolver = renderer.getFontResolver();
+        for (org.springframework.core.io.Resource font : resources) {
+            try {
+                log.debug("加载字体: {}", font.getFile().getAbsolutePath());
+                fontResolver.addFont(font.getFile().getAbsolutePath(),
+                        BaseFont.IDENTITY_H,
+                        BaseFont.NOT_EMBEDDED);
+            } catch (IOException e) {
+                log.warn("无法加载字体: {}", font.getFile().getAbsolutePath(), e);
+            }
+        }
+    }
+
+    private String normalizeClasspathPath(String path) {
+        if (StrUtil.isBlank(path)) {
+            return "";
+        }
+
+        // 去除前后空白和斜杠
+        path = path.trim().replaceAll("^/+|/+$", "");
+
+        // 如果路径不为空，则在末尾添加一个斜杠
+        if (!path.isEmpty()) {
+            path += "/";
+        }
+
+        return path;
     }
 }
