@@ -129,36 +129,35 @@ public class WebUtil {
      * @throws IOException 如果无法创建输出流
      */
     public OutputStream createOutputStream(NativeWebRequest webRequest, String fileName, String fileType) throws IOException {
-        // 获取HTTP响应对象
-        HttpServletResponse response = Optional.ofNullable(webRequest.getNativeResponse(HttpServletResponse.class))
-                .orElseThrow(() -> new IllegalArgumentException("无法获取HttpServletResponse"));
-
-        // 根据文件类型获取对应的文件枚举信息
-        FileEnums fileEnums = FileEnums.getFileEnums(fileType);
-        String extension = fileEnums.getExtension();
-
-        // 验证文件名合法性
         if (StrUtil.isBlank(fileName)) {
             throw new IllegalArgumentException("文件名不能为空");
         }
-        if (fileName.length() > MAX_FILENAME_LENGTH - extension.length()) {
+        FileEnums fileEnums = FileEnums.getFileEnums(fileType);
+        if (fileEnums == null) {
+            throw new IllegalArgumentException("不支持的文件类型: " + fileType);
+        }
+
+        // 清理非法字符，拼接扩展名
+        String sanitizedFileName = fileName.replaceAll(ILLEGAL_FILENAME_CHARS, "_");
+        String fullFileName = sanitizedFileName + fileEnums.getExtension();
+
+        if (fullFileName.length() > MAX_FILENAME_LENGTH) {
             throw new IllegalArgumentException("文件名过长");
         }
 
-        // 设置响应头信息
+        // URL编码
+        String encodedFileName = URLUtil.encode(fullFileName, StandardCharsets.UTF_8);
+
+        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+        if (response == null) {
+            throw new IllegalArgumentException("HttpServletResponse获取失败");
+        }
+
         response.setContentType(fileEnums.getContentType());
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
-        // 清理文件名中的非法字符并进行URL编码
-        String sanitizedFileName = fileName.replaceAll(ILLEGAL_FILENAME_CHARS, "_");
-        String encodedFileName = URLUtil.encode(sanitizedFileName, StandardCharsets.UTF_8);
-        String fullFileName = encodedFileName + fileType;
-
-        // 设置文件下载相关的响应头
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_FORMAT, fullFileName));
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_FORMAT, encodedFileName));
         response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
 
-        // 返回用于输出文件数据的输出流
         return response.getOutputStream();
     }
 }
