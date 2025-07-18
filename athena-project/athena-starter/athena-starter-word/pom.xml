@@ -12,14 +12,9 @@
     <groupId>com.gls.athena.starter.word</groupId>
     <artifactId>athena-starter-word</artifactId>
     <dependencies>
-        <!-- Spring Web -->
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
+            <groupId>com.gls.athena.starter.web</groupId>
+            <artifactId>athena-starter-web</artifactId>
         </dependency>
         <dependency>
             <groupId>com.deepoove</groupId>
@@ -27,5 +22,4 @@
             <version>1.12.2</version>
         </dependency>
     </dependencies>
-
 </project>
