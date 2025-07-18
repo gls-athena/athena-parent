@@ -1,5 +1,6 @@
 package com.gls.athena.starter.excel.config;
 
+import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
 import com.gls.athena.starter.excel.handler.ExcelRequestHandler;
 import com.gls.athena.starter.excel.handler.ExcelResponseHandler;
 import jakarta.annotation.PostConstruct;
@@ -28,6 +29,8 @@ public class ExcelConfig {
 
     @Resource
     private RequestMappingHandlerAdapter handlerAdapter;
+    @Resource
+    private ExcelGeneratorManager excelGeneratorManager;
 
     /**
      * 初始化Excel处理器配置
@@ -79,7 +82,7 @@ public class ExcelConfig {
     private void initReturnValueHandlers() {
         // 创建一个新的返回值处理器列表，并添加默认的ExcelResponseHandler
         List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
-        handlers.add(new ExcelResponseHandler());
+        handlers.add(new ExcelResponseHandler(excelGeneratorManager));
 
         // 如果handlerAdapter中已经存在返回值处理器，则将其添加到列表中
         if (handlerAdapter.getReturnValueHandlers() != null) {
