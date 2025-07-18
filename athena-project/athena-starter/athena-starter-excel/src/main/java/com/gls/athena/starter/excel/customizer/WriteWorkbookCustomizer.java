@@ -12,32 +12,53 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 
 /**
- * Excel工作簿写入转换器
- * <p>
- * 用于将ExcelResponse注解配置转换为EasyExcel的WriteWorkbook参数对象，
- * 并创建ExcelWriter实例用于Excel文件的写入操作。
- * 支持模板、字符编码、密码保护、内存模式等高级配置。
- * </p>
+ * WriteWorkbook自定义配置类
+ * 用于根据ExcelResponse注解的配置来定制WriteWorkbook实例
  *
- * @author athena-starter-excel
- * @since 1.0.0
+ * @author lizy19
  */
 public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> {
 
+    /**
+     * Excel响应配置
+     */
     private final ExcelResponse excelResponse;
+    /**
+     * 输出流
+     */
     private final OutputStream outputStream;
 
+    /**
+     * 私有构造方法，使用ExcelResponse和输出流初始化WriteWorkbookCustomizer实例
+     *
+     * @param excelResponse Excel响应配置
+     * @param outputStream  输出流
+     */
     private WriteWorkbookCustomizer(ExcelResponse excelResponse, OutputStream outputStream) {
         super(excelResponse.config());
         this.excelResponse = excelResponse;
         this.outputStream = outputStream;
     }
 
+    /**
+     * 获取ExcelWriter实例
+     *
+     * @param excelResponse Excel响应配置
+     * @param outputStream  输出流
+     * @return ExcelWriter实例
+     */
     public static ExcelWriter getExcelWriter(ExcelResponse excelResponse, OutputStream outputStream) {
         WriteWorkbook writeWorkbook = getWriteWorkbook(excelResponse, outputStream);
         return new ExcelWriter(writeWorkbook);
     }
 
+    /**
+     * 获取配置好的WriteWorkbook实例
+     *
+     * @param excelResponse Excel响应配置
+     * @param outputStream  输出流
+     * @return 配置好的WriteWorkbook实例
+     */
     public static WriteWorkbook getWriteWorkbook(ExcelResponse excelResponse, OutputStream outputStream) {
         WriteWorkbook writeWorkbook = new WriteWorkbook();
         WriteWorkbookCustomizer writeWorkbookCustomizer = new WriteWorkbookCustomizer(excelResponse, outputStream);
@@ -45,6 +66,11 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
         return writeWorkbook;
     }
 
+    /**
+     * 自定义WriteWorkbook的写入配置
+     *
+     * @param writeWorkbook 待配置的WriteWorkbook实例
+     */
     @SneakyThrows
     @Override
     protected void customizeWrite(WriteWorkbook writeWorkbook) {

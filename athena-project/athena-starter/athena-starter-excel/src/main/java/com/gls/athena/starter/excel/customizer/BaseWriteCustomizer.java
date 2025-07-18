@@ -13,21 +13,21 @@ import org.springframework.beans.BeanUtils;
 import java.util.*;
 
 /**
- * Excel写入基础参数转换器
- * <p>
- * 用于将ExcelConfig注解配置转换为EasyExcel的WriteBasicParameter参数对象
- * 支持基础参数配置和写入相关参数配置的转换
- * </p>
+ * 抽象的Excel写入自定义类，提供了一些默认的自定义行为
  *
- * @param <Parameter> 继承自WriteBasicParameter的参数类型
- * @author athena-starter-excel
- * @since 1.0.0
+ * @param <Parameter> 扩展WriteBasicParameter的参数类型
+ * @author lizy19
  */
 @RequiredArgsConstructor
 public abstract class BaseWriteCustomizer<Parameter extends WriteBasicParameter> implements ICustomizer<Parameter> {
 
     private final ExcelConfig config;
 
+    /**
+     * 执行自定义行为，包括基础设置、写入基础设置和特定于写的设置
+     *
+     * @param parameter 扩展WriteBasicParameter的参数实例
+     */
     @Override
     public void customize(Parameter parameter) {
         customizeBasic(parameter);
@@ -36,22 +36,16 @@ public abstract class BaseWriteCustomizer<Parameter extends WriteBasicParameter>
     }
 
     /**
-     * 配置写入参数
-     * <p>
-     * 包括自定义处理器、样式、合并等写入时的特定配置
-     * </p>
+     * 子类需要实现的方法，用于执行特定于写的自定义行为
      *
-     * @param parameter 写入基础参数对象
+     * @param parameter 扩展WriteBasicParameter的参数实例
      */
     protected abstract void customizeWrite(Parameter parameter);
 
     /**
-     * 转换基础参数配置
-     * <p>
-     * 包括表头、实体类、转换器、本地化、缓存等基础配置
-     * </p>
+     * 设置一些基本的参数，如表头、实体类、转换器等
      *
-     * @param parameter 写入基础参数对象
+     * @param parameter 扩展WriteBasicParameter的参数实例
      */
     private void customizeBasic(Parameter parameter) {
         // 设置表头信息，支持多级表头（用逗号分隔）
@@ -102,12 +96,9 @@ public abstract class BaseWriteCustomizer<Parameter extends WriteBasicParameter>
     }
 
     /**
-     * 转换写入相关的基础参数
-     * <p>
-     * 包括表头、列包含/排除、样式、合并等写入时的特定配置
-     * </p>
+     * 设置一些写入相关的基础参数，如表头行索引、是否需要表头、写入处理器等
      *
-     * @param parameter 写入基础参数对象
+     * @param parameter 扩展WriteBasicParameter的参数实例
      */
     private void customizeWriteBasic(Parameter parameter) {
         // 设置相对表头行索引
