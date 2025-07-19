@@ -27,7 +27,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
     /**
      * Excel生成管理器，用于生成Excel文件
      */
-    private final ExcelGeneratorManager excelGeneratorManager;
+    private final ExcelGeneratorManager generatorManager;
 
     /**
      * 判断处理器是否支持处理该返回类型
@@ -61,7 +61,7 @@ public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
 
         // 创建输出流并导出Excel文件
         try (OutputStream outputStream = WebUtil.createOutputStream(webRequest, excelResponse.filename(), excelResponse.excelType().getValue())) {
-            excelGeneratorManager.generate(returnValue, excelResponse, outputStream);
+            generatorManager.generate(returnValue, excelResponse, outputStream);
         } catch (IOException e) {
             log.error("导出Excel文件时发生错误", e);
             throw e;
