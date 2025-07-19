@@ -2,6 +2,7 @@ package com.gls.athena.starter.pdf.handler;
 
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import com.gls.athena.starter.pdf.generator.PdfGeneratorManager;
+import com.gls.athena.starter.web.enums.FileEnums;
 import com.gls.athena.starter.web.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,11 +62,11 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
         PdfResponse pdfResponse = Optional.ofNullable(returnType.getMethodAnnotation(PdfResponse.class))
                 .orElseThrow(() -> new IllegalArgumentException("方法返回值必须使用@PdfResponse注解标记"));
 
-        // 创建输出流并导出 Word 文件
-        try (OutputStream outputStream = WebUtil.createOutputStream(webRequest, pdfResponse.fileName(), ".pdf")) {
+        // 创建输出流并导出 PDF 文件
+        try (OutputStream outputStream = WebUtil.createOutputStream(webRequest, pdfResponse.fileName(), FileEnums.PDF)) {
             generatorManager.generate(returnValue, pdfResponse, outputStream);
         } catch (IOException e) {
-            log.error("导出 Word 文件时发生错误", e);
+            log.error("导出 PDF 文件时发生错误", e);
             throw e;
         }
     }
