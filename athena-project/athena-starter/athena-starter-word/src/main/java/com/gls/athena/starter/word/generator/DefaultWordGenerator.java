@@ -24,27 +24,92 @@ import java.util.Map;
 public class DefaultWordGenerator implements WordGenerator {
 
     /**
+     * 通用配置key（可通过数据Map传递）
+     */
+    private static final String KEY_TITLE = "_title";
+    private static final String KEY_HEADERS = "_headers";
+    private static final String KEY_FIELDS = "_fields";
+    private static final String KEY_EMPTY_MSG = "_emptyMsg";
+    private static final String DEFAULT_TITLE = "数据报告";
+    private static final String DEFAULT_EMPTY_MSG = "无数据";
+    private static final String[] DEFAULT_HEADERS = {"字段名", "值"};
+    /**
      * Jackson对象映射器，用于对象与Map的转换。
      */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private Collection<String> safeGetFields(Object fieldsObj) {
+        if (fieldsObj instanceof Collection<?> raw) {
+            boolean allString = raw.stream().allMatch(o -> o instanceof String);
+            if (allString) {
+                @SuppressWarnings("unchecked")
+                Collection<String> casted = (Collection<String>) raw;
+                return casted;
+            }
+        }
+        return null;
+    }
+
     /**
-     * 生成Word文档内容，将数据以表格形式写入。
-     *
-     * @param document Word文档对象
-     * @param dataMap  需要导出的数据，key为字段名，value为字段值
+     * 生成Word文档内容，支持自定义标题、表头、字段顺序、空数据提示。
      */
     private void generateContent(XWPFDocument document, Map<String, Object> dataMap) {
-        XWPFTable table = document.createTable();
-        // 设置表头：字段名、值
-        XWPFTableRow headerRow = table.getRow(0);
-        headerRow.getCell(0).setText("字段名");
-        headerRow.addNewTableCell().setText("值");
+        // 处理自定义标题
+        String title = dataMap.containsKey(KEY_TITLE) ? String.valueOf(dataMap.get(KEY_TITLE)) : DEFAULT_TITLE;
+        // 添加标题
+        XWPFParagraph titleParagraph = document.createParagraph();
+        XWPFRun titleRun = titleParagraph.createRun();
+        titleRun.setText(title);
+        titleRun.setBold(true);
+        titleRun.setFontSize(16);
+        document.createParagraph(); // 空行
 
-        for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
-            addRow(table, entry.getKey(), entry.getValue(), 0);
+        // 处理自定义表头
+        String[] headers = dataMap.containsKey(KEY_HEADERS) ?
+                ((Collection<?>) dataMap.get(KEY_HEADERS)).stream().map(String::valueOf).toArray(String[]::new)
+                : DEFAULT_HEADERS;
+
+        // 处理字段顺序（类型安全）
+        Collection<String> fields = dataMap.containsKey(KEY_FIELDS) ?
+                safeGetFields(dataMap.get(KEY_FIELDS)) : null;
+
+        // 过滤掉配置key
+        Map<String, Object> realData = dataMap.entrySet().stream()
+                .filter(e -> !e.getKey().startsWith("_"))
+                .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        XWPFTable table = document.createTable();
+        // 设置表头
+        XWPFTableRow headerRow = table.getRow(0);
+        for (int i = 0; i < headers.length; i++) {
+            if (i == 0) {
+                headerRow.getCell(0).setText(headers[0]);
+            } else {
+                headerRow.addNewTableCell().setText(headers[i]);
+            }
         }
-        // 设置表格样式
+
+        if (realData.isEmpty()) {
+            // 空数据友好提示
+            XWPFTableRow row = table.createRow();
+            row.getCell(0).setText(dataMap.containsKey(KEY_EMPTY_MSG) ? String.valueOf(dataMap.get(KEY_EMPTY_MSG)) : DEFAULT_EMPTY_MSG);
+            for (int i = 1; i < headers.length; i++) {
+                row.addNewTableCell().setText("");
+            }
+        } else {
+            // 按字段顺序输出
+            if (fields != null && !fields.isEmpty()) {
+                for (String key : fields) {
+                    if (realData.containsKey(key)) {
+                        addRow(table, key, realData.get(key), 0);
+                    }
+                }
+            } else {
+                for (Map.Entry<String, Object> entry : realData.entrySet()) {
+                    addRow(table, entry.getKey(), entry.getValue(), 0);
+                }
+            }
+        }
         beautifyTable(table);
     }
 
@@ -119,26 +184,12 @@ public class DefaultWordGenerator implements WordGenerator {
     }
 
     @Override
-    public void generate(Object data, WordResponse template, OutputStream outputStream) throws Exception {
+    public void generate(Object data, WordResponse template, OutputStream outputStream) {
         try (XWPFDocument document = new XWPFDocument()) {
-
-            // 添加标题
-            XWPFParagraph titleParagraph = document.createParagraph();
-            XWPFRun titleRun = titleParagraph.createRun();
-            titleRun.setText("数据报告");
-            titleRun.setBold(true);
-            titleRun.setFontSize(16);
-
-            // 添加空行
-            document.createParagraph();
-
             // 转换数据并生成内容
             Map<String, Object> dataMap = convertToMap(data);
             generateContent(document, dataMap);
-
-            // 输出文档
             document.write(outputStream);
-
         } catch (Exception e) {
             log.error("生成默认Word文档失败", e);
             throw new RuntimeException("生成Word文档失败", e);
