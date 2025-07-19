@@ -4,7 +4,7 @@ import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
  * @author athena
  */
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class PdfGeneratorManager {
 

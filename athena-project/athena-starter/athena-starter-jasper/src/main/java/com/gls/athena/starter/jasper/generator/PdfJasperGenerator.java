@@ -9,6 +9,7 @@ import com.gls.athena.starter.web.enums.FileEnums;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
+import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
 
@@ -18,6 +19,7 @@ import java.io.OutputStream;
  *
  * @author george
  */
+@Component
 public class PdfJasperGenerator implements JasperGenerator {
     /**
      * 将报表导出到PDF格式的输出流中

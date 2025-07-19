@@ -9,6 +9,7 @@ import com.gls.athena.starter.web.enums.FileEnums;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
+import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
 
@@ -17,6 +18,7 @@ import java.io.OutputStream;
  *
  * @author george
  */
+@Component
 public class HtmlJasperGenerator implements JasperGenerator {
     /**
      * 导出JasperPrint对象到HTML格式的输出流
