@@ -1,5 +1,6 @@
 package com.gls.athena.starter.word.annotation;
 
+import com.gls.athena.starter.web.enums.FileEnums;
 import com.gls.athena.starter.word.generator.WordGenerator;
 
 import java.lang.annotation.*;
@@ -22,7 +23,7 @@ public @interface WordResponse {
     /**
      * 文档文件类型(默认docx)
      */
-    String fileType() default "docx";
+    FileEnums fileType() default FileEnums.DOCX;
 
     /**
      * 模板路径

@@ -1,14 +1,15 @@
 package com.gls.athena.starter.jasper.config;
 
+import com.gls.athena.starter.jasper.generator.JasperGeneratorManager;
 import com.gls.athena.starter.jasper.handler.JasperResponseHandler;
-import com.gls.athena.starter.jasper.service.DataConversionService;
-import com.gls.athena.starter.jasper.service.JasperReportService;
-import com.gls.athena.starter.jasper.service.JasperResponseService;
-import com.gls.athena.starter.jasper.strategy.IReportHandler;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.context.annotation.Bean;
+import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,38 +20,20 @@ import java.util.List;
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class JasperConfig {
+    @Resource
+    private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
 
-    /**
-     * 创建数据转换服务Bean
-     */
-    @Bean
-    public DataConversionService dataConversionService() {
-        return new DataConversionService();
-    }
+    @Resource
+    private JasperGeneratorManager jasperGeneratorManager;
 
-    /**
-     * 创建Jasper报告服务Bean
-     */
-    @Bean
-    public JasperReportService jasperReportService(List<IReportHandler> reportHandlers) {
-        return new JasperReportService(reportHandlers);
-    }
-
-    /**
-     * 创建Jasper响应服务Bean
-     */
-    @Bean
-    public JasperResponseService jasperResponseService() {
-        return new JasperResponseService();
-    }
-
-    /**
-     * 创建Jasper响应处理器Bean
-     */
-    @Bean
-    public JasperResponseHandler jasperResponseHandler(JasperReportService jasperReportService,
-                                                       JasperResponseService jasperResponseService,
-                                                       DataConversionService dataConversionService) {
-        return new JasperResponseHandler(jasperReportService, jasperResponseService, dataConversionService);
+    @PostConstruct
+    public void init() {
+        List<HandlerMethodReturnValueHandler> returnValueHandlers = requestMappingHandlerAdapter.getReturnValueHandlers();
+        List<HandlerMethodReturnValueHandler> newHandlers = new ArrayList<>();
+        newHandlers.add(new JasperResponseHandler(jasperGeneratorManager));
+        if (returnValueHandlers != null) {
+            newHandlers.addAll(returnValueHandlers);
+        }
+        requestMappingHandlerAdapter.setReturnValueHandlers(newHandlers);
     }
 }

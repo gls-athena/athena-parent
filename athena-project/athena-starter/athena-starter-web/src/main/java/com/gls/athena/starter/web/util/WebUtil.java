@@ -124,17 +124,16 @@ public class WebUtil {
      *
      * @param webRequest Web请求对象，用于获取HTTP响应
      * @param fileName   文件名，用于验证并设置响应头
-     * @param fileType   文件类型，用于确定文件类型和内容类型
+     * @param fileEnums  文件类型，用于确定文件类型和内容类型
      * @return OutputStream对象，用于输出文件数据
      * @throws IOException 如果无法创建输出流
      */
-    public OutputStream createOutputStream(NativeWebRequest webRequest, String fileName, String fileType) throws IOException {
+    public OutputStream createOutputStream(NativeWebRequest webRequest, String fileName, FileEnums fileEnums) throws IOException {
         if (StrUtil.isBlank(fileName)) {
             throw new IllegalArgumentException("文件名不能为空");
         }
-        FileEnums fileEnums = FileEnums.getFileEnums(fileType);
         if (fileEnums == null) {
-            throw new IllegalArgumentException("不支持的文件类型: " + fileType);
+            throw new IllegalArgumentException("不支持的文件类型: " + fileEnums);
         }
 
         // 清理非法字符，拼接扩展名
@@ -160,4 +159,23 @@ public class WebUtil {
 
         return response.getOutputStream();
     }
+
+    /**
+     * 创建输出流方法
+     * 该方法用于根据文件类型和文件名创建一个合适的输出流
+     * 主要用于处理文件下载或生成时的流创建
+     *
+     * @param webRequest 用于处理Web请求的对象，提供对HTTP请求的访问
+     * @param filename   文件名，用于设置Content-Disposition头中的文件名
+     * @param fileType   文件类型，用于确定使用哪种文件枚举类型
+     * @return OutputStream 返回一个输出流对象，用于写入文件数据
+     * @throws IOException 如果创建输出流时发生I/O错误
+     */
+    public OutputStream createOutputStream(NativeWebRequest webRequest, String filename, String fileType) throws IOException {
+        // 根据文件类型获取对应的文件枚举类型
+        FileEnums fileEnums = FileEnums.getFileEnums(fileType);
+        // 调用WebUtil工具类的方法创建输出流
+        return createOutputStream(webRequest, filename, fileEnums);
+    }
+
 }

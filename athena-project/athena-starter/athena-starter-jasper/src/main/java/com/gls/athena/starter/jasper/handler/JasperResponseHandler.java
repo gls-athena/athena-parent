@@ -1,9 +1,8 @@
 package com.gls.athena.starter.jasper.handler;
 
 import com.gls.athena.starter.jasper.annotation.JasperResponse;
-import com.gls.athena.starter.jasper.service.DataConversionService;
-import com.gls.athena.starter.jasper.service.JasperReportService;
-import com.gls.athena.starter.jasper.service.JasperResponseService;
+import com.gls.athena.starter.jasper.generator.JasperGeneratorManager;
+import com.gls.athena.starter.web.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -13,7 +12,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
+import java.util.Optional;
 
 /**
  * Jasper响应处理器 - 专门负责Spring MVC返回值处理
@@ -24,9 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JasperResponseHandler implements HandlerMethodReturnValueHandler {
 
-    private final JasperReportService jasperReportService;
-    private final JasperResponseService jasperResponseService;
-    private final DataConversionService dataConversionService;
+    private final JasperGeneratorManager generatorManager;
 
     /**
      * 判断是否支持返回类型
@@ -42,45 +39,19 @@ public class JasperResponseHandler implements HandlerMethodReturnValueHandler {
     @Override
     public void handleReturnValue(Object returnValue, MethodParameter returnType,
                                   ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-        // 标记请求已处理
+        // 标记请求已被处理，防止其他处理器继续处理
         mavContainer.setRequestHandled(true);
 
-        // 获取注解配置
-        JasperResponse jasperResponse = getJasperResponse(returnType);
+        // 获取 @PdfResponse 注解配置
+        JasperResponse jasperResponse = Optional.ofNullable(returnType.getMethodAnnotation(JasperResponse.class))
+                .orElseThrow(() -> new IllegalArgumentException("方法返回值必须使用@JasperResponse注解标记"));
 
-        // 转换数据格式
-        Map<String, Object> reportData = dataConversionService.convertToReportData(returnValue);
-
-        // 验证数据完整性
-        if (!dataConversionService.validateReportData(reportData)) {
-            throw new IllegalArgumentException("报告数据验证失败");
-        }
-
-        // 处理报告生成和响应
-        processReportGeneration(reportData, jasperResponse, webRequest);
-    }
-
-    /**
-     * 获取JasperResponse注解
-     */
-    private JasperResponse getJasperResponse(MethodParameter returnType) {
-        JasperResponse jasperResponse = returnType.getMethodAnnotation(JasperResponse.class);
-        if (jasperResponse == null) {
-            throw new IllegalArgumentException("方法未添加@JasperResponse注解");
-        }
-        return jasperResponse;
-    }
-
-    /**
-     * 处理报告生成
-     */
-    private void processReportGeneration(Map<String, Object> reportData, JasperResponse jasperResponse,
-                                         NativeWebRequest webRequest) throws IOException {
-        try (OutputStream outputStream = jasperResponseService.configureResponseAndGetOutputStream(webRequest, jasperResponse)) {
-            jasperReportService.generateReport(reportData, outputStream, jasperResponse);
+        // 创建输出流并导出 Word 文件
+        try (OutputStream outputStream = WebUtil.createOutputStream(webRequest, jasperResponse.filename(), jasperResponse.fileType())) {
+            generatorManager.generate(returnValue, jasperResponse, outputStream);
         } catch (IOException e) {
-            log.error("处理Jasper响应失败: {}", jasperResponse.template(), e);
-            throw new RuntimeException("处理失败", e);
+            log.error("导出 Word 文件时发生错误", e);
+            throw e;
         }
     }
 }

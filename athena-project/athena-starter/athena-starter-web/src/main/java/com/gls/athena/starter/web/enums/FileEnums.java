@@ -42,6 +42,14 @@ public enum FileEnums implements IEnum<String> {
      */
     PPT("ppt", "PPT文件", ".ppt", "application/vnd.ms-powerpoint"),
     /**
+     * HTML文件
+     */
+    HTML("html", "HTML文件", ".html", "text/html"),
+    /**
+     * XML文件
+     */
+    XML("xml", "XML文件", ".xml", "application/xml"),
+    /**
      * 默认文件类型
      */
     DEFAULT("default", "默认文件类型", ".txt", "application/octet-stream"),

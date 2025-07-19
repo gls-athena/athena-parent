@@ -1,6 +1,7 @@
 package com.gls.athena.starter.jasper.annotation;
 
-import com.gls.athena.starter.jasper.config.ReportType;
+import com.gls.athena.starter.jasper.generator.JasperGenerator;
+import com.gls.athena.starter.web.enums.FileEnums;
 
 import java.lang.annotation.*;
 
@@ -19,13 +20,18 @@ public @interface JasperResponse {
     String filename() default "document";
 
     /**
+     * 文件类型
+     */
+    FileEnums fileType() default FileEnums.PDF;
+
+    /**
      * 模板名
      */
     String template() default "";
 
     /**
-     * 模板类型
+     * 生成器
      */
-    ReportType reportType() default ReportType.PDF;
+    Class<? extends JasperGenerator> generator() default JasperGenerator.class;
 
 }

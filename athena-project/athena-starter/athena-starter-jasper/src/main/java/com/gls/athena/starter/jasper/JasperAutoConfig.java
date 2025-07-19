@@ -1,7 +1,5 @@
 package com.gls.athena.starter.jasper;
 
-import com.gls.athena.starter.jasper.config.JasperProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,6 +10,5 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan
-@EnableConfigurationProperties(JasperProperties.class)
 public class JasperAutoConfig {
 }
