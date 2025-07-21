@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.Arrays;
 
 /**
- * @author lizy19
+ * @author george
  */
 
 @Getter

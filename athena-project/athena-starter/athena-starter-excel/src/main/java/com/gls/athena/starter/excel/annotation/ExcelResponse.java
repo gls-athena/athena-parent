@@ -9,7 +9,7 @@ import java.lang.annotation.*;
  * 用于标记方法将响应以Excel形式返回的注解
  * 提供了一系列配置选项，以定制Excel的生成和响应行为
  *
- * @author lizy19
+ * @author george
  */
 @Documented
 @Target({ElementType.METHOD})

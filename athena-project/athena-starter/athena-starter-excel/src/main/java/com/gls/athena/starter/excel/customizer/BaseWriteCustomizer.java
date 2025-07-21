@@ -16,7 +16,7 @@ import java.util.*;
  * 抽象的Excel写入自定义类，提供了一些默认的自定义行为
  *
  * @param <Parameter> 扩展WriteBasicParameter的参数类型
- * @author lizy19
+ * @author george
  */
 @RequiredArgsConstructor
 public abstract class BaseWriteCustomizer<Parameter extends WriteBasicParameter> implements ICustomizer<Parameter> {

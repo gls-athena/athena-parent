@@ -6,17 +6,13 @@ import cn.hutool.extra.template.TemplateConfig;
 import cn.hutool.extra.template.TemplateUtil;
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import com.gls.athena.starter.pdf.config.PdfProperties;
-import com.lowagie.text.pdf.BaseFont;
+import com.gls.athena.starter.pdf.util.PdfUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.openpdf.pdf.ITextFontResolver;
 import org.openpdf.pdf.ITextRenderer;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 
 /**
  * 模板PDF生成器实现
@@ -29,56 +25,36 @@ import java.util.Map;
 @Slf4j
 @Component
 public class TemplatePdfGenerator implements PdfGenerator {
+
     @Resource
     private PdfProperties pdfProperties;
 
     /**
-     * 生成PDF文档
+     * 使用模板生成PDF文档
+     * <p>
+     * 本方法通过解析数据对象和PDF响应注解中的模板信息，将数据渲染到模板中，并将结果输出为PDF文档。
+     * </p>
      *
-     * @param data         数据对象
-     * @param pdfResponse  PDF响应注解，包含模板路径等信息
-     * @param outputStream 输出流，用于写入生成的PDF文档
-     * @throws Exception 生成PDF时可能抛出的异常
+     * @param data         数据对象，将被渲染到模板中
+     * @param pdfResponse  PDF响应注解，包含模板信息
+     * @param outputStream PDF文档的输出流
+     * @throws Exception 如果生成PDF过程中发生错误
      */
     @Override
     public void generate(Object data, PdfResponse pdfResponse, OutputStream outputStream) throws Exception {
-        // 根据传入的数据对象、注解中的模板路径，生成PDF并写入输出流
-        generateHtmlPdf(data, pdfResponse.template(), outputStream);
-    }
-
-    /**
-     * 判断是否支持当前注解配置
-     *
-     * @param pdfResponse PDF响应注解
-     * @return 是否支持该配置
-     */
-    @Override
-    public boolean supports(PdfResponse pdfResponse) {
-        // 判断注解中是否配置了模板路径，且生成器类型为PdfGenerator
-        return StrUtil.isNotBlank(pdfResponse.template())
-                && pdfResponse.generator().equals(PdfGenerator.class);
-    }
-
-    /**
-     * 根据模板和数据生成HTML并转为PDF输出
-     *
-     * @param data         数据对象
-     * @param template     模板路径
-     * @param outputStream 输出流
-     */
-    private void generateHtmlPdf(Object data, String template, OutputStream outputStream) {
+        String template = pdfResponse.template();
         try {
             // 渲染HTML模板
             TemplateConfig templateConfig = new TemplateConfig(pdfProperties.getCharset(), pdfProperties.getTemplatePath(), pdfProperties.getResourceMode());
 
             String html = TemplateUtil.createEngine(templateConfig)
                     .getTemplate(template)
-                    .render(convertToMap(data));
+                    .render(BeanUtil.beanToMap(data));
 
             // HTML转PDF
             ITextRenderer renderer = new ITextRenderer();
             // 设置字体解析器，添加所需的字体文件
-            addClasspathFonts(renderer, pdfProperties.getFontPath());
+            PdfUtil.addClasspathFonts(renderer, pdfProperties.getFontPath());
             renderer.setDocumentFromString(html);
             renderer.layout();
             renderer.createPDF(outputStream);
@@ -91,65 +67,18 @@ public class TemplatePdfGenerator implements PdfGenerator {
     }
 
     /**
-     * 将数据对象转换为Map格式，便于模板渲染
-     *
-     * @param data 数据对象
-     * @return Map格式数据
-     */
-    private Map<?, ?> convertToMap(Object data) {
-        if (data == null) {
-            throw new IllegalArgumentException("数据对象不能为空");
-        }
-        if (data instanceof Map<?, ?> map) {
-            return map;
-        }
-        return BeanUtil.beanToMap(data);
-    }
-
-    /**
-     * 为ITextRenderer添加类路径下的字体资源
+     * 判断是否支持指定的PDF响应注解
      * <p>
-     * 该方法从类路径的/fonts目录加载字体文件，并将其添加到渲染器的字体解析器中。
-     * 字体将使用IDENTITY_H编码（支持Unicode字符）且不嵌入PDF文档。
+     * 本方法检查PDF响应注解是否指定了模板，并且生成器是否为PdfGenerator类型。
+     * </p>
      *
-     * @param renderer 需要添加字体的ITextRenderer实例
-     * @param fontPath 字体路径，默认为"fonts"
-     * @throws IOException 如果无法读取字体目录或字体文件时抛出
+     * @param pdfResponse PDF响应注解
+     * @return 如果支持，则返回true；否则返回false
      */
-    private void addClasspathFonts(ITextRenderer renderer, String fontPath) throws IOException {
-
-        // 标准化路径处理
-        String path = normalizeClasspathPath(fontPath);
-
-        org.springframework.core.io.Resource[] resources = new PathMatchingResourcePatternResolver()
-                .getResources("classpath:" + path + "*.*");
-
-        ITextFontResolver fontResolver = renderer.getFontResolver();
-        for (org.springframework.core.io.Resource font : resources) {
-            try {
-                log.debug("加载字体: {}", font.getFile().getAbsolutePath());
-                fontResolver.addFont(font.getFile().getAbsolutePath(),
-                        BaseFont.IDENTITY_H,
-                        BaseFont.NOT_EMBEDDED);
-            } catch (IOException e) {
-                log.warn("无法加载字体: {}", font.getFile().getAbsolutePath(), e);
-            }
-        }
+    @Override
+    public boolean supports(PdfResponse pdfResponse) {
+        return StrUtil.isNotBlank(pdfResponse.template())
+                && pdfResponse.generator().equals(PdfGenerator.class);
     }
 
-    private String normalizeClasspathPath(String path) {
-        if (StrUtil.isBlank(path)) {
-            return "";
-        }
-
-        // 去除前后空白和斜杠
-        path = path.trim().replaceAll("^/+|/+$", "");
-
-        // 如果路径不为空，则在末尾添加一个斜杠
-        if (!path.isEmpty()) {
-            path += "/";
-        }
-
-        return path;
-    }
 }

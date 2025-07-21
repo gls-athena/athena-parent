@@ -11,7 +11,7 @@ import java.io.OutputStream;
 /**
  * Excel生成器接口
  *
- * @author lizy19
+ * @author george
  */
 public interface ExcelGenerator {
 

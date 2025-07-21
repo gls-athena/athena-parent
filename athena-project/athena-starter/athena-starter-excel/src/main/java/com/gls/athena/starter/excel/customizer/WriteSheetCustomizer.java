@@ -10,7 +10,7 @@ import java.util.List;
  * 自定义WriteSheet类，用于配置Excel工作表的写入属性
  * 该类继承自BaseWriteCustomizer，针对WriteSheet对象进行定制化配置
  *
- * @author lizy19
+ * @author george
  */
 public class WriteSheetCustomizer extends BaseWriteCustomizer<WriteSheet> {
 

@@ -20,7 +20,7 @@ import java.util.List;
  * 默认的Excel生成器实现类
  * 负责将数据导出为Excel文件
  *
- * @author lizy19
+ * @author george
  */
 @Slf4j
 @Component

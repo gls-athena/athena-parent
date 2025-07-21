@@ -10,7 +10,7 @@ import java.util.List;
  * WriteTableCustomizer类继承自BaseWriteCustomizer，专门用于定制WriteTable对象
  * 它通过ExcelTable注解的属性来配置WriteTable对象，以满足特定的Excel写入需求
  *
- * @author lizy19
+ * @author george
  */
 public class WriteTableCustomizer extends BaseWriteCustomizer<WriteTable> {
 

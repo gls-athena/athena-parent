@@ -15,7 +15,7 @@ import java.nio.charset.Charset;
  * WriteWorkbook自定义配置类
  * 用于根据ExcelResponse注解的配置来定制WriteWorkbook实例
  *
- * @author lizy19
+ * @author george
  */
 public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> {
 

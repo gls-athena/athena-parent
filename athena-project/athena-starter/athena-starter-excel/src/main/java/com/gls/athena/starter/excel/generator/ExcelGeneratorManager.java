@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Excel生成管理器类，负责根据不同的Excel响应类型委托给相应的Excel生成器
  *
- * @author lizy19
+ * @author george
  */
 @Component
 @RequiredArgsConstructor
