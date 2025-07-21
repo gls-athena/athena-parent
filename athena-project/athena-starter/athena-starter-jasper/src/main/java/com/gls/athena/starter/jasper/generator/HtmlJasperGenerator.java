@@ -7,8 +7,10 @@ package com.gls.athena.starter.jasper.generator;
 import com.gls.athena.starter.jasper.annotation.JasperResponse;
 import com.gls.athena.starter.web.enums.FileEnums;
 import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.export.HtmlExporter;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleHtmlExporterOutput;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
@@ -29,7 +31,17 @@ public class HtmlJasperGenerator implements JasperGenerator {
      */
     @Override
     public void exportReport(JasperPrint jasperPrint, OutputStream outputStream) throws JRException {
-        JasperExportManager.exportReportToXmlStream(jasperPrint, outputStream);
+        // 创建HtmlExporter实例，用于导出HTML格式的报告
+        HtmlExporter exporter = new HtmlExporter();
+
+        // 设置导出器的输入，包括填充后的Jasper报告对象
+        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+
+        // 设置导出器的输出，指定输出流以接收HTML格式的报告数据
+        exporter.setExporterOutput(new SimpleHtmlExporterOutput(outputStream));
+
+        // 执行报告的导出操作
+        exporter.exportReport();
     }
 
     /**
