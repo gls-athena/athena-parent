@@ -49,6 +49,7 @@ public interface JasperGenerator {
      *
      * @param jasperPrint  填充后的JasperPrint对象
      * @param outputStream 输出流，用于接收导出的报告数据
+     * @throws JRException 如果导出过程中发生错误，则抛出JRException
      */
     void exportReport(JasperPrint jasperPrint, OutputStream outputStream) throws JRException;
 

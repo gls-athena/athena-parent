@@ -114,6 +114,7 @@ public class DefaultExcelGenerator implements ExcelGenerator {
      */
     @Override
     public boolean supports(ExcelResponse excelResponse) {
-        return StrUtil.isBlank(excelResponse.template()) && excelResponse.generator() == ExcelGenerator.class;
+        return StrUtil.isBlank(excelResponse.template())
+                && excelResponse.generator() == ExcelGenerator.class;
     }
 }
