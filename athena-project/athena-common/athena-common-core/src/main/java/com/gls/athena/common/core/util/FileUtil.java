@@ -2,18 +2,19 @@ package com.gls.athena.common.core.util;
 
 import cn.hutool.core.util.StrUtil;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 
 /**
  * 文件工具类，提供静态方法来处理文件相关的操作
  *
  * @author lizy19
  */
+@Slf4j
 @UtilityClass
 public class FileUtil {
 
@@ -64,22 +65,19 @@ public class FileUtil {
      * @throws IOException 当文件无法访问或读取时抛出此异常
      */
     public InputStream getInputStream(String filePath, String fileName) throws IOException {
-        // 检查路径或文件名是否为空，如果任一为空，则返回null
         if (StrUtil.isBlank(filePath) || StrUtil.isBlank(fileName)) {
             return null;
         }
-        // 如果文件名以"classpath:”开头，去除这部分，因为后面会统一通过类路径访问
-        if (fileName.startsWith(CLASSPATH)) {
-            fileName = fileName.substring(10);
+        String fileFullPath = filePath.endsWith(PREFIX) ? filePath + fileName : filePath + PREFIX + fileName;
+        // 如果文件名以"classpath:"开头，则从类路径获取资源
+        if (fileFullPath.startsWith(CLASSPATH)) {
+            fileFullPath = fileFullPath.substring(CLASSPATH.length());
         }
-        // 如果路径以“/”开头，去除开头的“/”，确保路径是相对于类路径的
-        if (filePath.startsWith(PREFIX)) {
-            filePath = filePath.substring(1);
+        if (fileFullPath.startsWith(PREFIX)) {
+            fileFullPath = fileFullPath.substring(PREFIX.length());
         }
-        // 拼接路径和文件名，得到完整路径
-        String fullPath = Paths.get(filePath, fileName).toString();
-        // 使用Spring的ClassPathResource类获取完整路径对应的文件的输入流
-        return new ClassPathResource(fullPath).getInputStream();
+        log.debug("获取文件输入流，路径: {}", fileFullPath);
+        return new ClassPathResource(fileFullPath).getInputStream();
     }
 
     /**
