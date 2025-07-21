@@ -12,7 +12,7 @@ import java.io.InputStream;
 /**
  * 文件工具类，提供静态方法来处理文件相关的操作
  *
- * @author lizy19
+ * @author george
  */
 @Slf4j
 @UtilityClass

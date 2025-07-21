@@ -9,26 +9,28 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * 默认日期格式化类
+ * 默认日期格式类，继承自SimpleDateFormat
+ * 用于统一定义和处理日期格式
  *
  * @author george
  */
 public class DefaultDateFormat extends SimpleDateFormat {
 
     /**
-     * 构造
+     * 构造函数，初始化日期格式为标准日期时间格式
+     * 标准日期时间格式为：yyyy-MM-dd HH:mm:ss
      */
     public DefaultDateFormat() {
         super(DatePattern.NORM_DATETIME_PATTERN);
     }
 
     /**
-     * 将给定的日期字符串解析为 {@link Date} 对象。
-     * 该方法重写了父类的 {@code parse} 方法，调用 {@link DateUtil#parse(String)} 进行实际的日期解析操作。
+     * 重写parse方法，使用DateUtil解析字符串日期
+     * 此方法不抛出异常，适用于需要容错处理的场景
      *
-     * @param text 需要解析的日期字符串。该字符串应符合 {@link DateUtil} 的解析格式要求。
-     * @param pos  {@link ParsePosition} 对象，用于指定解析的起始位置。虽然在此方法中未直接使用，但保留以符合接口规范。
-     * @return 解析后的 {@link Date} 对象。如果解析失败，则返回 {@code null}。
+     * @param text 日期字符串
+     * @param pos  解析位置
+     * @return 解析后的日期对象
      */
     @Override
     public Date parse(String text, ParsePosition pos) {
@@ -36,14 +38,12 @@ public class DefaultDateFormat extends SimpleDateFormat {
     }
 
     /**
-     * 解析日期字符串并返回对应的Date对象。
-     * <p>
-     * 该方法通过调用DateUtil工具类的parse方法，将传入的日期字符串解析为Date对象。
-     * 如果解析过程中发生异常，将抛出ParseException。
+     * 重写parse方法，使用DateUtil解析字符串日期
+     * 此方法可能抛出ParseException异常，适用于需要精确控制解析过程的场景
      *
-     * @param source 需要解析的日期字符串，格式应符合DateUtil工具类的解析要求。
-     * @return 解析成功后的Date对象。
-     * @throws ParseException 如果日期字符串无法被解析为有效的Date对象，则抛出此异常。
+     * @param source 日期字符串
+     * @return 解析后的日期对象
+     * @throws ParseException 如果解析失败，抛出此异常
      */
     @Override
     public Date parse(String source) throws ParseException {

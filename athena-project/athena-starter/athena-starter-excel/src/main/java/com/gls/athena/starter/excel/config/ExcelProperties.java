@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * @author lizy19
+ * @author george
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

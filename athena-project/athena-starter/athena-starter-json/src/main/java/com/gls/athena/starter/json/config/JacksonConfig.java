@@ -33,18 +33,10 @@ import java.util.TimeZone;
 public class JacksonConfig {
 
     /**
-     * Jackson 全局配置
+     * 创建 Jackson2ObjectMapperBuilderCustomizer 的 Bean
+     * 用于全局配置 Jackson 的行为特性，如日期格式、时区、未知属性处理等
      *
-     * <p>
-     * Jackson 是 Spring Boot 默认的 JSON 序列化与反序列化工具。
-     * 通过该配置函数，可以对 Jackson 的行为进行全局设置，包括地区、时区、日期格式、未知属性处理以及空值处理等。
-     * </p>
-     *
-     * <p>
-     * 该函数返回一个 {@link Jackson2ObjectMapperBuilderCustomizer} 实例，用于自定义 Jackson 的 ObjectMapper 配置。
-     * </p>
-     *
-     * @return {@link Jackson2ObjectMapperBuilderCustomizer} 返回一个自定义的 Jackson 配置器，用于全局配置 Jackson 的行为。
+     * @return Jackson2ObjectMapperBuilderCustomizer 实例
      */
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
@@ -67,11 +59,10 @@ public class JacksonConfig {
     }
 
     /**
-     * 配置并返回一个 JavaTimeModule 实例，用于处理 Java 8 时间类型的序列化与反序列化规则。
-     * 该模块定义了 LocalDateTime、LocalDate 和 LocalTime 的序列化与反序列化格式，
-     * 并添加了异常类的序列化与反序列化规则。
+     * 创建 JavaTimeModule 的 Bean，并配置时间序列化和反序列化的格式
+     * 以及异常的序列化和反序列化规则
      *
-     * @return JavaTimeModule 实例，包含配置好的时间序列化与反序列化规则。
+     * @return JavaTimeModule 实例
      */
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
