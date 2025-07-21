@@ -22,7 +22,7 @@ public class PdfProperties extends BaseProperties {
     /**
      * 字体路径
      */
-    private String fontPath = "fonts";
+    private String fontPath = "classpath:/fonts";
     /**
      * 字符集
      */
@@ -30,7 +30,7 @@ public class PdfProperties extends BaseProperties {
     /**
      * 模板路径
      */
-    private String templatePath = "templates/pdf";
+    private String templatePath = "classpath:/templates/pdf";
     /**
      * 资源模式
      */

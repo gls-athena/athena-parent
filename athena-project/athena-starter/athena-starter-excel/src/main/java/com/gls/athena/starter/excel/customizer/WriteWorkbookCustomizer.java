@@ -3,10 +3,10 @@ package com.gls.athena.starter.excel.customizer;
 import cn.hutool.core.util.ObjUtil;
 import cn.idev.excel.ExcelWriter;
 import cn.idev.excel.write.metadata.WriteWorkbook;
+import com.gls.athena.common.core.util.FileUtil;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
+import com.gls.athena.starter.excel.config.ExcelProperties;
 import lombok.SneakyThrows;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.OutputStream;
 import java.nio.charset.Charset;
@@ -27,6 +27,10 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
      * 输出流
      */
     private final OutputStream outputStream;
+    /**
+     * Excel配置属性
+     */
+    private final ExcelProperties excelProperties;
 
     /**
      * 私有构造方法，使用ExcelResponse和输出流初始化WriteWorkbookCustomizer实例
@@ -34,10 +38,11 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
      * @param excelResponse Excel响应配置
      * @param outputStream  输出流
      */
-    private WriteWorkbookCustomizer(ExcelResponse excelResponse, OutputStream outputStream) {
+    private WriteWorkbookCustomizer(ExcelResponse excelResponse, OutputStream outputStream, ExcelProperties excelProperties) {
         super(excelResponse.config());
         this.excelResponse = excelResponse;
         this.outputStream = outputStream;
+        this.excelProperties = excelProperties;
     }
 
     /**
@@ -47,8 +52,8 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
      * @param outputStream  输出流
      * @return ExcelWriter实例
      */
-    public static ExcelWriter getExcelWriter(ExcelResponse excelResponse, OutputStream outputStream) {
-        WriteWorkbook writeWorkbook = getWriteWorkbook(excelResponse, outputStream);
+    public static ExcelWriter getExcelWriter(ExcelResponse excelResponse, OutputStream outputStream, ExcelProperties excelProperties) {
+        WriteWorkbook writeWorkbook = getWriteWorkbook(excelResponse, outputStream, excelProperties);
         return new ExcelWriter(writeWorkbook);
     }
 
@@ -59,9 +64,9 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
      * @param outputStream  输出流
      * @return 配置好的WriteWorkbook实例
      */
-    public static WriteWorkbook getWriteWorkbook(ExcelResponse excelResponse, OutputStream outputStream) {
+    public static WriteWorkbook getWriteWorkbook(ExcelResponse excelResponse, OutputStream outputStream, ExcelProperties excelProperties) {
         WriteWorkbook writeWorkbook = new WriteWorkbook();
-        WriteWorkbookCustomizer writeWorkbookCustomizer = new WriteWorkbookCustomizer(excelResponse, outputStream);
+        WriteWorkbookCustomizer writeWorkbookCustomizer = new WriteWorkbookCustomizer(excelResponse, outputStream, excelProperties);
         writeWorkbookCustomizer.customize(writeWorkbook);
         return writeWorkbook;
     }
@@ -97,8 +102,7 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
 
         // 设置Excel模板文件路径（支持从classpath加载）
         if (ObjUtil.isNotEmpty(excelResponse.template())) {
-            Resource templateResource = new ClassPathResource(excelResponse.template());
-            writeWorkbook.setTemplateInputStream(templateResource.getInputStream());
+            writeWorkbook.setTemplateInputStream(FileUtil.getInputStream(excelProperties.getTemplatePath(), excelResponse.template()));
         }
 
         // 设置是否自动关闭流

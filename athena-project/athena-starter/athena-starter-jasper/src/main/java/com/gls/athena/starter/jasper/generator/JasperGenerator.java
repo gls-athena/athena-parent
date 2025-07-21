@@ -5,10 +5,12 @@
 package com.gls.athena.starter.jasper.generator;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import com.gls.athena.common.core.util.FileUtil;
 import com.gls.athena.starter.jasper.annotation.JasperResponse;
+import com.gls.athena.starter.jasper.config.JasperProperties;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.util.JRLoader;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,8 +32,9 @@ public interface JasperGenerator {
      * @throws Exception 如果在生成报告过程中发生错误，则抛出异常
      */
     default void generate(Object data, JasperResponse jasperResponse, OutputStream outputStream) throws Exception {
+        JasperProperties jasperProperties = SpringUtil.getBean(JasperProperties.class);
         // 加载报告模板
-        InputStream template = new ClassPathResource(jasperResponse.template()).getInputStream();
+        InputStream template = FileUtil.getInputStream(jasperProperties.getTemplatePath(), jasperResponse.template());
         JasperReport jasperReport = (JasperReport) JRLoader.loadObject(template);
 
         // 将数据对象转换为Map，以便填充报告

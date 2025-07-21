@@ -1,13 +1,13 @@
 package com.gls.athena.sdk.log.service.impl;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.gls.athena.common.core.util.AspectUtil;
 import com.gls.athena.sdk.log.domain.MethodLogDto;
 import com.gls.athena.sdk.log.domain.MethodLogType;
 import com.gls.athena.sdk.log.method.MethodLog;
 import com.gls.athena.sdk.log.service.IMethodLogBuilder;
 import com.gls.athena.sdk.log.service.IPerformanceMonitorService;
 import com.gls.athena.sdk.log.service.ITraceService;
-import com.gls.athena.starter.core.support.AspectUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;

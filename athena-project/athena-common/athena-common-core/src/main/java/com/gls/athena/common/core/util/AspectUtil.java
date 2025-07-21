@@ -1,4 +1,4 @@
-package com.gls.athena.starter.core.support;
+package com.gls.athena.common.core.util;
 
 import lombok.experimental.UtilityClass;
 import org.aspectj.lang.ProceedingJoinPoint;

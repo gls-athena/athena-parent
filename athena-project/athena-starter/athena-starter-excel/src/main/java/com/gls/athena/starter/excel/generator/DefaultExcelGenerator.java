@@ -6,10 +6,12 @@ import cn.idev.excel.write.metadata.WriteSheet;
 import cn.idev.excel.write.metadata.WriteTable;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.annotation.ExcelSheet;
+import com.gls.athena.starter.excel.config.ExcelProperties;
 import com.gls.athena.starter.excel.customizer.WriteSheetCustomizer;
 import com.gls.athena.starter.excel.customizer.WriteTableCustomizer;
 import com.gls.athena.starter.excel.customizer.WriteWorkbookCustomizer;
 import com.gls.athena.starter.excel.support.ExcelDataUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +27,9 @@ import java.util.List;
 @Slf4j
 @Component
 public class DefaultExcelGenerator implements ExcelGenerator {
+    @Resource
+    private ExcelProperties excelProperties;
+
     /**
      * 生成Excel文件的主要方法
      *
@@ -35,7 +40,7 @@ public class DefaultExcelGenerator implements ExcelGenerator {
      */
     @Override
     public void generate(Object data, ExcelResponse excelResponse, OutputStream outputStream) throws Exception {
-        try (ExcelWriter excelWriter = WriteWorkbookCustomizer.getExcelWriter(excelResponse, outputStream)) {
+        try (ExcelWriter excelWriter = WriteWorkbookCustomizer.getExcelWriter(excelResponse, outputStream, excelProperties)) {
             // 获取并验证工作表配置
             List<ExcelSheet> sheets = ExcelDataUtil.getValidatedSheets(excelResponse);
             // 直接写入数据方式

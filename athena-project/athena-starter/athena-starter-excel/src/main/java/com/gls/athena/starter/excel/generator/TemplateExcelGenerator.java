@@ -8,9 +8,11 @@ import cn.idev.excel.write.metadata.fill.FillConfig;
 import cn.idev.excel.write.metadata.fill.FillWrapper;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.annotation.ExcelSheet;
+import com.gls.athena.starter.excel.config.ExcelProperties;
 import com.gls.athena.starter.excel.customizer.WriteSheetCustomizer;
 import com.gls.athena.starter.excel.customizer.WriteWorkbookCustomizer;
 import com.gls.athena.starter.excel.support.ExcelDataUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -28,11 +30,12 @@ import java.util.Map;
 @Slf4j
 @Component
 public class TemplateExcelGenerator implements ExcelGenerator {
-
     /**
      * 默认的填充配置，强制插入新行
      */
     private static final FillConfig DEFAULT_FILL_CONFIG = FillConfig.builder().forceNewRow(true).build();
+    @Resource
+    private ExcelProperties excelProperties;
 
     /**
      * 根据提供的数据和导出响应配置，生成Excel并输出到指定流
@@ -44,7 +47,7 @@ public class TemplateExcelGenerator implements ExcelGenerator {
      */
     @Override
     public void generate(Object data, ExcelResponse excelResponse, OutputStream outputStream) throws Exception {
-        try (ExcelWriter excelWriter = WriteWorkbookCustomizer.getExcelWriter(excelResponse, outputStream)) {
+        try (ExcelWriter excelWriter = WriteWorkbookCustomizer.getExcelWriter(excelResponse, outputStream, excelProperties)) {
             // 获取并验证工作表配置
             List<ExcelSheet> sheets = ExcelDataUtil.getValidatedSheets(excelResponse);
 
