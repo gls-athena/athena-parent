@@ -60,7 +60,7 @@ public class WordResponseHandler implements HandlerMethodReturnValueHandler {
                 .orElseThrow(() -> new IllegalArgumentException("方法返回值必须使用@WordResponse注解标记"));
 
         // 创建输出流并导出 Word 文件
-        try (OutputStream outputStream = WebUtil.createOutputStream(webRequest, wordResponse.fileName(), wordResponse.fileType())) {
+        try (OutputStream outputStream = WebUtil.createOutputStream(webRequest, wordResponse.filename(), wordResponse.fileType())) {
             generatorManager.generate(returnValue, wordResponse, outputStream);
         } catch (IOException e) {
             log.error("导出 Word 文件时发生错误", e);

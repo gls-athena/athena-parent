@@ -97,7 +97,7 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
             IReadListener<?> readListener = BeanUtils.instantiateClass(excelRequest.readListener());
 
             // 获取上传的Excel文件
-            MultipartFile file = getMultipartFile(webRequest, excelRequest.fileName());
+            MultipartFile file = getMultipartFile(webRequest, excelRequest.filename());
 
             // 使用FastExcel读取Excel文件
             try (InputStream inputStream = file.getInputStream()) {

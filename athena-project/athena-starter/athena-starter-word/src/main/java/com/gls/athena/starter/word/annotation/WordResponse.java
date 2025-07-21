@@ -18,7 +18,7 @@ public @interface WordResponse {
     /**
      * 文档文件名
      */
-    String fileName() default "document.docx";
+    String filename() default "document.docx";
 
     /**
      * 文档文件类型(默认docx)

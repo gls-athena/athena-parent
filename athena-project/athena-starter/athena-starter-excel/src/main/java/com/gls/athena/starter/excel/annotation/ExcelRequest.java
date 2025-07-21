@@ -34,7 +34,7 @@ public @interface ExcelRequest {
      * 默认值为"file"，对应前端上传文件的form字段名
      * </p>
      */
-    String fileName() default "file";
+    String filename() default "file";
 
     /**
      * Excel表头行数

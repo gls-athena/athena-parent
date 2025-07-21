@@ -17,7 +17,7 @@ public @interface PdfResponse {
     /**
      * 文档文件名(默认使用当前时间)
      */
-    String fileName() default "";
+    String filename() default "";
 
     /**
      * 模板路径

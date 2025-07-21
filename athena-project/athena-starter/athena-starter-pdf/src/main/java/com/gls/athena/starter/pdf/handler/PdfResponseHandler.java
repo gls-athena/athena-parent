@@ -63,7 +63,7 @@ public class PdfResponseHandler implements HandlerMethodReturnValueHandler {
                 .orElseThrow(() -> new IllegalArgumentException("方法返回值必须使用@PdfResponse注解标记"));
 
         // 创建输出流并导出 PDF 文件
-        try (OutputStream outputStream = WebUtil.createOutputStream(webRequest, pdfResponse.fileName(), FileEnums.PDF)) {
+        try (OutputStream outputStream = WebUtil.createOutputStream(webRequest, pdfResponse.filename(), FileEnums.PDF)) {
             generatorManager.generate(returnValue, pdfResponse, outputStream);
         } catch (IOException e) {
             log.error("导出 PDF 文件时发生错误", e);
