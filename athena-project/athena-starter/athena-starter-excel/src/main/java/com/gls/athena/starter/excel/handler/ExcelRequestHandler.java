@@ -1,12 +1,12 @@
 package com.gls.athena.starter.excel.handler;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.idev.excel.FastExcel;
 import com.gls.athena.starter.excel.annotation.ExcelRequest;
 import com.gls.athena.starter.excel.exception.ExcelParseException;
 import com.gls.athena.starter.excel.listener.IReadListener;
 import com.gls.athena.starter.excel.support.ExcelErrorMessage;
+import com.gls.athena.starter.web.util.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.MethodParameter;
@@ -18,7 +18,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartRequest;
 
 import java.io.InputStream;
 import java.util.List;
@@ -97,7 +96,7 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
             IReadListener<?> readListener = BeanUtils.instantiateClass(excelRequest.readListener());
 
             // 获取上传的Excel文件
-            MultipartFile file = getMultipartFile(webRequest, excelRequest.filename());
+            MultipartFile file = WebUtil.getMultipartFile(webRequest, excelRequest.filename());
 
             // 使用FastExcel读取Excel文件
             try (InputStream inputStream = file.getInputStream()) {
@@ -161,46 +160,4 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
         mavContainer.getModel().put(BindingResult.MODEL_KEY_PREFIX + "excel", binder.getBindingResult());
     }
 
-    /**
-     * 从Web请求中获取指定名称的Excel文件
-     *
-     * <p>执行以下验证：
-     * <ul>
-     *   <li>文件名不能为空</li>
-     *   <li>请求必须是多部分请求</li>
-     *   <li>文件必须存在且不为空</li>
-     *   <li>文件格式必须是.xls或.xlsx</li>
-     * </ul>
-     *
-     * @param webRequest Web请求对象
-     * @param fileName   文件参数名称
-     * @return 上传的Excel文件
-     * @throws ExcelParseException 文件获取或验证失败时抛出
-     */
-    private MultipartFile getMultipartFile(NativeWebRequest webRequest, String fileName) {
-        // 验证文件名参数
-        if (StrUtil.isEmpty(fileName)) {
-            throw new ExcelParseException("文件名参数不能为空");
-        }
-
-        // 获取多部分请求对象
-        MultipartRequest multipartRequest = webRequest.getNativeRequest(MultipartRequest.class);
-        if (multipartRequest == null) {
-            throw new ExcelParseException("当前请求不是多部分请求");
-        }
-
-        // 获取指定名称的文件
-        MultipartFile file = multipartRequest.getFile(fileName);
-        if (file == null || file.isEmpty()) {
-            throw new ExcelParseException("文件不存在或为空: " + fileName);
-        }
-
-        // 验证文件格式
-        String filename = file.getOriginalFilename();
-        if (filename != null && !filename.toLowerCase().matches(".*\\.(xlsx?|xls)$")) {
-            throw new ExcelParseException("不支持的文件类型，仅支持.xls和.xlsx格式");
-        }
-
-        return file;
-    }
 }

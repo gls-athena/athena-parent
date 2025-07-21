@@ -14,6 +14,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartRequest;
 import org.springframework.web.util.WebUtils;
 
 import java.io.IOException;
@@ -178,4 +180,35 @@ public class WebUtil {
         return createOutputStream(webRequest, filename, fileEnums);
     }
 
+    /**
+     * 从NativeWebRequest对象中获取指定名称的MultipartFile对象
+     * <p>
+     * 此方法主要用于在处理文件上传时，从HTTP请求中提取出指定名称的文件对象
+     * 它首先验证文件名参数是否为空，然后尝试从请求中获取对应的文件对象，
+     * 如果文件名为空或文件不存在，则抛出相应的异常
+     *
+     * @param webRequest NativeWebRequest对象，用于处理Web请求
+     * @param fileName   文件名，用于指定需要获取的文件
+     * @return MultipartFile对象，表示上传的文件
+     */
+    public MultipartFile getMultipartFile(NativeWebRequest webRequest, String fileName) {
+        // 验证文件名参数
+        if (StrUtil.isEmpty(fileName)) {
+            throw new IllegalArgumentException("文件名不能为空");
+        }
+
+        // 获取多部分请求对象
+        MultipartRequest multipartRequest = webRequest.getNativeRequest(MultipartRequest.class);
+        if (multipartRequest == null) {
+            throw new IllegalArgumentException("当前请求不是多部分请求");
+        }
+
+        // 获取指定名称的文件
+        MultipartFile file = multipartRequest.getFile(fileName);
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("文件不存在或为空: " + fileName);
+        }
+
+        return file;
+    }
 }
