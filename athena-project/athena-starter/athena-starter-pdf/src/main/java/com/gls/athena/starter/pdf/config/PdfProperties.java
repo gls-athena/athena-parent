@@ -1,7 +1,10 @@
 package com.gls.athena.starter.pdf.config;
 
 import cn.hutool.extra.template.TemplateConfig;
+import com.gls.athena.common.core.constant.BaseProperties;
+import com.gls.athena.common.core.constant.IConstants;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.nio.charset.Charset;
@@ -13,8 +16,9 @@ import java.nio.charset.StandardCharsets;
  * @author athena
  */
 @Data
-@ConfigurationProperties(prefix = "athena.pdf")
-public class PdfProperties {
+@EqualsAndHashCode(callSuper = true)
+@ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + ".pdf")
+public class PdfProperties extends BaseProperties {
     /**
      * 字体路径
      */

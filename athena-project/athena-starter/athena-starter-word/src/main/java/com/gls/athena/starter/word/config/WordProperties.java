@@ -1,6 +1,9 @@
 package com.gls.athena.starter.word.config;
 
+import com.gls.athena.common.core.constant.BaseProperties;
+import com.gls.athena.common.core.constant.IConstants;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -9,31 +12,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author athena
  */
 @Data
-@ConfigurationProperties(prefix = "athena.word")
-public class WordProperties {
+@EqualsAndHashCode(callSuper = true)
+@ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + ".word")
+public class WordProperties extends BaseProperties {
 
     /**
-     * 默认模板路径
+     * 模板路径
      */
-    private String defaultTemplatePath = "classpath:templates/word/";
-
-    /**
-     * 临时文件路径
-     */
-    private String tempPath = System.getProperty("java.io.tmpdir");
-
-    /**
-     * 默认文件名前缀
-     */
-    private String defaultFilePrefix = "document";
-
-    /**
-     * 是否启用缓存
-     */
-    private boolean cacheEnabled = true;
-
-    /**
-     * 缓存大小
-     */
-    private int cacheSize = 100;
+    private String templatePath = "templates/word";
 }

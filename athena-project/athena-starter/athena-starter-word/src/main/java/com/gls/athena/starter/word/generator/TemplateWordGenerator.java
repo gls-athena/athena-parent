@@ -1,13 +1,14 @@
 package com.gls.athena.starter.word.generator;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.deepoove.poi.XWPFTemplate;
 import com.deepoove.poi.config.Configure;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gls.athena.starter.word.annotation.WordResponse;
+import com.gls.athena.starter.word.config.WordProperties;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -25,47 +26,8 @@ import java.util.Map;
 @Component
 public class TemplateWordGenerator implements WordGenerator {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    /**
-     * 获取模板输入流，支持classpath路径。
-     *
-     * @param template 模板路径（支持classpath:前缀）
-     * @return 模板输入流
-     * @throws IOException 模板不存在或读取异常
-     */
-    private InputStream getTemplateInputStream(String template) throws IOException {
-        Resource resource;
-        if (StrUtil.isBlank(template)) {
-            throw new IllegalArgumentException("模板路径不能为空");
-        }
-        if (template.startsWith("classpath:")) {
-            resource = new ClassPathResource(template.substring("classpath:".length()));
-        } else {
-            resource = new ClassPathResource(template);
-        }
-        if (!resource.exists()) {
-            throw new IllegalArgumentException("模板文件不存在: " + template);
-        }
-        return resource.getInputStream();
-    }
-
-    /**
-     * 将数据对象转换为Map，便于模板渲染。
-     *
-     * @param data 数据对象
-     * @return Map格式数据
-     */
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> convertToMap(Object data) {
-        if (data == null) {
-            return Map.of();
-        }
-        if (data instanceof Map) {
-            return (Map<String, Object>) data;
-        }
-        return objectMapper.convertValue(data, Map.class);
-    }
+    @Resource
+    private WordProperties wordProperties;
 
     /**
      * 根据模板和数据生成Word文档，支持自定义POI-TL配置。
@@ -81,7 +43,7 @@ public class TemplateWordGenerator implements WordGenerator {
         if (!StringUtils.hasText(template)) {
             throw new IllegalArgumentException("模板路径不能为空");
         }
-        Map<String, Object> dataMap = convertToMap(data);
+        Map<String, Object> dataMap = BeanUtil.beanToMap(data);
         Configure configure = Configure.builder()
                 .useSpringEL(false)
                 .build();
@@ -105,5 +67,37 @@ public class TemplateWordGenerator implements WordGenerator {
     public boolean supports(WordResponse wordResponse) {
         return StrUtil.isNotBlank(wordResponse.template())
                 && wordResponse.generator() == WordGenerator.class;
+    }
+
+    /**
+     * 获取模板输入流，支持classpath路径。
+     *
+     * @param template 模板路径（支持classpath:前缀）
+     * @return 模板输入流
+     * @throws IOException 模板不存在或读取异常
+     */
+    private InputStream getTemplateInputStream(String template) throws IOException {
+        return new ClassPathResource(getTemplatePath(template)).getInputStream();
+    }
+
+    /**
+     * 获取模板的完整路径
+     * <p>
+     * 此方法首先从配置中获取模板路径，如果配置了模板路径，则将该路径与模板名称拼接起来
+     * 如果未配置模板路径，则直接返回模板名称作为路径
+     * 这样做的目的是为了支持既可以从指定路径也可以从默认路径加载模板
+     *
+     * @param template 模板名称
+     * @return 模板的完整路径如果未配置路径，则返回模板名称
+     */
+    private String getTemplatePath(String template) {
+        String templatePath = wordProperties.getTemplatePath();
+        if (StringUtils.hasText(templatePath)) {
+            // 如果配置了模板路径，则拼接模板路径
+            return StrUtil.format("{}/{}", templatePath, template);
+        } else {
+            // 否则直接使用模板名称
+            return template;
+        }
     }
 }
