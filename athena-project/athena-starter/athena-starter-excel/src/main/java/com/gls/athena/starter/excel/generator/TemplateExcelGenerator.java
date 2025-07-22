@@ -83,15 +83,15 @@ public class TemplateExcelGenerator implements ExcelGenerator {
             Map<String, Object> dataMap = BeanUtil.beanToMap(sheetData);
             Map<String, Object> simpleData = new HashMap<>();
 
-            for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
-                if (entry.getValue() instanceof Collection<?> collection) {
+            dataMap.forEach((key, value) -> {
+                if (value instanceof Collection<?> collection) {
                     // 集合数据使用FillWrapper包装后填充
-                    excelWriter.fill(new FillWrapper(entry.getKey(), collection), DEFAULT_FILL_CONFIG, writeSheet);
+                    excelWriter.fill(new FillWrapper(key, collection), DEFAULT_FILL_CONFIG, writeSheet);
                 } else {
                     // 简单数据暂存，稍后一次性填充
-                    simpleData.put(entry.getKey(), entry.getValue());
+                    simpleData.put(key, value);
                 }
-            }
+            });
 
             // 填充简单数据
             if (!simpleData.isEmpty()) {
