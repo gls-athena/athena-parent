@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * 验证码配置类
  * 用于定义与验证码相关的Bean，包括验证码仓库和验证码提供者
  *
- * @author lizy19
+ * @author george
  */
 @Configuration
 public class CaptchaConfig {
