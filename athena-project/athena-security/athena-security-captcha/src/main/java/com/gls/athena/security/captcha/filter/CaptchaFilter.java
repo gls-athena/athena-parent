@@ -14,7 +14,6 @@ import lombok.Setter;
 import org.springframework.boot.web.servlet.filter.OrderedFilter;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -30,7 +29,6 @@ import java.io.IOException;
  *
  * @author george
  */
-@Component
 @RequiredArgsConstructor
 public class CaptchaFilter extends OncePerRequestFilter implements OrderedFilter {
 
@@ -60,7 +58,7 @@ public class CaptchaFilter extends OncePerRequestFilter implements OrderedFilter
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
             // 获取验证码提供者
-            CaptchaProvider captchaProvider = captchaProviderManager.getCaptchaService(request);
+            CaptchaProvider captchaProvider = captchaProviderManager.getProvider(request);
             // 如果没有找到验证码提供者，直接放行请求
             if (captchaProvider == null) {
                 filterChain.doFilter(request, response);

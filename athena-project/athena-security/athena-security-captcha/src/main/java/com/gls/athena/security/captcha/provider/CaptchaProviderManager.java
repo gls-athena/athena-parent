@@ -34,7 +34,7 @@ public class CaptchaProviderManager {
      * @param request HTTP请求对象，用于确定所需的验证码服务类型
      * @return CaptchaProvider接口的实现，用于生成验证码如果找不到合适的提供者，则返回null
      */
-    public CaptchaProvider getCaptchaService(HttpServletRequest request) {
+    public CaptchaProvider getProvider(HttpServletRequest request) {
         return captchaProviders.stream()
                 .filter(service -> service.supports(request))
                 .findFirst()
