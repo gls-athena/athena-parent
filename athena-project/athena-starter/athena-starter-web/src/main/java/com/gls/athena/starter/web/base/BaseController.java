@@ -18,6 +18,7 @@ import java.util.List;
  *
  * @param <Vo> 视图对象类型
  * @param <S>  服务对象类型
+ * @author george
  */
 public abstract class BaseController<Vo extends BaseVo, S extends IService<Vo>> implements IFeign<Vo> {
     /**

@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Word配置类
  *
- * @author athena
+ * @author george
  */
 @Configuration
 @EnableConfigurationProperties(WordProperties.class)

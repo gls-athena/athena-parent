@@ -17,7 +17,7 @@ import java.io.OutputStream;
  * 该生成器将数据以表格形式导出到Word文档，适用于无模板的简单导出场景。
  * </p>
  *
- * @author athena
+ * @author george
  */
 @Slf4j
 @Component

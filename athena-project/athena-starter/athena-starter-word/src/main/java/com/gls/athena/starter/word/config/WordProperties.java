@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * Word配置属性
  *
- * @author athena
+ * @author george
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

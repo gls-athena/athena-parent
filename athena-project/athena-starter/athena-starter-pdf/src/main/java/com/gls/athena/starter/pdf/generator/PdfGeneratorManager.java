@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 简化的PDF生成器管理服务
  *
- * @author athena
+ * @author george
  */
 @Slf4j
 @Component

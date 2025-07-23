@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import java.awt.image.BufferedImage;
 
 /**
- * @author lizy19
+ * @author george
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

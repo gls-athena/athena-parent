@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * PDF自动配置类（简化版）
  *
- * @author athena
+ * @author george
  */
 @Configuration
 @ComponentScan

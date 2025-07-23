@@ -3,16 +3,14 @@ package com.gls.athena.security.captcha.repository;
 import cn.hutool.core.date.DateUtil;
 import com.gls.athena.security.captcha.domain.Captcha;
 import com.gls.athena.starter.data.redis.support.RedisUtil;
-import org.springframework.stereotype.Repository;
 
 import java.util.concurrent.TimeUnit;
 
 /**
  * 使用Redis作为存储的验证码仓库实现类
  *
- * @author lizy19
+ * @author george
  */
-@Repository
 public class RedisCaptchaRepository implements CaptchaRepository {
 
     /**

@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * PDF配置类（简化版）
  *
- * @author athena
+ * @author george
  */
 @Configuration
 @EnableConfigurationProperties(PdfProperties.class)

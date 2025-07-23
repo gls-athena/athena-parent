@@ -7,7 +7,7 @@ import java.io.OutputStream;
 /**
  * PDF文档生成器接口
  *
- * @author athena
+ * @author george
  */
 public interface PdfGenerator {
 

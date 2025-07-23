@@ -1,14 +1,11 @@
-/**
- * 验证码服务接口，定义了验证码的发送和验证相关的操作
- * 该接口主要用于处理与验证码相关的请求，包括判断是否需要发送或验证验证码，以及执行相应的操作
- */
-package com.gls.athena.security.captcha.service;
+package com.gls.athena.security.captcha.provider.impl;
 
 import cn.hutool.core.text.AntPathMatcher;
 import cn.hutool.core.util.StrUtil;
 import com.gls.athena.security.captcha.config.CaptchaEnums;
 import com.gls.athena.security.captcha.config.CaptchaProperties;
 import com.gls.athena.security.captcha.domain.Captcha;
+import com.gls.athena.security.captcha.provider.CaptchaProvider;
 import com.gls.athena.security.captcha.repository.CaptchaRepository;
 import com.gls.athena.starter.web.util.WebUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,12 +15,14 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 /**
- * 验证码服务接口
+ * 验证码提供者的基类，实现CaptchaProvider接口
+ * 提供了验证码处理的基础功能，包括验证码类型判断、发送验证码、验证验证码等通用逻辑
  *
+ * @param <C> 验证码类型，继承自Captcha
  * @author george
  */
 @RequiredArgsConstructor
-public abstract class BaseCaptchaService<C extends Captcha> {
+public abstract class BaseCaptchaProvider<C extends Captcha> implements CaptchaProvider {
 
     private final CaptchaProperties properties;
 
@@ -32,21 +31,12 @@ public abstract class BaseCaptchaService<C extends Captcha> {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     /**
-     * 判断当前请求是否支持验证码操作，包括发送、验证和类型请求
-     *
-     * @param request HTTP请求对象
-     * @return 如果当前请求支持验证码操作返回true，否则返回false
-     */
-    public boolean supports(HttpServletRequest request) {
-        return isSendCaptchaRequest(request) || isValidateCaptchaRequest(request) || isCaptchaTypeRequest(request);
-    }
-
-    /**
      * 判断当前请求是否为验证码类型请求
      *
      * @param request HTTP请求对象
-     * @return 如果当前请求为验证码类型请求返回true，否则返回false
+     * @return 如果是验证码类型请求返回true，否则返回false
      */
+    @Override
     public boolean isCaptchaTypeRequest(HttpServletRequest request) {
         // 从请求中获取验证码类型参数
         String captchaType = WebUtil.getParameter(request, properties.getTypeParam());
@@ -68,8 +58,9 @@ public abstract class BaseCaptchaService<C extends Captcha> {
      * 判断当前请求是否为发送验证码请求
      *
      * @param request HTTP请求对象
-     * @return 如果当前请求为发送验证码请求返回true，否则返回false
+     * @return 如果是发送验证码请求返回true，否则返回false
      */
+    @Override
     public boolean isSendCaptchaRequest(HttpServletRequest request) {
         String captchaUrl = getCaptchaUrl();
         return pathMatcher.match(captchaUrl, request.getRequestURI());
@@ -88,6 +79,7 @@ public abstract class BaseCaptchaService<C extends Captcha> {
      * @param request  HTTP请求对象
      * @param response HTTP响应对象
      */
+    @Override
     public void sendCaptcha(HttpServletRequest request, HttpServletResponse response) {
         // 从请求参数中获取手机号码
         String key = WebUtil.getParameter(request, getKeyParam());
@@ -102,7 +94,7 @@ public abstract class BaseCaptchaService<C extends Captcha> {
     /**
      * 执行发送验证码的操作
      *
-     * @param key      手机号码
+     * @param key      手机号
      * @param captcha  验证码对象
      * @param response HTTP响应对象
      */
@@ -126,8 +118,9 @@ public abstract class BaseCaptchaService<C extends Captcha> {
      * 判断当前请求是否为验证验证码请求
      *
      * @param request HTTP请求对象
-     * @return 如果当前请求为验证验证码请求返回true，否则返回false
+     * @return 如果是验证验证码请求返回true，否则返回false
      */
+    @Override
     public boolean isValidateCaptchaRequest(HttpServletRequest request) {
         // 遍历配置中的验证码校验URL模式列表，检查当前请求URI是否匹配任何模式
         return getCaptchaCheckUrls()
@@ -147,6 +140,7 @@ public abstract class BaseCaptchaService<C extends Captcha> {
      *
      * @param request HTTP请求对象
      */
+    @Override
     public void validateCaptcha(HttpServletRequest request) {
         // 获取请求参数中的手机号码和验证码
         String key = WebUtil.getParameter(request, getKeyParam());
@@ -194,4 +188,3 @@ public abstract class BaseCaptchaService<C extends Captcha> {
                 && captcha.getExpireTime().getTime() > System.currentTimeMillis();
     }
 }
-

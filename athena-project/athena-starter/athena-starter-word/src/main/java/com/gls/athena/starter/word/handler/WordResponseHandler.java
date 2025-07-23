@@ -17,7 +17,7 @@ import java.util.Optional;
 /**
  * Word响应处理器
  *
- * @author athena
+ * @author george
  */
 @Slf4j
 @RequiredArgsConstructor

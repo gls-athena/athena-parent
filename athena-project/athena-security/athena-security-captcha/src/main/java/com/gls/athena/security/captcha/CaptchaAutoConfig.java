@@ -5,6 +5,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * 验证码自动配置
+ *
+ * @author george
+ */
 @Configuration
 @ComponentScan
 @EnableConfigurationProperties(CaptchaProperties.class)

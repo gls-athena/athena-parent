@@ -1,4 +1,4 @@
-package com.gls.athena.security.captcha.service;
+package com.gls.athena.security.captcha.provider.impl;
 
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
@@ -12,24 +12,29 @@ import com.gls.athena.starter.web.enums.FileEnums;
 import com.gls.athena.starter.web.util.WebUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 import java.io.OutputStream;
 import java.util.List;
 
 /**
- * 图片验证码实现类
+ * 图片验证码提供者实现类
+ * 用于生成和发送图片验证码，并提供相关的配置和逻辑支持
  *
- * @author lizy19
+ * @author george
  */
 @Slf4j
-@Service("imageCaptchaService")
-public class ImageCaptchaServiceImpl extends BaseCaptchaService<ImageCaptcha> {
+public class ImageCaptchaProvider extends BaseCaptchaProvider<ImageCaptcha> {
 
     private final ImageCaptchaProperties properties;
 
-    public ImageCaptchaServiceImpl(CaptchaProperties properties, CaptchaRepository captchaRepository) {
+    /**
+     * 构造方法注入必要的属性
+     *
+     * @param properties        验证码属性配置
+     * @param captchaRepository 验证码仓库
+     */
+    public ImageCaptchaProvider(CaptchaProperties properties, CaptchaRepository captchaRepository) {
         super(properties, captchaRepository);
         this.properties = properties.getImage();
     }
@@ -38,17 +43,17 @@ public class ImageCaptchaServiceImpl extends BaseCaptchaService<ImageCaptcha> {
      * 判断是否是图片验证码类型请求
      *
      * @param captchaEnums 验证码枚举类型
-     * @return 如果是图片验证码类型请求返回true，否则返回false
+     * @return 如果是图片验证码类型返回true，否则返回false
      */
     @Override
     protected boolean isCaptchaTypeRequest(CaptchaEnums captchaEnums) {
-        return captchaEnums.equals(CaptchaEnums.IMAGE);
+        return CaptchaEnums.IMAGE.equals(captchaEnums);
     }
 
     /**
-     * 获取图片验证码URL
+     * 获取图片验证码发送的URL
      *
-     * @return 图片验证码URL
+     * @return 图片验证码发送的URL
      */
     @Override
     protected String getCaptchaUrl() {
@@ -56,7 +61,7 @@ public class ImageCaptchaServiceImpl extends BaseCaptchaService<ImageCaptcha> {
     }
 
     /**
-     * 发送图片验证码
+     * 执行发送验证码逻辑
      *
      * @param key      验证码键
      * @param captcha  图片验证码对象
@@ -76,7 +81,7 @@ public class ImageCaptchaServiceImpl extends BaseCaptchaService<ImageCaptcha> {
     }
 
     /**
-     * 生成图片验证码
+     * 生成图片验证码对象
      *
      * @return 生成的图片验证码对象
      */
@@ -100,9 +105,9 @@ public class ImageCaptchaServiceImpl extends BaseCaptchaService<ImageCaptcha> {
     }
 
     /**
-     * 获取验证码键参数
+     * 获取验证码接口中UUID参数的名称
      *
-     * @return 验证码键参数
+     * @return UUID参数的名称
      */
     @Override
     protected String getKeyParam() {
@@ -110,9 +115,9 @@ public class ImageCaptchaServiceImpl extends BaseCaptchaService<ImageCaptcha> {
     }
 
     /**
-     * 获取验证码校验URL列表
+     * 获取需要进行验证码校验的URL列表
      *
-     * @return 验证码校验URL列表
+     * @return 需要进行验证码校验的URL列表
      */
     @Override
     protected List<String> getCaptchaCheckUrls() {
@@ -120,13 +125,12 @@ public class ImageCaptchaServiceImpl extends BaseCaptchaService<ImageCaptcha> {
     }
 
     /**
-     * 获取验证码代码参数
+     * 获取验证码代码参数的名称
      *
-     * @return 验证码代码参数
+     * @return 验证码代码参数的名称
      */
     @Override
     protected String getCaptchaCodeParam() {
         return properties.getCaptchaParam();
     }
-
 }

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * PDF配置属性（简化版）
  *
- * @author athena
+ * @author george
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

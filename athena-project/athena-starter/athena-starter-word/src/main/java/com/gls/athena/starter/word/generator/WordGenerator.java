@@ -11,7 +11,7 @@ import java.io.OutputStream;
  * 支持多种生成方式（如模板、无模板等），可通过supports方法进行适配。
  * </p>
  *
- * @author athena
+ * @author george
  */
 public interface WordGenerator {
 

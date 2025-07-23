@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Word自动配置类
  *
- * @author athena
+ * @author george
  */
 @Configuration
 @ComponentScan

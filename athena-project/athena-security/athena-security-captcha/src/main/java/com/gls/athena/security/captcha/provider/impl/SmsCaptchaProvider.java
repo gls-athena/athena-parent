@@ -1,4 +1,4 @@
-package com.gls.athena.security.captcha.service;
+package com.gls.athena.security.captcha.provider.impl;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
@@ -13,19 +13,18 @@ import com.gls.athena.security.captcha.repository.CaptchaRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * 短信验证码服务实现类
+ * 短信验证码提供者实现类
+ * 用于生成和发送短信验证码，并提供相关的配置和逻辑支持
  *
  * @author george
  */
 @Slf4j
-@Service("smsCaptchaService")
-public class SmsCaptchaServiceImpl extends BaseCaptchaService<Captcha> {
+public class SmsCaptchaProvider extends BaseCaptchaProvider<Captcha> {
 
     private final SmsCaptchaProperties properties;
 
@@ -35,7 +34,7 @@ public class SmsCaptchaServiceImpl extends BaseCaptchaService<Captcha> {
      * @param properties        验证码属性配置
      * @param captchaRepository 验证码仓库
      */
-    public SmsCaptchaServiceImpl(CaptchaProperties properties, CaptchaRepository captchaRepository) {
+    public SmsCaptchaProvider(CaptchaProperties properties, CaptchaRepository captchaRepository) {
         super(properties, captchaRepository);
         this.properties = properties.getSms();
     }
@@ -48,7 +47,7 @@ public class SmsCaptchaServiceImpl extends BaseCaptchaService<Captcha> {
      */
     @Override
     protected boolean isCaptchaTypeRequest(CaptchaEnums captchaEnums) {
-        return captchaEnums.equals(CaptchaEnums.SMS);
+        return CaptchaEnums.SMS.equals(captchaEnums);
     }
 
     /**
@@ -62,11 +61,11 @@ public class SmsCaptchaServiceImpl extends BaseCaptchaService<Captcha> {
     }
 
     /**
-     * 执行发送验证码逻辑
+     * 执行发送短信验证码逻辑
      *
-     * @param mobile   验证码键
+     * @param mobile   手机号
      * @param captcha  验证码对象
-     * @param response HTTP响应
+     * @param response HTTP响应对象
      */
     @Override
     protected void doSendCaptcha(String mobile, Captcha captcha, HttpServletResponse response) {
@@ -94,9 +93,9 @@ public class SmsCaptchaServiceImpl extends BaseCaptchaService<Captcha> {
     /**
      * 向客户端写入成功的HTTP响应
      * <p>
-     * 此方法用于构造一个表示操作成功的HTTP响应它将HTTP状态码设置为200（SC_OK），
-     * 并将响应内容类型设置为application/json，然后在响应体中写入一个简单的JSON对象，
-     * 表示操作状态为成功如果在写入响应过程中发生异常，它将记录一个错误日志
+     * 此方法用于构造一个表示操作成功的HTTP响应，它将HTTP状态码设置为200（SC_OK），
+     * 并将响应内容类型设置为application/json，然后在响应体中写入一个JSON对象，
+     * 表示验证码发送成功。如果在写入响应过程中发生异常，它将记录一个错误日志
      *
      * @param response 用于写入响应的HttpServletResponse对象
      */
@@ -116,6 +115,9 @@ public class SmsCaptchaServiceImpl extends BaseCaptchaService<Captcha> {
 
     /**
      * 生成短信验证码对象
+     * <p>
+     * 此方法用于生成一个短信验证码对象，包括验证码的代码和过期时间
+     * 它基于配置的验证码长度和过期时间进行生成
      *
      * @return 生成的验证码对象
      * @throws IllegalArgumentException 如果验证码长度或过期时间配置不正确抛出此异常

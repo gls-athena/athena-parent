@@ -20,7 +20,7 @@ import java.io.OutputStream;
  * 该类负责根据注解配置和数据对象生成PDF文档。
  * </p>
  *
- * @author athena
+ * @author george
  */
 @Slf4j
 @Component

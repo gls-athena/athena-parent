@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 /**
  * 将响应转换为PDF文档的注解
  *
- * @author athena
+ * @author george
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
