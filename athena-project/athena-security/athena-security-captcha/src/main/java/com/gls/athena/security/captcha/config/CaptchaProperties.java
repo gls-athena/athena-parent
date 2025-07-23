@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + "security.captcha")
+@ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + ".security.captcha")
 public class CaptchaProperties extends BaseProperties {
     /**
      * 验证码类型参数名

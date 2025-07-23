@@ -2,6 +2,7 @@ package com.gls.athena.security.captcha.provider;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -13,6 +14,7 @@ import java.util.List;
  *
  * @author george
  */
+@Component
 @RequiredArgsConstructor
 public class CaptchaProviderManager {
 

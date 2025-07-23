@@ -7,6 +7,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.filter.OrderedFilter;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -22,8 +24,9 @@ import java.io.IOException;
  *
  * @author george
  */
+@Component
 @RequiredArgsConstructor
-public class CaptchaFilter extends OncePerRequestFilter {
+public class CaptchaFilter extends OncePerRequestFilter implements OrderedFilter {
 
     /**
      * 验证码提供者管理器，用于获取适当的验证码服务实现
@@ -67,6 +70,20 @@ public class CaptchaFilter extends OncePerRequestFilter {
 
         // 放行请求，允许后续处理
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * 获取过滤器的执行顺序
+     * <p>
+     * 此方法用于确定当前过滤器在过滤器链中的执行顺序
+     * 返回值越小，优先级越高，过滤器越早执行
+     *
+     * @return 过滤器执行顺序，设置为REQUEST_WRAPPER_FILTER_MAX_ORDER - 1，
+     * 确保在请求包装过滤器之后、其他业务过滤器之前执行
+     */
+    @Override
+    public int getOrder() {
+        return REQUEST_WRAPPER_FILTER_MAX_ORDER - 1;
     }
 }
 

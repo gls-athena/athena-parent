@@ -26,7 +26,7 @@ public abstract class BaseCaptchaProvider<C extends Captcha> implements CaptchaP
 
     private final CaptchaProperties properties;
 
-    private final CaptchaRepository captchaRepository;
+    private final CaptchaRepository repository;
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
@@ -86,7 +86,7 @@ public abstract class BaseCaptchaProvider<C extends Captcha> implements CaptchaP
         // 生成验证码
         C captcha = generateCaptcha();
         // 将手机号码和对应的验证码保存到验证码仓库中
-        captchaRepository.saveCaptcha(key, captcha);
+        repository.saveCaptcha(key, captcha);
         // 执行发送验证码的操作
         doSendCaptcha(key, captcha, response);
     }
@@ -152,7 +152,7 @@ public abstract class BaseCaptchaProvider<C extends Captcha> implements CaptchaP
         }
 
         // 从验证码仓库中获取对应的验证码对象
-        Captcha captcha = captchaRepository.getCaptcha(key);
+        Captcha captcha = repository.getCaptcha(key);
         // 如果验证码对象为空，说明验证码不存在或已过期，抛出异常
         if (captcha == null) {
             throw new IllegalArgumentException("验证码不存在或已过期");
@@ -164,7 +164,7 @@ public abstract class BaseCaptchaProvider<C extends Captcha> implements CaptchaP
         }
 
         // 验证码验证通过后，从验证码仓库中移除该验证码，避免重复使用
-        captchaRepository.removeCaptcha(key);
+        repository.removeCaptcha(key);
     }
 
     /**
