@@ -16,7 +16,7 @@ public class ImageCaptchaProperties implements Serializable {
     /**
      * 验证码参数名称
      */
-    private String captchaParam = "captcha";
+    private String captchaParam = "imageCaptcha";
     /**
      * 验证码过期时间
      */

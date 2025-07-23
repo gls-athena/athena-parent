@@ -10,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.servlet.filter.OrderedFilter;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -29,6 +30,7 @@ import java.io.IOException;
  *
  * @author george
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CaptchaFilter extends OncePerRequestFilter implements OrderedFilter {
@@ -62,24 +64,28 @@ public class CaptchaFilter extends OncePerRequestFilter implements OrderedFilter
             // 如果没有找到验证码提供者，直接放行请求
             if (captchaProvider == null) {
                 filterChain.doFilter(request, response);
+                log.info("没有找到适合的验证码提供者，直接放行请求");
                 return;
             }
 
             // 如果请求需要发送验证码，则发送验证码并结束过滤
             if (captchaProvider.isSendCaptchaRequest(request)) {
                 captchaProvider.sendCaptcha(request, response);
+                log.info("验证码发送成功");
                 return;
             }
 
             // 如果请求需要验证验证码，则进行验证码验证
             if (captchaProvider.isValidateCaptchaRequest(request)) {
                 captchaProvider.validateCaptcha(request);
+                log.info("验证码验证成功");
             }
 
             // 放行请求，允许后续处理
             filterChain.doFilter(request, response);
         } catch (CaptchaException e) {
             // 捕获异常并转发给异常处理程序
+            log.error("验证码处理异常: {}", e.getMessage(), e);
             authenticationFailureHandler.onAuthenticationFailure(request, response, e);
         }
     }
@@ -91,20 +97,14 @@ public class CaptchaFilter extends OncePerRequestFilter implements OrderedFilter
      * @param response HTTP响应对象
      * @param e        认证异常对象，包含错误信息
      */
-    private void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) {
+    private void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) throws IOException {
         // 设置响应状态码为401未授权
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         // 设置响应内容类型为JSON
-        response.setContentType("application/json");
-
-        try {
-            // 构建并写入JSON格式的错误响应
-            Result<String> result = ResultStatus.FAIL.toResult(e.getMessage());
-            response.getWriter().write(JSONUtil.toJsonStr(result));
-        } catch (IOException ex) {
-            // 包装IO异常为运行时异常抛出
-            throw new RuntimeException(ex);
-        }
+        response.setContentType("application/json; charset=UTF-8");
+        // 构建并写入JSON格式的错误响应
+        Result<String> result = ResultStatus.FAIL.toResult(e.getMessage());
+        response.getWriter().write(JSONUtil.toJsonStr(result));
     }
 
     /**
@@ -113,12 +113,12 @@ public class CaptchaFilter extends OncePerRequestFilter implements OrderedFilter
      * 此方法用于确定当前过滤器在过滤器链中的执行顺序
      * 返回值越小，优先级越高，过滤器越早执行
      *
-     * @return 过滤器执行顺序，设置为REQUEST_WRAPPER_FILTER_MAX_ORDER - 1，
+     * @return 过滤器执行顺序，设置为REQUEST_WRAPPER_FILTER_MAX_ORDER - 1000，
      * 确保在请求包装过滤器之后、其他业务过滤器之前执行
      */
     @Override
     public int getOrder() {
-        return REQUEST_WRAPPER_FILTER_MAX_ORDER - 1;
+        return REQUEST_WRAPPER_FILTER_MAX_ORDER - 1000;
     }
 }
 

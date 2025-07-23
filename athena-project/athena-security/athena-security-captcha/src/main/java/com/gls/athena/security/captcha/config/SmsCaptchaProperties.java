@@ -16,7 +16,7 @@ public class SmsCaptchaProperties implements Serializable {
     /**
      * 验证码参数名称
      */
-    private String captchaParam = "captcha";
+    private String captchaParam = "smsCaptcha";
     /**
      * 验证码长度
      */
@@ -40,7 +40,7 @@ public class SmsCaptchaProperties implements Serializable {
     /**
      * 验证码发送URL
      */
-    private String captchaSendUrl = "/captcha/send";
+    private String captchaSendUrl = "/captcha/sms";
     /**
      * 验证码校验URL
      */

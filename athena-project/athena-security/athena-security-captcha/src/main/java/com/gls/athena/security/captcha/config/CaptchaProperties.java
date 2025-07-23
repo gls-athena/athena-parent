@@ -23,7 +23,7 @@ public class CaptchaProperties extends BaseProperties {
     /**
      * 登录URL
      */
-    private String loginUrl = "/login";
+    private String loginUrl = "/rest/login";
     /**
      * OAuth2 token URL
      */

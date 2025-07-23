@@ -18,12 +18,8 @@
             <artifactId>athena-security-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.starter.web</groupId>
-            <artifactId>athena-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.gls.athena.sdk.message</groupId>
-            <artifactId>athena-sdk-message</artifactId>
+            <groupId>com.gls.athena.security.captcha</groupId>
+            <artifactId>athena-security-captcha</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -88,7 +88,7 @@ public class SmsCaptchaProvider extends BaseCaptchaProvider<Captcha> {
         );
 
         MessageUtil.sendSms(mobile, properties.getCaptchaTemplateId(), params);
-        log.info("向手机[{}]发送验证码成功", mobile);
+        log.info("向手机[{}]发送验证码[{}]成功", mobile, captcha.getCode());
 
         // 写入成功响应
         writeSuccessResponse(response);
@@ -140,7 +140,9 @@ public class SmsCaptchaProvider extends BaseCaptchaProvider<Captcha> {
 
         Captcha captcha = new Captcha();
         // 使用更安全的随机数生成方式
-        captcha.setCode(RandomUtil.randomNumbers(properties.getCaptchaLength()));
+        String code = RandomUtil.randomNumbers(properties.getCaptchaLength());
+        log.debug("生成验证码：{}", code);
+        captcha.setCode(code);
 
         // 明确时区处理
         DateTime now = DateUtil.date();

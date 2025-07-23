@@ -150,6 +150,11 @@
             </dependency>
             <!-- Athena Security -->
             <dependency>
+                <groupId>com.gls.athena.security.captcha</groupId>
+                <artifactId>athena-security-captcha</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.gls.athena.security.core</groupId>
                 <artifactId>athena-security-core</artifactId>
                 <version>${project.version}</version>
