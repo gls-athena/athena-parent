@@ -4,11 +4,15 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.gls.athena.common.bean.result.Result;
+import com.gls.athena.common.bean.result.ResultStatus;
 import com.gls.athena.sdk.message.support.MessageUtil;
 import com.gls.athena.security.captcha.config.CaptchaEnums;
 import com.gls.athena.security.captcha.config.CaptchaProperties;
 import com.gls.athena.security.captcha.config.SmsCaptchaProperties;
 import com.gls.athena.security.captcha.domain.Captcha;
+import com.gls.athena.security.captcha.filter.CaptchaException;
 import com.gls.athena.security.captcha.repository.CaptchaRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -71,10 +75,10 @@ public class SmsCaptchaProvider extends BaseCaptchaProvider<Captcha> {
     protected void doSendCaptcha(String mobile, Captcha captcha, HttpServletResponse response) {
         // 参数有效性校验
         if (Strings.isBlank(mobile)) {
-            throw new IllegalArgumentException("手机号不能为空");
+            throw new CaptchaException("手机号不能为空");
         }
         if (captcha == null || StrUtil.isBlank(captcha.getCode())) {
-            throw new IllegalArgumentException("验证码对象无效");
+            throw new CaptchaException("验证码对象无效");
         }
 
         // 构建短信模板参数并发送
@@ -105,11 +109,13 @@ public class SmsCaptchaProvider extends BaseCaptchaProvider<Captcha> {
         // 设置响应的内容类型为application/json
         response.setContentType("application/json");
         try {
-            // 向响应中写入表示成功的JSON信息
-            response.getWriter().write("{\"code\": 200, \"message\": \"验证码发送成功\"}");
+            // 创建一个成功的结果对象，并写入响应体中
+            Result<String> result = ResultStatus.SUCCESS.toResult("验证码发送成功");
+            response.getWriter().write(JSONUtil.toJsonStr(result));
         } catch (Exception e) {
             // 记录在写入成功响应时发生的错误
             log.error("写入成功响应失败", e);
+            throw new CaptchaException("写入成功响应失败");
         }
     }
 
@@ -126,10 +132,10 @@ public class SmsCaptchaProvider extends BaseCaptchaProvider<Captcha> {
     protected Captcha generateCaptcha() {
         // 参数校验
         if (properties.getCaptchaLength() <= 0) {
-            throw new IllegalArgumentException("验证码长度必须为正数");
+            throw new CaptchaException("验证码长度必须为正数");
         }
         if (properties.getCaptchaExpire() <= 0) {
-            throw new IllegalArgumentException("过期时间必须为正数");
+            throw new CaptchaException("过期时间必须为正数");
         }
 
         Captcha captcha = new Captcha();

@@ -7,6 +7,7 @@ import com.gls.athena.security.captcha.config.CaptchaEnums;
 import com.gls.athena.security.captcha.config.CaptchaProperties;
 import com.gls.athena.security.captcha.config.ImageCaptchaProperties;
 import com.gls.athena.security.captcha.domain.ImageCaptcha;
+import com.gls.athena.security.captcha.filter.CaptchaException;
 import com.gls.athena.security.captcha.repository.CaptchaRepository;
 import com.gls.athena.starter.web.enums.FileEnums;
 import com.gls.athena.starter.web.util.WebUtil;
@@ -76,7 +77,7 @@ public class ImageCaptchaProvider extends BaseCaptchaProvider<ImageCaptcha> {
             // 记录验证码发送失败的日志
             log.error("发送验证码失败", e);
             // 抛出运行时异常，提示验证码发送失败
-            throw new RuntimeException("发送验证码失败", e);
+            throw new CaptchaException("发送验证码失败", e);
         }
     }
 

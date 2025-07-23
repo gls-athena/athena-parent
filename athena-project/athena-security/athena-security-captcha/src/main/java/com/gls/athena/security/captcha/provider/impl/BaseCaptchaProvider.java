@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.gls.athena.security.captcha.config.CaptchaEnums;
 import com.gls.athena.security.captcha.config.CaptchaProperties;
 import com.gls.athena.security.captcha.domain.Captcha;
+import com.gls.athena.security.captcha.filter.CaptchaException;
 import com.gls.athena.security.captcha.provider.CaptchaProvider;
 import com.gls.athena.security.captcha.repository.CaptchaRepository;
 import com.gls.athena.starter.web.util.WebUtil;
@@ -166,19 +167,19 @@ public abstract class BaseCaptchaProvider<C extends Captcha> implements CaptchaP
 
         // 检查手机号码和验证码是否为空，如果任一参数为空，则抛出异常
         if (StrUtil.isBlank(key) || StrUtil.isBlank(captchaCode)) {
-            throw new IllegalArgumentException("验证码参数不完整");
+            throw new CaptchaException("验证码参数不完整");
         }
 
         // 从验证码仓库中获取对应的验证码对象
         Captcha captcha = repository.getCaptcha(key);
         // 如果验证码对象为空，说明验证码不存在或已过期，抛出异常
         if (captcha == null) {
-            throw new IllegalArgumentException("验证码不存在或已过期");
+            throw new CaptchaException("验证码不存在或已过期");
         }
 
         // 验证用户输入的验证码与系统生成的验证码是否匹配，如果不匹配，则抛出异常
         if (!isValidCaptcha(captcha, captchaCode)) {
-            throw new IllegalArgumentException("验证码错误");
+            throw new CaptchaException("验证码错误");
         }
 
         // 验证码验证通过后，从验证码仓库中移除该验证码，避免重复使用

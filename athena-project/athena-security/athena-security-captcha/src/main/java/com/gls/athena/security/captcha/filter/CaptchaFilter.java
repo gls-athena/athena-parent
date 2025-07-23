@@ -1,5 +1,8 @@
 package com.gls.athena.security.captcha.filter;
 
+import cn.hutool.json.JSONUtil;
+import com.gls.athena.common.bean.result.Result;
+import com.gls.athena.common.bean.result.ResultStatus;
 import com.gls.athena.security.captcha.provider.CaptchaProvider;
 import com.gls.athena.security.captcha.provider.CaptchaProviderManager;
 import jakarta.servlet.FilterChain;
@@ -7,7 +10,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.boot.web.servlet.filter.OrderedFilter;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,6 +39,9 @@ public class CaptchaFilter extends OncePerRequestFilter implements OrderedFilter
      */
     private final CaptchaProviderManager captchaProviderManager;
 
+    @Setter
+    private AuthenticationFailureHandler authenticationFailureHandler = this::onAuthenticationFailure;
+
     /**
      * 执行验证码过滤逻辑
      * <p>
@@ -49,27 +58,55 @@ public class CaptchaFilter extends OncePerRequestFilter implements OrderedFilter
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 获取验证码提供者
-        CaptchaProvider captchaProvider = captchaProviderManager.getCaptchaService(request);
-        // 如果没有找到验证码提供者，直接放行请求
-        if (captchaProvider == null) {
+        try {
+            // 获取验证码提供者
+            CaptchaProvider captchaProvider = captchaProviderManager.getCaptchaService(request);
+            // 如果没有找到验证码提供者，直接放行请求
+            if (captchaProvider == null) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 如果请求需要发送验证码，则发送验证码并结束过滤
+            if (captchaProvider.isSendCaptchaRequest(request)) {
+                captchaProvider.sendCaptcha(request, response);
+                return;
+            }
+
+            // 如果请求需要验证验证码，则进行验证码验证
+            if (captchaProvider.isValidateCaptchaRequest(request)) {
+                captchaProvider.validateCaptcha(request);
+            }
+
+            // 放行请求，允许后续处理
             filterChain.doFilter(request, response);
-            return;
+        } catch (CaptchaException e) {
+            // 捕获异常并转发给异常处理程序
+            authenticationFailureHandler.onAuthenticationFailure(request, response, e);
         }
+    }
 
-        // 如果请求需要发送验证码，则发送验证码并结束过滤
-        if (captchaProvider.isSendCaptchaRequest(request)) {
-            captchaProvider.sendCaptcha(request, response);
-            return;
+    /**
+     * 认证失败时的处理方法，返回401未授权响应和JSON格式的错误信息
+     *
+     * @param request  HTTP请求对象
+     * @param response HTTP响应对象
+     * @param e        认证异常对象，包含错误信息
+     */
+    private void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) {
+        // 设置响应状态码为401未授权
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        // 设置响应内容类型为JSON
+        response.setContentType("application/json");
+
+        try {
+            // 构建并写入JSON格式的错误响应
+            Result<String> result = ResultStatus.FAIL.toResult(e.getMessage());
+            response.getWriter().write(JSONUtil.toJsonStr(result));
+        } catch (IOException ex) {
+            // 包装IO异常为运行时异常抛出
+            throw new RuntimeException(ex);
         }
-
-        // 如果请求需要验证验证码，则进行验证码验证
-        if (captchaProvider.isValidateCaptchaRequest(request)) {
-            captchaProvider.validateCaptcha(request);
-        }
-
-        // 放行请求，允许后续处理
-        filterChain.doFilter(request, response);
     }
 
     /**
