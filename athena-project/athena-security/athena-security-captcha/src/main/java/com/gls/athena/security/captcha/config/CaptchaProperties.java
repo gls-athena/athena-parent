@@ -21,6 +21,14 @@ public class CaptchaProperties extends BaseProperties {
      */
     private String typeParam = "captchaType";
     /**
+     * 登录URL
+     */
+    private String loginUrl = "/login";
+    /**
+     * OAuth2 token URL
+     */
+    private String oauth2TokenUrl = "/oauth2/token";
+    /**
      * 短信验证码配置
      */
     @NestedConfigurationProperty

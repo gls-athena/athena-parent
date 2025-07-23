@@ -25,9 +25,7 @@ import java.util.List;
 public abstract class BaseCaptchaProvider<C extends Captcha> implements CaptchaProvider {
 
     private final CaptchaProperties properties;
-
     private final CaptchaRepository repository;
-
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     /**
@@ -122,10 +120,30 @@ public abstract class BaseCaptchaProvider<C extends Captcha> implements CaptchaP
      */
     @Override
     public boolean isValidateCaptchaRequest(HttpServletRequest request) {
+        // 检查当前请求是否为登录请求
+        if (isLoginRequest(request)) {
+            return true;
+        }
         // 遍历配置中的验证码校验URL模式列表，检查当前请求URI是否匹配任何模式
         return getCaptchaCheckUrls()
                 .stream()
                 .anyMatch(captchaCheckUrl -> pathMatcher.match(captchaCheckUrl, request.getRequestURI()));
+    }
+
+    /**
+     * 判断当前请求是否为登录请求
+     *
+     * @param request HTTP请求对象，用于获取请求URI和参数
+     * @return 如果请求匹配登录URL且包含非空的验证码参数返回true，否则返回false
+     */
+    private boolean isLoginRequest(HttpServletRequest request) {
+        // 检查请求的URI是否匹配登录URL或OAuth2令牌URL
+        if (pathMatcher.match(properties.getLoginUrl(), request.getRequestURI())
+                || pathMatcher.match(properties.getOauth2TokenUrl(), request.getRequestURI())) {
+            String key = WebUtil.getParameter(request, getKeyParam());
+            return StrUtil.isNotBlank(key);
+        }
+        return false;
     }
 
     /**
