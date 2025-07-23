@@ -20,6 +20,7 @@
         <module>athena-security-servlet-authorization</module>
         <module>athena-security-servlet-client</module>
         <module>athena-security-servlet-resource</module>
+        <module>athena-security-captcha</module>
     </modules>
 
     <dependencies>

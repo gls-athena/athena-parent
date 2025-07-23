@@ -21,15 +21,15 @@ public class DelegateAuthorizationRequestResolver implements OAuth2Authorization
     /**
      * 注册ID
      */
-    private final static String REGISTRATION_ID = "registrationId";
+    private static final String REGISTRATION_ID = "registrationId";
     /**
      * 授权请求基础URI
      */
-    private final static String AUTHORIZATION_REQUEST_BASE_URI = "/oauth2/authorization";
+    private static final String AUTHORIZATION_REQUEST_BASE_URI = "/oauth2/authorization";
     /**
      * 请求匹配器
      */
-    private final static PathPatternRequestMatcher REQUEST_MATCHER = PathPatternRequestMatcher.withDefaults()
+    private static final PathPatternRequestMatcher REQUEST_MATCHER = PathPatternRequestMatcher.withDefaults()
             .matcher(AUTHORIZATION_REQUEST_BASE_URI + "/{" + REGISTRATION_ID + "}");
     /**
      * 默认授权请求解析器

@@ -46,6 +46,18 @@ public class WebUtil {
      * 文件名中的非法字符正则表达式
      */
     private static final String ILLEGAL_FILENAME_CHARS = "[\\x00-\\x1F\\x7F\"\\\\/:*?<>|]";
+    /**
+     * 缓存控制头部值，禁止缓存
+     */
+    private static final String CACHE_CONTROL_HEADER = "no-cache, no-store, must-revalidate";
+    /**
+     * pragma头部值，禁止缓存
+     */
+    private static final String PRAGMA_HEADER = "no-cache";
+    /**
+     * expires头部值，设置为0表示立即过期
+     */
+    private static final String EXPIRES_HEADER = "0";
 
     /**
      * 将HttpServletRequest中的请求参数转换为MultiValueMap结构。
@@ -131,17 +143,39 @@ public class WebUtil {
      * @throws IOException 如果无法创建输出流
      */
     public OutputStream createOutputStream(NativeWebRequest webRequest, String fileName, FileEnums fileEnums) throws IOException {
+        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+        if (response == null) {
+            throw new IllegalArgumentException("HttpServletResponse获取失败");
+        }
+
+        return createOutputStream(response, fileName, fileEnums);
+    }
+
+    /**
+     * 创建用于下载文件的输出流
+     * 此方法根据提供的文件名和文件类型，在HTTP响应中设置适当的头信息，并返回一个输出流用于写入文件数据
+     *
+     * @param response  HTTP响应对象，用于设置响应头和创建输出流
+     * @param fileName  要下载的文件名，不包含扩展名
+     * @param fileEnums 文件类型枚举，用于确定文件扩展名和MIME类型
+     * @return 一个输出流，用于向响应中写入文件数据
+     * @throws IOException 如果创建输出流时发生错误
+     */
+    public OutputStream createOutputStream(HttpServletResponse response, String fileName, FileEnums fileEnums) throws IOException {
+        // 检查文件名是否为空
         if (StrUtil.isBlank(fileName)) {
             throw new IllegalArgumentException("文件名不能为空");
         }
+        // 检查文件类型是否支持
         if (fileEnums == null) {
-            throw new IllegalArgumentException("不支持的文件类型: " + fileEnums);
+            throw new IllegalArgumentException("不支持的文件类型");
         }
 
         // 清理非法字符，拼接扩展名
         String sanitizedFileName = fileName.replaceAll(ILLEGAL_FILENAME_CHARS, "_");
         String fullFileName = sanitizedFileName + fileEnums.getExtension();
 
+        // 检查文件名长度是否过长
         if (fullFileName.length() > MAX_FILENAME_LENGTH) {
             throw new IllegalArgumentException("文件名过长");
         }
@@ -149,16 +183,22 @@ public class WebUtil {
         // URL编码
         String encodedFileName = URLUtil.encode(fullFileName, StandardCharsets.UTF_8);
 
-        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
-        if (response == null) {
-            throw new IllegalArgumentException("HttpServletResponse获取失败");
+        // 编码后再次检查文件名长度
+        if (encodedFileName.length() > MAX_FILENAME_LENGTH) {
+            throw new IllegalArgumentException("编码后文件名过长");
         }
 
-        response.setContentType(fileEnums.getContentType());
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        // 设置响应头
+        response.setContentType(fileEnums.getContentType() + "; charset=UTF-8");
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format(CONTENT_DISPOSITION_FORMAT, encodedFileName));
         response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
 
+        // 设置缓存控制头
+        response.setHeader(HttpHeaders.CACHE_CONTROL, CACHE_CONTROL_HEADER);
+        response.setHeader(HttpHeaders.PRAGMA, PRAGMA_HEADER);
+        response.setHeader(HttpHeaders.EXPIRES, EXPIRES_HEADER);
+
+        // 返回用于写入文件数据的输出流
         return response.getOutputStream();
     }
 

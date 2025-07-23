@@ -50,6 +50,18 @@ public enum FileEnums implements IEnum<String> {
      */
     XML("xml", "XML文件", ".xml", "application/xml"),
     /**
+     * jpeg图片文件
+     */
+    JPEG("jpeg", "JPEG图片文件", ".jpeg", "image/jpeg"),
+    /**
+     * jpg图片文件
+     */
+    JPG("jpg", "JPG图片文件", ".jpg", "image/jpeg"),
+    /**
+     * png图片文件
+     */
+    PNG("png", "PNG图片文件", ".png", "image/png"),
+    /**
      * 默认文件类型
      */
     DEFAULT("default", "默认文件类型", ".txt", "application/octet-stream"),
