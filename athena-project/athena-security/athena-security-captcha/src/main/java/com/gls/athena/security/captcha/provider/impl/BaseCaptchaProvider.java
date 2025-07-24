@@ -82,6 +82,9 @@ public abstract class BaseCaptchaProvider<C extends Captcha> implements CaptchaP
     public void sendCaptcha(HttpServletRequest request, HttpServletResponse response) {
         // 从请求参数中获取手机号码
         String key = WebUtil.getParameter(request, getKeyParam());
+        if (StrUtil.isBlank(key)) {
+            throw new CaptchaException("验证码参数不完整");
+        }
         // 生成验证码
         C captcha = generateCaptcha();
         // 将手机号码和对应的验证码保存到验证码仓库中

@@ -14,13 +14,12 @@
     <packaging>pom</packaging>
     <modules>
         <module>athena-security-core</module>
-        <module>athena-security-reactive</module>
-        <module>athena-security-reactive-resource</module>
         <module>athena-security-servlet</module>
         <module>athena-security-servlet-authorization</module>
         <module>athena-security-servlet-client</module>
         <module>athena-security-servlet-resource</module>
         <module>athena-security-captcha</module>
+        <module>athena-security-rest</module>
     </modules>
 
     <dependencies>

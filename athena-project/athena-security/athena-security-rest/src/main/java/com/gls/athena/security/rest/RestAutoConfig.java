@@ -1,14 +1,14 @@
-package com.gls.athena.security.reactive.resource;
+package com.gls.athena.security.rest;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 资源安全自动配置
+ * restful api 配置
  *
  * @author george
  */
 @Configuration
 @ComponentScan
-public class ResourceSecurityAutoConfig {
+public class RestAutoConfig {
 }
