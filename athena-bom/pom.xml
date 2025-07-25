@@ -148,47 +148,6 @@
                 <artifactId>athena-starter-word</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <!-- Athena Security -->
-            <dependency>
-                <groupId>com.gls.athena.security.captcha</groupId>
-                <artifactId>athena-security-captcha</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.security.core</groupId>
-                <artifactId>athena-security-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.security.reactive</groupId>
-                <artifactId>athena-security-reactive</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.security.reactive.resource</groupId>
-                <artifactId>athena-security-reactive-resource</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.security.servlet</groupId>
-                <artifactId>athena-security-servlet</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.security.servlet.authorization</groupId>
-                <artifactId>athena-security-servlet-authorization</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.security.servlet.client</groupId>
-                <artifactId>athena-security-servlet-client</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gls.athena.security.servlet.resource</groupId>
-                <artifactId>athena-security-servlet-resource</artifactId>
-                <version>${project.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
