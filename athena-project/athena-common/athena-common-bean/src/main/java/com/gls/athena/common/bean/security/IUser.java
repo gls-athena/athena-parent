@@ -1,6 +1,7 @@
 package com.gls.athena.common.bean.security;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjUtil;
 import com.gls.athena.common.bean.base.IDomain;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -86,7 +87,11 @@ public interface IUser<R extends IRole<P>, P extends IPermission, O extends IOrg
             return null;
         }
         // 遍历角色列表，查找并返回第一个默认角色
-        return this.getRoles().stream().filter(IRole::getDefaultRole).findFirst().orElse(null);
+        return this.getRoles().stream()
+                .filter(ObjUtil::isNotNull)
+                .filter(IRole::getDefaultRole)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -102,7 +107,11 @@ public interface IUser<R extends IRole<P>, P extends IPermission, O extends IOrg
             return null;
         }
         // 从组织机构列表中筛选出默认的组织机构并返回
-        return this.getOrganizations().stream().filter(IOrganization::getDefaultOrganization).findFirst().orElse(null);
+        return this.getOrganizations().stream()
+                .filter(ObjUtil::isNotNull)
+                .filter(IOrganization::getDefaultOrganization)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
