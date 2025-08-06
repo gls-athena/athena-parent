@@ -53,6 +53,7 @@
         <swagger.version>2.2.30</swagger.version>
         <fastexcel.version>1.2.0</fastexcel.version>
         <openpdf.version>2.2.4</openpdf.version>
+        <docx4j.version>11.5.4</docx4j.version>
         <aliyun-java-sdk-core.version>4.7.3</aliyun-java-sdk-core.version>
         <aliyun-java-sdk-dysmsapi.version>2.2.1</aliyun-java-sdk-dysmsapi.version>
         <aliyun-sdk-oss.version>3.18.1</aliyun-sdk-oss.version>
@@ -182,6 +183,21 @@
                 <groupId>com.github.librepdf</groupId>
                 <artifactId>openpdf-fonts-extra</artifactId>
                 <version>${openpdf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.docx4j</groupId>
+                <artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
+                <version>${docx4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.docx4j</groupId>
+                <artifactId>docx4j-JAXB-MOXy</artifactId>
+                <version>${docx4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.docx4j</groupId>
+                <artifactId>docx4j-ImportXHTML-core</artifactId>
+                <version>${docx4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.aliyun</groupId>
