@@ -528,31 +528,28 @@ public class RedisUtil {
     /**
      * 设置缓存表中的行数据
      *
-     * @param cacheName 缓存名称，用于标识不同的缓存表
+     * @param tableName 缓存表名称，用于标识要操作的缓存表
      * @param rowId     行ID，用于唯一标识缓存表中的一行数据
      * @param row       要存储的行数据对象
      * @throws IllegalArgumentException 当cacheName或rowId为null时抛出异常
      */
-    public void setCacheTableRow(String cacheName, String rowId, Object row) {
-        // 参数校验，确保缓存名称和行ID不为空
-        if (cacheName == null || rowId == null) {
-            throw new IllegalArgumentException("Cache name and row ID must not be null");
-        }
+    public void setCacheTableRow(String tableName, String rowId, Object row) {
+
         // 使用Redis的Hash数据结构存储缓存表行数据
-        getRedisTemplate().opsForHash().put(cacheName, rowId, row);
+        getRedisTemplate().opsForHash().put(getCacheKey(tableName), rowId, row);
     }
 
     /**
      * 从缓存中获取指定行的数据
      *
-     * @param cacheName 缓存名称，用于标识不同的缓存区域
+     * @param tableName 缓存名称，用于标识不同的缓存区域
      * @param rowId     行ID，用于唯一标识缓存中的某一行数据
      * @param clazz     返回值的类型Class对象
      * @return 指定类型的缓存行数据对象
      */
-    public <T> T getCacheTableRow(String cacheName, String rowId, Class<T> clazz) {
+    public <T> T getCacheTableRow(String tableName, String rowId, Class<T> clazz) {
         // 从Redis Hash结构中获取指定缓存名称和行ID的数据
-        Object row = getRedisTemplate().opsForHash().get(cacheName, rowId);
+        Object row = getRedisTemplate().opsForHash().get(getCacheKey(tableName), rowId);
         // 将获取到的数据转换为指定类型并返回
         return convertValue(row, clazz);
     }
@@ -560,14 +557,14 @@ public class RedisUtil {
     /**
      * 从缓存中获取指定行的数据
      *
-     * @param cacheName     缓存名称，对应Redis中的hash键名
+     * @param tableName     缓存表名称，用于标识要操作的缓存表
      * @param rowId         行ID，对应Redis hash中的字段名
      * @param typeReference 返回值的类型引用，用于类型转换
      * @return 指定类型的缓存数据对象
      */
-    public <T> T getCacheTableRow(String cacheName, String rowId, TypeReference<T> typeReference) {
+    public <T> T getCacheTableRow(String tableName, String rowId, TypeReference<T> typeReference) {
         // 从Redis hash中获取指定字段的值
-        Object row = getRedisTemplate().opsForHash().get(cacheName, rowId);
+        Object row = getRedisTemplate().opsForHash().get(getCacheKey(tableName), rowId);
         // 将获取到的值转换为目标类型并返回
         return convertValue(row, typeReference);
     }
@@ -575,24 +572,24 @@ public class RedisUtil {
     /**
      * 删除缓存表中指定行的数据
      *
-     * @param cacheName 缓存表名称，用于标识要操作的缓存空间
+     * @param tableName 缓存表名称，用于标识要操作的缓存空间
      * @param rowId     行ID，用于标识要删除的具体缓存项
      */
-    public void deleteCacheTableRow(String cacheName, String rowId) {
+    public void deleteCacheTableRow(String tableName, String rowId) {
         // 从Redis中删除指定缓存表的指定行数据
-        getRedisTemplate().opsForHash().delete(cacheName, rowId);
+        getRedisTemplate().opsForHash().delete(getCacheKey(tableName), rowId);
     }
 
     /**
      * 从指定缓存中获取所有行数据并转换为指定类型的列表
      *
-     * @param cacheName 缓存名称，用于标识要获取数据的缓存
+     * @param tableName 缓存名称，用于标识要获取数据的缓存
      * @param clazz     目标数据类型，用于将缓存中的数据转换为指定类型
      * @return 转换后的数据列表，如果缓存为空则返回空列表
      */
-    public <T> List<T> getCacheTableRows(String cacheName, Class<T> clazz) {
+    public <T> List<T> getCacheTableRows(String tableName, Class<T> clazz) {
         // 从Redis Hash中获取指定缓存的所有键值对
-        Map<Object, Object> rows = getRedisTemplate().opsForHash().entries(cacheName);
+        Map<Object, Object> rows = getRedisTemplate().opsForHash().entries(getCacheKey(tableName));
         // 将缓存中的值转换为目标类型并收集为列表
         return rows.values().stream().map(row -> convertValue(row, clazz)).collect(Collectors.toList());
     }
@@ -600,13 +597,13 @@ public class RedisUtil {
     /**
      * 从指定缓存中获取所有行数据并转换为指定类型的列表
      *
-     * @param cacheName     缓存名称，用于标识要获取数据的缓存
+     * @param tableName     缓存名称，用于标识要获取数据的缓存
      * @param typeReference 目标类型引用，用于指定返回列表中元素的类型
      * @return 转换后的对象列表，包含缓存中所有行数据
      */
-    public <T> List<T> getCacheTableRows(String cacheName, TypeReference<T> typeReference) {
+    public <T> List<T> getCacheTableRows(String tableName, TypeReference<T> typeReference) {
         // 从Redis Hash中获取指定缓存的所有键值对
-        Map<Object, Object> rows = getRedisTemplate().opsForHash().entries(cacheName);
+        Map<Object, Object> rows = getRedisTemplate().opsForHash().entries(getCacheKey(tableName));
         // 将所有值转换为目标类型并收集为列表
         return rows.values().stream().map(row -> convertValue(row, typeReference)).collect(Collectors.toList());
     }
