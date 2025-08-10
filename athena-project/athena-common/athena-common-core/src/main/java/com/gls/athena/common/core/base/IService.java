@@ -10,70 +10,71 @@ import org.springframework.cache.annotation.Cacheable;
 import java.util.List;
 
 /**
- * 服务接口
+ * 服务接口，定义了通用的业务操作方法
  *
- * @param <Vo> VO
+ * @param <Vo> VO对象类型，必须继承BaseVo
  * @author george
  */
 public interface IService<Vo extends BaseVo> {
 
     /**
-     * 新增
+     * 新增数据
      *
-     * @param vo VO
-     * @return VO
+     * @param vo 待新增的VO对象
+     * @return 新增后的VO对象
      */
     @CachePut(key = "#result.id")
     Vo insert(Vo vo);
 
     /**
-     * 修改
+     * 修改数据
      *
-     * @param vo VO
-     * @return VO
+     * @param vo 待修改的VO对象
+     * @return 修改后的VO对象
      */
     @CachePut(key = "#result.id")
     Vo update(Vo vo);
 
     /**
-     * 删除
+     * 删除数据
      *
-     * @param id ID
-     * @return 是否成功
+     * @param id 待删除数据的ID
+     * @return 删除是否成功
      */
     @CacheEvict(key = "#id")
     Boolean delete(Long id);
 
     /**
-     * 查询
+     * 根据ID查询数据
      *
-     * @param id ID
-     * @return VO
+     * @param id 数据ID
+     * @return 查询到的VO对象
      */
     @Cacheable(key = "#id")
     Vo get(Long id);
 
     /**
-     * 查询列表
+     * 查询数据列表
      *
-     * @param vo VO
-     * @return VO列表
+     * @param vo 查询条件VO对象
+     * @return 符合条件的VO对象列表
      */
     List<Vo> list(Vo vo);
 
     /**
-     * 分页查询
+     * 分页查询数据
      *
-     * @param pageRequest 分页请求
-     * @return 分页VO
+     * @param pageRequest 分页查询请求参数
+     * @return 分页查询结果
      */
     PageResponse<Vo> page(PageRequest<Vo> pageRequest);
 
     /**
-     * 批量新增&修改
+     * 批量保存数据（新增或修改）
      *
-     * @param voList VO列表
-     * @return 是否成功
+     * @param voList 待保存的VO对象列表
+     * @return 保存是否成功
      */
     Boolean saveBatch(List<Vo> voList);
 }
+

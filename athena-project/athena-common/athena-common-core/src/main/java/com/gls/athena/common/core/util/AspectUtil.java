@@ -30,8 +30,25 @@ public class AspectUtil {
     public Map<String, Object> getParams(ProceedingJoinPoint point) {
         Map<String, Object> params = new HashMap<>();
 
+        if (point == null) {
+            return params;
+        }
+
         Object[] args = point.getArgs();
-        String[] paramNames = ((MethodSignature) point.getSignature()).getParameterNames();
+        String[] paramNames = null;
+
+        // 类型安全检查
+        if (point.getSignature() instanceof MethodSignature) {
+            paramNames = ((MethodSignature) point.getSignature()).getParameterNames();
+        }
+
+        // 安全性检查：防止空指针或长度不一致
+        if (args == null || paramNames == null || args.length != paramNames.length) {
+            return params;
+        }
+
+        // 预设容量避免频繁扩容
+        params = new HashMap<>((int) (args.length / 0.75f) + 1);
 
         // 将参数名与参数值建立映射关系
         for (int i = 0; i < args.length; i++) {
@@ -50,6 +67,9 @@ public class AspectUtil {
      * @return 格式化的堆栈信息字符串
      */
     public String getStackTraceAsString(Throwable throwable) {
+        if (throwable == null) {
+            return "";
+        }
         StringWriter sw = new StringWriter();
         throwable.printStackTrace(new PrintWriter(sw));
         return sw.toString();

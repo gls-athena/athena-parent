@@ -68,16 +68,38 @@ public class FileUtil {
         if (StrUtil.isBlank(filePath) || StrUtil.isBlank(fileName)) {
             return null;
         }
-        String fileFullPath = filePath.endsWith(PREFIX) ? filePath + fileName : filePath + PREFIX + fileName;
-        // 如果文件名以"classpath:"开头，则从类路径获取资源
+
+        String fileFullPath = buildFilePath(filePath, fileName);
+        log.debug("获取文件输入流，路径: {}", fileFullPath);
+
+        // 去除 classpath 前缀
         if (fileFullPath.startsWith(CLASSPATH)) {
             fileFullPath = fileFullPath.substring(CLASSPATH.length());
         }
+
+        // 去除前导斜杠
         if (fileFullPath.startsWith(PREFIX)) {
             fileFullPath = fileFullPath.substring(PREFIX.length());
         }
-        log.debug("获取文件输入流，路径: {}", fileFullPath);
+
         return new ClassPathResource(fileFullPath).getInputStream();
+    }
+
+    /**
+     * 构建文件完整路径
+     *
+     * @param filePath 文件路径
+     * @param fileName 文件名
+     * @return 完整路径
+     */
+    private String buildFilePath(String filePath, String fileName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(filePath);
+        if (!filePath.endsWith(PREFIX)) {
+            sb.append(PREFIX);
+        }
+        sb.append(fileName);
+        return sb.toString();
     }
 
     /**
@@ -87,6 +109,9 @@ public class FileUtil {
      * @return 最后一个 '.' 的索引，如果没有 '.' 则返回-1
      */
     private int getLastDotIndex(String fileName) {
+        if (fileName == null) {
+            return -1;
+        }
         return fileName.lastIndexOf('.');
     }
 }
