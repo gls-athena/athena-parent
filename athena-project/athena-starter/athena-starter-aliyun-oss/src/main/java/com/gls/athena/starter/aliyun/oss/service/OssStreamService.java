@@ -2,6 +2,7 @@ package com.gls.athena.starter.aliyun.oss.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OssStreamService {
+public class OssStreamService implements DisposableBean {
 
     private final OssClientService ossClientService;
     @Qualifier("ossTaskExecutor")
@@ -53,20 +54,41 @@ public class OssStreamService {
             PipedOutputStream outputStream = new PipedOutputStream(inputStream);
 
             // 异步上传任务
-            ossTaskExecutor.submit(() -> {
-                try (InputStream is = inputStream) {
-                    ossClientService.putObject(bucketName, objectKey, is);
-                    log.debug("异步上传完成: bucket={}, objectKey={}", bucketName, objectKey);
-                } catch (IOException e) {
-                    log.error("异步上传失败: bucket={}, objectKey={}", bucketName, objectKey, e);
-                    throw new RuntimeException("OSS文件上传失败", e);
-                }
-            });
+            ossTaskExecutor.submit(() -> uploadTask(inputStream, bucketName, objectKey));
 
             return outputStream;
         } catch (Exception e) {
             log.error("创建输出流失败: bucket={}, objectKey={}", bucketName, objectKey, e);
             throw new IOException("创建OSS对象输出流失败", e);
+        }
+    }
+
+    /**
+     * 异步上传任务。
+     *
+     * @param inputStream 输入流
+     * @param bucketName  OSS 存储空间名称
+     * @param objectKey   OSS 对象键（路径）
+     */
+    private void uploadTask(PipedInputStream inputStream, String bucketName, String objectKey) {
+        try (InputStream is = inputStream) {
+            ossClientService.putObject(bucketName, objectKey, is);
+            log.debug("异步上传完成: bucket={}, objectKey={}", bucketName, objectKey);
+        } catch (IOException e) {
+            log.error("异步上传失败: bucket={}, objectKey={}", bucketName, objectKey, e);
+            throw new RuntimeException("OSS文件上传失败", e);
+        }
+    }
+
+    /**
+     * 销毁方法，在容器关闭时关闭线程池。
+     *
+     * @throws Exception 关闭过程中可能抛出的异常
+     */
+    @Override
+    public void destroy() throws Exception {
+        if (ossTaskExecutor != null && !ossTaskExecutor.isShutdown()) {
+            ossTaskExecutor.shutdown();
         }
     }
 }

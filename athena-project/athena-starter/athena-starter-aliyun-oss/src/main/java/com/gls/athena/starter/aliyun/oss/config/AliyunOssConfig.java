@@ -53,16 +53,22 @@ public class AliyunOssConfig {
 
         // 处理基础AK/SK认证模式
         if (AuthenticationMode.AS_AK.equals(properties.getAuthMode())) {
-            return new OSSClientBuilder().build(properties.getEndpoint(),
-                    properties.getAccessKeyId(), properties.getAccessKeySecret(), properties.getConfig()
+            return new OSSClientBuilder().build(
+                    properties.getEndpoint(),
+                    properties.getAccessKeyId(),
+                    properties.getAccessKeySecret(),
+                    properties.getConfig()
             );
         }
-
         // 处理STS临时凭证认证模式
-        if (AuthenticationMode.STS.equals(properties.getAuthMode())) {
+        else if (AuthenticationMode.STS.equals(properties.getAuthMode())) {
             Assert.hasText(properties.getSecurityToken(), "SecurityToken must not be empty for STS mode");
-            return new OSSClientBuilder().build(properties.getEndpoint(),
-                    properties.getAccessKeyId(), properties.getAccessKeySecret(), properties.getSecurityToken(), properties.getConfig()
+            return new OSSClientBuilder().build(
+                    properties.getEndpoint(),
+                    properties.getAccessKeyId(),
+                    properties.getAccessKeySecret(),
+                    properties.getSecurityToken(),
+                    properties.getConfig()
             );
         }
 
@@ -73,18 +79,19 @@ public class AliyunOssConfig {
     /**
      * 创建OSS任务执行器，用于异步上传等操作。
      *
+     * @param properties OSS配置属性，从中获取线程池相关配置
      * @return ExecutorService 线程池执行器
      */
     @Bean("ossTaskExecutor")
     @ConditionalOnMissingBean(name = "ossTaskExecutor")
-    public ExecutorService ossTaskExecutor() {
+    public ExecutorService ossTaskExecutor(AliyunOssProperties properties) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(100);
+        executor.setCorePoolSize(properties.getExecutor().getCorePoolSize());
+        executor.setMaxPoolSize(properties.getExecutor().getMaxPoolSize());
+        executor.setQueueCapacity(properties.getExecutor().getQueueCapacity());
         executor.setThreadNamePrefix("oss-task-");
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(60);
+        executor.setWaitForTasksToCompleteOnShutdown(properties.getExecutor().isWaitForTasksToCompleteOnShutdown());
+        executor.setAwaitTerminationSeconds(properties.getExecutor().getAwaitTerminationSeconds());
         executor.initialize();
         return executor.getThreadPoolExecutor();
     }

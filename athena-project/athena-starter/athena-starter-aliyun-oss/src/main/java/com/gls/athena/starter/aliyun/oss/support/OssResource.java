@@ -52,6 +52,11 @@ public class OssResource implements WritableResource {
     private final OssMetadataService ossMetadataService;
 
     /**
+     * 缓存是否是 bucket 类型资源
+     */
+    private final boolean isBucket = uriParser.isBucket();
+
+    /**
      * 获取OSS对象的输出流，用于写入数据。
      *
      * @return 用于写入数据的输出流
@@ -61,10 +66,10 @@ public class OssResource implements WritableResource {
     @Override
     public OutputStream getOutputStream() throws IOException {
         if (!exists()) {
-            throw new FileNotFoundException(String.format("目标文件不存在: %s", uriParser.getUri()));
+            throw new FileNotFoundException(String.format("文件不存在: %s", uriParser.getUri()));
         }
 
-        if (uriParser.isBucket()) {
+        if (isBucket) {
             throw new IllegalStateException(String.format("无法对存储空间创建输出流: %s", uriParser.getUri()));
         }
 
@@ -84,7 +89,7 @@ public class OssResource implements WritableResource {
         if (!exists()) {
             throw new FileNotFoundException(String.format("文件不存在: %s", uriParser.getUri()));
         }
-        if (uriParser.isBucket()) {
+        if (isBucket) {
             throw new IllegalStateException(String.format("无法对存储空间创建输入流: %s", uriParser.getUri()));
         }
 
@@ -98,7 +103,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public boolean exists() {
-        return uriParser.isBucket()
+        return isBucket
                 ? ossClientService.doesBucketExist(uriParser.getBucketName())
                 : ossClientService.doesObjectExist(uriParser.getBucketName(), uriParser.getObjectKey());
     }
@@ -144,7 +149,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public long contentLength() throws IOException {
-        if (uriParser.isBucket()) {
+        if (isBucket) {
             return 0;
         }
         return ossMetadataService.getContentLength(uriParser.getBucketName(), uriParser.getObjectKey());
@@ -158,7 +163,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public long lastModified() throws IOException {
-        if (uriParser.isBucket()) {
+        if (isBucket) {
             return 0;
         }
         return ossMetadataService.getLastModified(uriParser.getBucketName(), uriParser.getObjectKey());
@@ -173,6 +178,10 @@ public class OssResource implements WritableResource {
      */
     @Override
     public Resource createRelative(String relativePath) throws IOException {
+        if (relativePath == null) {
+            throw new IllegalArgumentException("relativePath 不能为空");
+        }
+
         // 构建新的完整路径
         String newLocation = buildRelativePath(relativePath);
         OssUriParser newUriParser = new OssUriParser(newLocation);
@@ -186,7 +195,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public String getFilename() {
-        return uriParser.isBucket() ? uriParser.getBucketName() : extractFilename(uriParser.getObjectKey());
+        return isBucket ? uriParser.getBucketName() : extractFilename(uriParser.getObjectKey());
     }
 
     /**
@@ -206,22 +215,26 @@ public class OssResource implements WritableResource {
      * @return 完整的 OSS URI
      */
     private String buildRelativePath(String relativePath) {
-        if (uriParser.isBucket()) {
-            return String.format("oss://%s/%s", uriParser.getBucketName(), relativePath);
+        StringBuilder sb = new StringBuilder("oss://").append(uriParser.getBucketName()).append("/");
+        if (isBucket) {
+            sb.append(relativePath);
         } else {
-            // 获取当前对象键的父路径
             String parentPath = getParentPath(uriParser.getObjectKey());
-            String newObjectKey = parentPath.isEmpty()
-                    ? relativePath
-                    : parentPath + "/" + relativePath;
-            return String.format("oss://%s/%s", uriParser.getBucketName(), newObjectKey);
+            if (!parentPath.isEmpty()) {
+                sb.append(parentPath).append("/");
+            }
+            sb.append(relativePath);
         }
+        return sb.toString();
     }
 
     /**
      * 获取对象键的父路径。
      */
     private String getParentPath(String objectKey) {
+        if (objectKey == null || objectKey.isEmpty()) {
+            return "";
+        }
         int lastSlashIndex = objectKey.lastIndexOf('/');
         return lastSlashIndex > 0 ? objectKey.substring(0, lastSlashIndex) : "";
     }
@@ -230,6 +243,9 @@ public class OssResource implements WritableResource {
      * 从对象键中提取文件名。
      */
     private String extractFilename(String objectKey) {
+        if (objectKey == null || objectKey.isEmpty()) {
+            return "";
+        }
         int lastSlashIndex = objectKey.lastIndexOf('/');
         return lastSlashIndex >= 0 ? objectKey.substring(lastSlashIndex + 1) : objectKey;
     }

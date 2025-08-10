@@ -30,6 +30,12 @@ import java.util.Map;
 @Endpoint(id = "oss")
 public class OssEndpoint {
 
+    // 定义属性键常量，提升可维护性
+    private static final String BEAN_NAME = "beanName";
+    private static final String ENDPOINT = "endpoint";
+    private static final String CLIENT_CONFIGURATION = "clientConfiguration";
+    private static final String CREDENTIALS = "credentials";
+    private static final String BUCKET_LIST = "bucketList";
     @Resource
     private ApplicationContext applicationContext;
 
@@ -49,24 +55,45 @@ public class OssEndpoint {
     public Map<String, Object> invoke() {
         Map<String, Object> clientsInfo = new HashMap<>();
 
-        // 遍历所有注册的OSSClient实例
+        // 遍历所有注册的OSSClient实例，并提取其相关信息
         applicationContext.getBeansOfType(OSSClient.class)
                 .forEach((beanName, ossClient) -> {
                     // 构建单个客户端的元数据集合
                     Map<String, Object> clientProperties = new HashMap<>();
-                    clientProperties.put("beanName", beanName);
-                    clientProperties.put("endpoint", ossClient.getEndpoint().toString());
-                    clientProperties.put("clientConfiguration", ossClient.getClientConfiguration());
-                    clientProperties.put("credentials", ossClient.getCredentialsProvider().getCredentials());
+                    clientProperties.put(BEAN_NAME, beanName);
+                    clientProperties.put(ENDPOINT, ossClient.getEndpoint().toString());
+                    clientProperties.put(CLIENT_CONFIGURATION, ossClient.getClientConfiguration());
 
-                    // 获取并转换存储桶列表为名称数组
-                    clientProperties.put("bucketList", ossClient.listBuckets().stream()
-                            .map(Bucket::getName)
-                            .toArray());
+                    // 敏感信息脱敏处理
+                    String accessKeyId = ossClient.getCredentialsProvider().getCredentials().getAccessKeyId();
+                    clientProperties.put(CREDENTIALS, maskAccessKeyId(accessKeyId));
+
+                    try {
+                        // 获取并转换存储桶列表为名称数组
+                        clientProperties.put(BUCKET_LIST, ossClient.listBuckets().stream()
+                                .map(Bucket::getName)
+                                .toArray());
+                    } catch (Exception e) {
+                        // 异常处理，防止一个客户端出错影响整体
+                        clientProperties.put(BUCKET_LIST, new String[]{"[Failed to fetch buckets: " + e.getMessage() + "]"});
+                    }
 
                     clientsInfo.put(beanName, clientProperties);
                 });
 
         return clientsInfo;
+    }
+
+    /**
+     * 对AccessKeyId进行脱敏处理（保留前6位，其余用*代替）
+     *
+     * @param accessKeyId 原始AccessKeyId
+     * @return 脱敏后的字符串
+     */
+    private String maskAccessKeyId(String accessKeyId) {
+        if (accessKeyId == null || accessKeyId.length() <= 6) {
+            return "******";
+        }
+        return accessKeyId.substring(0, 6) + "******";
     }
 }

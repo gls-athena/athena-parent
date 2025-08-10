@@ -33,3 +33,4 @@ public enum AuthenticationMode implements IEnum<String> {
      */
     private final String name;
 }
+

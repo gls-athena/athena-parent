@@ -1,6 +1,7 @@
 package com.gls.athena.starter.aliyun.oss.service;
 
 import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * OSS 客户端服务，封装对阿里云OSS的基础操作。
@@ -73,10 +75,21 @@ public class OssClientService {
      *
      * @param bucketName bucket 名称
      * @param objectKey  对象键
-     * @return OSS 对象
+     * @return OSS 对象，调用方需负责关闭 objectContent 流
      */
     public OSSObject getObject(String bucketName, String objectKey) {
-        return ossClient.getObject(bucketName, objectKey);
+        try {
+            OSSObject ossObject = ossClient.getObject(bucketName, objectKey);
+            log.debug("成功获取对象: bucket={}, objectKey={}", bucketName, objectKey);
+            return ossObject;
+        } catch (OSSException oe) {
+            log.error("OSS异常，获取对象失败: bucket={}, objectKey={}, errorCode={}, message={}",
+                    bucketName, objectKey, oe.getErrorCode(), oe.getMessage());
+            throw oe;
+        } catch (Exception e) {
+            log.error("获取对象失败: bucket={}, objectKey={}", bucketName, objectKey, e);
+            throw new RuntimeException("获取对象失败", e);
+        }
     }
 
     /**
@@ -87,8 +100,21 @@ public class OssClientService {
      * @param inputStream 输入流
      */
     public void putObject(String bucketName, String objectKey, InputStream inputStream) {
-        ossClient.putObject(bucketName, objectKey, inputStream);
-        log.debug("成功上传对象: bucket={}, objectKey={}", bucketName, objectKey);
+        Objects.requireNonNull(bucketName, "bucketName 不能为空");
+        Objects.requireNonNull(objectKey, "objectKey 不能为空");
+        Objects.requireNonNull(inputStream, "inputStream 不能为空");
+
+        try {
+            ossClient.putObject(bucketName, objectKey, inputStream);
+            log.debug("成功上传对象: bucket={}, objectKey={}", bucketName, objectKey);
+        } catch (OSSException oe) {
+            log.error("OSS异常，上传对象失败: bucket={}, objectKey={}, errorCode={}, message={}",
+                    bucketName, objectKey, oe.getErrorCode(), oe.getMessage());
+            throw oe;
+        } catch (Exception e) {
+            log.error("上传对象失败: bucket={}, objectKey={}", bucketName, objectKey, e);
+            throw new RuntimeException("上传对象失败", e);
+        }
     }
 
     /**
@@ -96,9 +122,24 @@ public class OssClientService {
      *
      * @param bucketName bucket 名称
      * @param objectKey  对象键
-     * @return 对象元数据
+     * @return 对象元数据，若对象不存在则返回 null
      */
     public ObjectMetadata getObjectMetadata(String bucketName, String objectKey) {
-        return ossClient.getObjectMetadata(bucketName, objectKey);
+        try {
+            ObjectMetadata metadata = ossClient.getObjectMetadata(bucketName, objectKey);
+            log.debug("成功获取对象元数据: bucket={}, objectKey={}", bucketName, objectKey);
+            return metadata;
+        } catch (OSSException oe) {
+            if ("NoSuchKey".equals(oe.getErrorCode())) {
+                log.warn("对象不存在: bucket={}, objectKey={}", bucketName, objectKey);
+                return null;
+            }
+            log.error("OSS异常，获取对象元数据失败: bucket={}, objectKey={}, errorCode={}, message={}",
+                    bucketName, objectKey, oe.getErrorCode(), oe.getMessage());
+            throw oe;
+        } catch (Exception e) {
+            log.error("获取对象元数据失败: bucket={}, objectKey={}", bucketName, objectKey, e);
+            throw new RuntimeException("获取对象元数据失败", e);
+        }
     }
 }

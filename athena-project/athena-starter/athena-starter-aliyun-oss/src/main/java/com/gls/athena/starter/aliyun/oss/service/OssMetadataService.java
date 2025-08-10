@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * OSS 元数据服务，封装并简化阿里云OSS资源的元数据相关操作。
@@ -44,13 +45,8 @@ public class OssMetadataService {
      * @throws IOException 获取元数据失败时抛出
      */
     public long getContentLength(String bucketName, String objectKey) throws IOException {
-        try {
-            ObjectMetadata metadata = ossClientService.getObjectMetadata(bucketName, objectKey);
-            return metadata.getContentLength();
-        } catch (Exception e) {
-            log.error("获取内容长度失败: bucket={}, objectKey={}", bucketName, objectKey, e);
-            throw new IOException("获取OSS对象内容长度失败", e);
-        }
+        ObjectMetadata metadata = getObjectMetadataSafely(bucketName, objectKey);
+        return metadata.getContentLength();
     }
 
     /**
@@ -62,12 +58,29 @@ public class OssMetadataService {
      * @throws IOException 当获取元数据失败时
      */
     public long getLastModified(String bucketName, String objectKey) throws IOException {
+        ObjectMetadata metadata = getObjectMetadataSafely(bucketName, objectKey);
+        Date lastModified = metadata.getLastModified();
+        if (lastModified == null) {
+            log.warn("获取最后修改时间失败: 返回值为 null, bucket={}, objectKey={}", bucketName, objectKey);
+            throw new IOException("获取OSS对象最后修改时间失败：返回值为 null");
+        }
+        return lastModified.getTime();
+    }
+
+    /**
+     * 安全地获取对象元数据，统一异常处理。
+     *
+     * @param bucketName bucket 名称
+     * @param objectKey  对象键
+     * @return ObjectMetadata 对象
+     * @throws IOException 获取失败时抛出
+     */
+    private ObjectMetadata getObjectMetadataSafely(String bucketName, String objectKey) throws IOException {
         try {
-            ObjectMetadata metadata = ossClientService.getObjectMetadata(bucketName, objectKey);
-            return metadata.getLastModified().getTime();
+            return ossClientService.getObjectMetadata(bucketName, objectKey);
         } catch (Exception e) {
-            log.error("获取最后修改时间失败: bucket={}, objectKey={}", bucketName, objectKey, e);
-            throw new IOException("获取OSS对象最后修改时间失败", e);
+            log.error("获取OSS对象元数据失败: bucket={}, objectKey={}", bucketName, objectKey, e);
+            throw new IOException("获取OSS对象元数据失败", e);
         }
     }
 }

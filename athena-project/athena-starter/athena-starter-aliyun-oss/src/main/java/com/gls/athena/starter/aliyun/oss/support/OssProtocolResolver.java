@@ -59,12 +59,18 @@ public class OssProtocolResolver implements ProtocolResolver, ResourceLoaderAwar
      */
     @Override
     public Resource resolve(String location, ResourceLoader resourceLoader) {
+        // 增加空值检查，防止后续调用抛出 NPE
+        if (location == null) {
+            log.warn("传入的资源路径为 null");
+            return null;
+        }
+
         // 快速检查是否为 OSS 协议
         if (!ossResourceFactory.isValidOssLocation(location)) {
             return null;
         }
 
-        log.debug("正在解析OSS资源: {}", location);
+        log.trace("正在解析OSS资源: {}", location); // 使用 trace 级别减少调试日志输出压力
         try {
             return ossResourceFactory.createResource(location);
         } catch (Exception e) {

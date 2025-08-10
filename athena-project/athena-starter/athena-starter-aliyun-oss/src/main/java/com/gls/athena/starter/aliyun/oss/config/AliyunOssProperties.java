@@ -8,6 +8,8 @@ import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
+import java.io.Serializable;
+
 /**
  * 阿里云OSS服务配置属性类。
  * <p>
@@ -114,10 +116,52 @@ public class AliyunOssProperties extends BaseProperties {
     private String pathPrefix;
 
     /**
+     * 线程池执行器配置。
+     * <p>
+     * 用于配置异步任务执行所需的线程池参数。
+     */
+    private ExecutorConfig executor;
+
+    /**
      * OSS客户端配置。
      * <p>
      * 包含连接超时、最大连接数等配置项。
      */
     @NestedConfigurationProperty
     private ClientBuilderConfiguration config = new ClientBuilderConfiguration();
+
+    /**
+     * 线程池执行器配置类。
+     * <p>
+     * 用于配置异步任务执行所需的线程池参数。
+     */
+    @Data
+    public static class ExecutorConfig implements Serializable {
+
+        /**
+         * 核心线程数
+         */
+        private int corePoolSize = 10;
+
+        /**
+         * 最大线程数
+         */
+        private int maxPoolSize = 100;
+
+        /**
+         * 队列容量
+         */
+        private int queueCapacity = 100;
+
+        /**
+         * 是否在关闭时等待任务完成
+         */
+        private boolean waitForTasksToCompleteOnShutdown = true;
+
+        /**
+         * 等待终止的时间（秒）
+         */
+        private int awaitTerminationSeconds = 60;
+
+    }
 }
