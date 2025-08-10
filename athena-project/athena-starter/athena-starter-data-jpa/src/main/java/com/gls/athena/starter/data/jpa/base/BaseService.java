@@ -6,12 +6,12 @@ import com.gls.athena.common.bean.page.PageResponse;
 import com.gls.athena.common.core.base.IConverter;
 import com.gls.athena.common.core.base.IService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -53,17 +53,12 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public V insert(V vo) {
-        // 校验待新增对象不能为空
         Assert.notNull(vo, "待新增对象不能为空");
-        // 校验新增对象的ID必须为空
         Assert.isNull(vo.getId(), "新增对象ID必须为空");
 
-        // 将视图对象转换为实体对象并保存到数据库，再将保存后的实体对象转换回视图对象返回
-        return Optional.of(vo)
-                .map(converter::convert)
-                .map(repository::save)
-                .map(converter::reverse)
-                .orElseThrow(() -> new IllegalArgumentException("待新增对象不能为空"));
+        E entity = converter.convert(vo);
+        E savedEntity = repository.save(entity);
+        return converter.reverse(savedEntity);
     }
 
     /**
@@ -77,21 +72,16 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public V update(V vo) {
-        // 检查传入的视图对象及其ID是否为空
         Assert.notNull(vo, "待更新对象不能为空");
         Assert.notNull(vo.getId(), "更新对象ID不能为空");
 
-        // 检查数据库中是否存在对应��记录
-        if (!repository.existsById(vo.getId())) {
-            throw new IllegalArgumentException("待更新的记录不存在");
-        }
+        E entity = repository.findById(vo.getId())
+                .orElseThrow(() -> new IllegalArgumentException("待更新的记录不存在"));
 
-        // 将视图对象转换为实体对象并保存到数据库，最后将更新后的实体对象转换回视图对象并返回
-        return Optional.of(vo)
-                .map(converter::convert)
-                .map(repository::save)
-                .map(converter::reverse)
-                .orElseThrow(() -> new IllegalArgumentException("待更新对象不能为空"));
+        E updatedEntity = converter.convert(vo);
+        updatedEntity.setId(entity.getId()); // 确保ID一致
+        E savedEntity = repository.save(updatedEntity);
+        return converter.reverse(savedEntity);
     }
 
     /**
@@ -104,19 +94,17 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public Boolean delete(Long id) {
-        // 检查ID是否为空，若为空则抛出IllegalArgumentException
         Assert.notNull(id, "删除ID不能为空");
 
-        try {
-            // 检查记录是否存在，若存在则删除并返回true，否则返回false
-            if (repository.existsById(id)) {
-                repository.deleteById(id);
-                return true;
-            }
+        if (!repository.existsById(id)) {
             return false;
+        }
+
+        try {
+            repository.deleteById(id);
+            return true;
         } catch (Exception e) {
-            // 捕获并包装异常，抛出RuntimeException
-            throw new RuntimeException("删除记录失败", e);
+            throw new RuntimeException("删除记录失败: " + e.getMessage(), e);
         }
     }
 
@@ -129,11 +117,8 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public V get(Long id) {
-        // 校验传入的ID是否为空，若为空则抛出异常
         Assert.notNull(id, "查询ID不能为空");
 
-        // 从数据仓库中根据ID查询记录，并将其转换为视图对象
-        // 如果记录不存在，则返回null
         return repository.findById(id)
                 .map(converter::reverse)
                 .orElse(null);
@@ -147,16 +132,17 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public List<V> list(V vo) {
-        // 使用Optional处理可能的null值，确保代码的健壮性
-        return Optional.ofNullable(vo)
-                // 将视图对象（VO）转换为实体对象
-                .map(converter::convert)
-                // 使用仓库查询符合条件的实体对象列表
-                .map(repository::findAll)
-                // 将实体对象列表转换回视图对象列表
-                .map(converter::reverseList)
-                // 如果查询条件为null，返回��列表
-                .orElse(Collections.emptyList());
+        if (vo == null) {
+            return Collections.emptyList();
+        }
+
+        E entity = converter.convert(vo);
+        if (entity == null) {
+            return Collections.emptyList();
+        }
+
+        List<E> entities = repository.findAll(entity);
+        return converter.reverseList(entities);
     }
 
     /**
@@ -168,54 +154,39 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public PageResponse<V> page(PageRequest<V> pageRequest) {
-        // 使用Optional处理分页请求对象，确保其不为空
-        return Optional.ofNullable(pageRequest)
-                // 将分页请求对象转换为适合查询的格式
+        Assert.notNull(pageRequest, "分页查询请求不能为空");
+        Assert.isTrue(pageRequest.getPage() >= 0, "页码不能小于0");
+        Assert.isTrue(pageRequest.getSize() > 0, "每页大小必须大于0");
+
+        return Optional.of(pageRequest)
                 .map(converter::convertPage)
-                // 调用仓库方法执行查询操作
                 .map(repository::findAll)
-                // 将查询结果转换为分页响应格式
                 .map(converter::reversePage)
-                // 如果分页请求对象为空，抛出异常
                 .orElseThrow(() -> new IllegalArgumentException("分页查询请求不能为空"));
     }
 
     /**
      * 批量保存记录
      * <p>
-     * 过滤空值后批量保存视��对象列表。使用事务确保数据一致性。
+     * 过滤空值后批量保存视图对象列表。使用事务确保数据一致性。
      *
-     * @param vs 待保存的视图对象列表
+     * @param list 待保存的视图对象列表
      * @return true-全部保存成功；false-列表为空或无有效数据
      * @throws RuntimeException 保存过程中发生异常时
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Boolean saveBatch(List<V> vs) {
-        // 检查传入的列表是否为空或为空列表
-        if (vs == null || vs.isEmpty()) {
-            return false;
-        }
-
-        // 过滤掉列表中的空值，生成有效列表
-        List<V> validList = vs.stream()
-                .filter(Objects::nonNull)
-                .toList();
-
-        // 如果有效列表为空，则返回 false
-        if (validList.isEmpty()) {
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
+    public Boolean saveBatch(List<V> list) {
+        if (list == null || list.isEmpty()) {
             return false;
         }
 
         try {
-            // 将视图对象列表转换为实体对象列表并保存到数据库
-            List<E> savedEntities = repository.saveAll(converter.convertList(validList));
-
-            // 判断保存的实体数量是否与有效列表数量一致
-            return savedEntities.size() == validList.size();
+            List<E> entities = converter.convertList(list);
+            List<E> savedEntities = repository.saveAll(entities);
+            return savedEntities.size() == list.size();
         } catch (Exception e) {
-            // 如果保存过程中发生异常，则抛出运行时异常
-            throw new RuntimeException("批量保存记录失败", e);
+            throw new RuntimeException("批量保存记录失败: " + e.getMessage(), e);
         }
     }
 
