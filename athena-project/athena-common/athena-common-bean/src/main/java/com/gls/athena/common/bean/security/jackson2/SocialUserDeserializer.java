@@ -23,7 +23,7 @@ public class SocialUserDeserializer extends BaseDeserializer<SocialUser> {
      * <p>
      * 解析JSON数据并构建完整的社交用户对象，包括用户属性、用户名、注册ID、关联用户和绑定状态
      *
-     * @param mapper JSON对象映射器
+     * @param mapper JSON对象映射器，用于转换JSON节点中的复杂对象
      * @param node   包含社交用户数据的JSON节点
      * @return 构建完成的SocialUser实例
      */
@@ -59,3 +59,4 @@ public class SocialUserDeserializer extends BaseDeserializer<SocialUser> {
         return socialUser;
     }
 }
+

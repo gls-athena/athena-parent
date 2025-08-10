@@ -47,21 +47,41 @@ public class SocialUser extends BaseVo implements OidcUser {
      */
     private boolean bindStatus;
 
+    /**
+     * 获取用户声明信息
+     *
+     * @return 用户的属性映射，包含从社交平台获取的所有用户信息
+     */
     @Override
     public Map<String, Object> getClaims() {
         return this.attributes;
     }
 
+    /**
+     * 获取OIDC用户信息对象
+     *
+     * @return 基于当前用户属性构建的OidcUserInfo实例
+     */
     @Override
     public OidcUserInfo getUserInfo() {
         return new OidcUserInfo(this.attributes);
     }
 
+    /**
+     * 获取ID令牌
+     *
+     * @return 返回null，表示当前实现不支持获取ID令牌
+     */
     @Override
     public OidcIdToken getIdToken() {
         return null;
     }
 
+    /**
+     * 获取用户权限集合
+     *
+     * @return 包含SOCIAL_USER权限的集合，用于标识该用户为社交登录用户
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return CollUtil.newArrayList(new SimpleGrantedAuthority("SOCIAL_USER"));

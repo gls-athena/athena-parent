@@ -38,3 +38,4 @@ public class ITreeNodeParser<T extends ITreeNode> implements NodeParser<T, Long>
         treeNode.putAll(BeanUtil.beanToMap(object));
     }
 }
+

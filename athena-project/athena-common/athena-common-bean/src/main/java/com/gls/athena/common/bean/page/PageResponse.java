@@ -48,3 +48,4 @@ public class PageResponse<T> {
     @Schema(title = "数据列表", description = "当前页的数据记录列表")
     private List<T> data;
 }
+

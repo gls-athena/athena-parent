@@ -20,9 +20,13 @@ public class RoleDeserializer extends BaseDeserializer<Role> {
 
     /**
      * 创建Role实例并填充数据
+     * <p>
+     * 该方法从给定的JsonNode中提取角色相关字段，并将其设置到新创建的Role对象中。
+     * 支持的基本字段包括：name、code、description、type、parentId、sort、defaultRole。
+     * 同时也处理permissions字段，将其反序列化为Permission对象列表。
      *
-     * @param mapper ObjectMapper实例
-     * @param node   包含角色数据的JsonNode
+     * @param mapper ObjectMapper实例，用于类型转换
+     * @param node   包含角色数据的JsonNode节点
      * @return 填充完成的Role对象
      */
     @Override

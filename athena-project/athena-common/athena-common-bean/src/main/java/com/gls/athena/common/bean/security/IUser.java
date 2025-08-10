@@ -9,67 +9,68 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 用户接口
+ * 用户接口，定义了用户的基本信息和安全相关的方法。
+ * 该接口继承自 Spring Security 的 UserDetails 接口和系统基础领域模型接口 IDomain。
  *
- * @param <R> 角色
- * @param <P> 权限
- * @param <O> 组织机构
+ * @param <R> 角色类型，必须实现 IRole 接口
+ * @param <P> 权限类型，必须实现 IPermission 接口
+ * @param <O> 组织机构类型，必须实现 IOrganization 接口
  * @author george
  */
 public interface IUser<R extends IRole<P>, P extends IPermission, O extends IOrganization> extends UserDetails, IDomain {
     /**
-     * 获取手机号
+     * 获取用户的手机号码。
      *
-     * @return 手机号
+     * @return 手机号码字符串
      */
     String getMobile();
 
     /**
-     * 获取邮箱
+     * 获取用户的电子邮箱地址。
      *
-     * @return 邮箱
+     * @return 邮箱地址字符串
      */
     String getEmail();
 
     /**
-     * 获取姓名
+     * 获取用户的真实姓名。
      *
-     * @return 姓名
+     * @return 真实姓名字符串
      */
     String getRealName();
 
     /**
-     * 获取昵称
+     * 获取用户的昵称。
      *
-     * @return 昵称
+     * @return 昵称字符串
      */
     String getNickName();
 
     /**
-     * 获取用户头像
+     * 获取用户头像的URL或标识符。
      *
-     * @return 头像
+     * @return 头像信息字符串
      */
     String getAvatar();
 
     /**
-     * 获取用户语言
+     * 获取用户设置的语言偏好（如 zh-CN、en-US）。
      *
-     * @return 语言
+     * @return 语言代码字符串
      */
     String getLanguage();
 
     /**
-     * 获取用户区域
+     * 获取用户所在的区域信息（如国家/地区编码）。
      *
-     * @return 区域
+     * @return 区域编码字符串
      */
     String getLocale();
 
     /**
-     * 获取用户时区
+     * 获取用户所在时区的信息（如 GMT+8）。
      *
-     * @return 时区
+     * @return 时区字符串
      */
     String getTimeZone();
 
@@ -115,14 +116,14 @@ public interface IUser<R extends IRole<P>, P extends IPermission, O extends IOrg
     }
 
     /**
-     * 获取角色列表
+     * 获取用户拥有的所有角色列表。
      *
      * @return 角色列表
      */
     List<R> getRoles();
 
     /**
-     * 获取组织机构列表
+     * 获取用户所属的所有组织机构列表。
      *
      * @return 组织机构列表
      */

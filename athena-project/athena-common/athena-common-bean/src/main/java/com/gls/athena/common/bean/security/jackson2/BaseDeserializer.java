@@ -71,3 +71,4 @@ public abstract class BaseDeserializer<T extends BaseVo> extends JsonDeserialize
      */
     protected abstract T createInstance(ObjectMapper mapper, JsonNode node);
 }
+

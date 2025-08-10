@@ -25,36 +25,43 @@ public class Role extends BaseVo implements IRole<Permission> {
      */
     @Schema(title = "角色名", description = "角色名")
     private String name;
+
     /**
      * 角色编码
      */
     @Schema(title = "角色编码", description = "角色编码")
     private String code;
+
     /**
      * 角色描述
      */
     @Schema(title = "角色描述", description = "角色描述")
     private String description;
+
     /**
      * 角色类型
      */
     @Schema(title = "角色类型", description = "角色类型")
     private String type;
+
     /**
      * 父角色ID
      */
     @Schema(title = "父角色ID", description = "父角色ID")
     private Long parentId;
+
     /**
      * 排序
      */
     @Schema(title = "排序", description = "排序")
     private Integer sort;
+
     /**
      * 默认角色 0否 1是
      */
     @Schema(title = "默认角色", description = "默认角色")
     private Boolean defaultRole;
+
     /**
      * 权限列表
      */

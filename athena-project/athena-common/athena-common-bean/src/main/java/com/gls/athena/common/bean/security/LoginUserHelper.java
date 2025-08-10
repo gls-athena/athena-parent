@@ -187,6 +187,7 @@ public class LoginUserHelper {
 
     /**
      * 获取当前用户的权限列表
+     * <p>通过用户角色获取所有权限，并去重</p>
      *
      * @return 权限列表，如果未登录则返回空
      */
