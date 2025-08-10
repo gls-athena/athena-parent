@@ -44,14 +44,34 @@ public class OssUriParser {
      * @throws IllegalArgumentException 当 URI 格式不正确时
      */
     public OssUriParser(String location) {
-        if (!isValidOssUri(location)) {
-            throw new IllegalArgumentException("无效的 OSS URI 格式: " + location);
+        if (StrUtil.isEmpty(location)) {
+            throw new IllegalArgumentException("OSS URI 不能为空");
         }
 
-        this.uri = URI.create(location);
-        this.bucketName = extractBucketName();
-        this.objectKey = extractObjectKey();
-        this.isBucket = StrUtil.isEmpty(objectKey);
+        try {
+            this.uri = URI.create(location);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("无效的 OSS URI 格式: " + location, e);
+        }
+
+        if (!OSS_PROTOCOL.equals(this.uri.getScheme())) {
+            throw new IllegalArgumentException("OSS URI 必须以 oss:// 开头: " + location);
+        }
+
+        String authority = this.uri.getAuthority();
+        if (StrUtil.isEmpty(authority)) {
+            throw new IllegalArgumentException("OSS URI 中缺少 bucket 名称: " + location);
+        }
+        this.bucketName = authority;
+
+        String path = this.uri.getPath();
+        if (StrUtil.isEmpty(path) || "/".equals(path)) {
+            this.objectKey = "";
+        } else {
+            this.objectKey = path.startsWith("/") ? path.substring(1) : path;
+        }
+
+        this.isBucket = StrUtil.isEmpty(this.objectKey);
 
         log.debug("解析 OSS URI: bucket={}, objectKey={}, isBucket={}", bucketName, objectKey, isBucket);
     }
@@ -74,21 +94,5 @@ public class OssUriParser {
             log.warn("URI 解析失败: {}", location, e);
             return false;
         }
-    }
-
-    private String extractBucketName() {
-        String authority = uri.getAuthority();
-        if (StrUtil.isEmpty(authority)) {
-            throw new IllegalArgumentException("OSS URI 中缺少 bucket 名称");
-        }
-        return authority;
-    }
-
-    private String extractObjectKey() {
-        String path = uri.getPath();
-        if (StrUtil.isEmpty(path) || "/".equals(path)) {
-            return "";
-        }
-        return path.startsWith("/") ? path.substring(1) : path;
     }
 }

@@ -34,11 +34,19 @@ public class OssResourceFactory {
      *
      * @param location OSS 资源位置字符串（如 oss://bucket/key）
      * @return OSS 资源对象
-     * @throws IllegalArgumentException 当 location 格式不正确时抛出
+     * @throws IllegalArgumentException 当 location 格式不正确或为 null 时抛出
      */
     public OssResource createResource(String location) {
-        OssUriParser uriParser = new OssUriParser(location);
-        return new OssResource(uriParser, ossClientService, ossStreamService, ossMetadataService);
+        if (location == null) {
+            throw new IllegalArgumentException("Location must not be null");
+        }
+        try {
+            OssUriParser uriParser = new OssUriParser(location);
+            return new OssResource(uriParser, ossClientService, ossStreamService, ossMetadataService);
+        } catch (Exception e) {
+            log.warn("Failed to parse OSS URI: {}", location, e);
+            throw new IllegalArgumentException("Invalid OSS location: " + location, e);
+        }
     }
 
     /**
@@ -48,6 +56,14 @@ public class OssResourceFactory {
      * @return true 如果是有效的 OSS 资源位置
      */
     public boolean isValidOssLocation(String location) {
-        return OssUriParser.isValidOssUri(location);
+        if (location == null) {
+            return false;
+        }
+        try {
+            return OssUriParser.isValidOssUri(location);
+        } catch (Exception e) {
+            log.debug("Invalid OSS URI detected: {}", location, e);
+            return false;
+        }
     }
 }
