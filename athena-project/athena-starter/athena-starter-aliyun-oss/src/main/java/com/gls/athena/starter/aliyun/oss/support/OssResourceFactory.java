@@ -37,9 +37,12 @@ public class OssResourceFactory {
      * @throws IllegalArgumentException 当 location 格式不正确或为 null 时抛出
      */
     public OssResource createResource(String location) {
+        // 参数校验：检查 location 是否为 null
         if (location == null) {
             throw new IllegalArgumentException("Location must not be null");
         }
+
+        // 解析 OSS URI 并创建资源对象
         try {
             OssUriParser uriParser = new OssUriParser(location);
             return new OssResource(uriParser, ossClientService, ossStreamService, ossMetadataService);
@@ -56,14 +59,18 @@ public class OssResourceFactory {
      * @return true 如果是有效的 OSS 资源位置
      */
     public boolean isValidOssLocation(String location) {
+        // 检查输入参数是否为 null
         if (location == null) {
             return false;
         }
         try {
+            // 使用 OssUriParser 验证 OSS URI 的有效性
             return OssUriParser.isValidOssUri(location);
         } catch (Exception e) {
+            // 记录无效的 OSS URI 信息用于调试
             log.debug("Invalid OSS URI detected: {}", location, e);
             return false;
         }
     }
+
 }

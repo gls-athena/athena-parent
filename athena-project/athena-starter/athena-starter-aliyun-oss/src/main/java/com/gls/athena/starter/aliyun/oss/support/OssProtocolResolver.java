@@ -35,12 +35,16 @@ public class OssProtocolResolver implements ProtocolResolver, ResourceLoaderAwar
      */
     @Override
     public void setResourceLoader(ResourceLoader resourceLoader) {
+        // 检查资源加载器是否为空
         Assert.notNull(resourceLoader, "ResourceLoader不能为空");
 
+        // 判断资源加载器类型并进行相应处理
         if (resourceLoader instanceof DefaultResourceLoader defaultResourceLoader) {
+            // 将当前实例注册为协议解析器
             defaultResourceLoader.addProtocolResolver(this);
             log.debug("成功注册OSS协议解析器");
         } else {
+            // 不支持的资源加载器类型，记录错误日志并抛出异常
             String errorMessage = String.format("不支持的资源加载器类型: %s",
                     resourceLoader.getClass().getName());
             log.error(errorMessage);
@@ -78,4 +82,5 @@ public class OssProtocolResolver implements ProtocolResolver, ResourceLoaderAwar
             return null;
         }
     }
+
 }
