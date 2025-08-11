@@ -46,6 +46,7 @@ public class OssClientService {
      * @return true：存在，false：不存在或异常
      */
     public boolean doesBucketExist(String bucketName) {
+        // 调用OSS客户端检查bucket是否存在，捕获所有异常并记录错误日志
         try {
             return ossClient.doesBucketExist(bucketName);
         } catch (Exception e) {
@@ -63,8 +64,10 @@ public class OssClientService {
      */
     public boolean doesObjectExist(String bucketName, String objectKey) {
         try {
+            // 调用OSS客户端检查对象是否存在
             return ossClient.doesObjectExist(bucketName, objectKey);
         } catch (Exception e) {
+            // 记录检查对象存在性时发生的异常，并返回false表示对象不存在
             log.error("检查对象是否存在失败: bucket={}, objectKey={}", bucketName, objectKey, e);
             return false;
         }
@@ -79,14 +82,17 @@ public class OssClientService {
      */
     public OSSObject getObject(String bucketName, String objectKey) {
         try {
+            // 调用OSS客户端获取对象
             OSSObject ossObject = ossClient.getObject(bucketName, objectKey);
             log.debug("成功获取对象: bucket={}, objectKey={}", bucketName, objectKey);
             return ossObject;
         } catch (OSSException oe) {
+            // 处理OSS异常情况
             log.error("OSS异常，获取对象失败: bucket={}, objectKey={}, errorCode={}, message={}",
                     bucketName, objectKey, oe.getErrorCode(), oe.getMessage());
             throw oe;
         } catch (Exception e) {
+            // 处理其他异常情况
             log.error("获取对象失败: bucket={}, objectKey={}", bucketName, objectKey, e);
             throw new RuntimeException("获取对象失败", e);
         }
@@ -100,18 +106,22 @@ public class OssClientService {
      * @param inputStream 输入流
      */
     public void putObject(String bucketName, String objectKey, InputStream inputStream) {
+        // 参数校验，确保必要参数不为null
         Objects.requireNonNull(bucketName, "bucketName 不能为空");
         Objects.requireNonNull(objectKey, "objectKey 不能为空");
         Objects.requireNonNull(inputStream, "inputStream 不能为空");
 
         try {
+            // 调用OSS客户端上传对象
             ossClient.putObject(bucketName, objectKey, inputStream);
             log.debug("成功上传对象: bucket={}, objectKey={}", bucketName, objectKey);
         } catch (OSSException oe) {
+            // 处理OSS异常，记录错误日志并重新抛出
             log.error("OSS异常，上传对象失败: bucket={}, objectKey={}, errorCode={}, message={}",
                     bucketName, objectKey, oe.getErrorCode(), oe.getMessage());
             throw oe;
         } catch (Exception e) {
+            // 处理其他异常，记录错误日志并封装为运行时异常抛出
             log.error("上传对象失败: bucket={}, objectKey={}", bucketName, objectKey, e);
             throw new RuntimeException("上传对象失败", e);
         }
@@ -126,10 +136,12 @@ public class OssClientService {
      */
     public ObjectMetadata getObjectMetadata(String bucketName, String objectKey) {
         try {
+            // 调用OSS客户端获取对象元数据
             ObjectMetadata metadata = ossClient.getObjectMetadata(bucketName, objectKey);
             log.debug("成功获取对象元数据: bucket={}, objectKey={}", bucketName, objectKey);
             return metadata;
         } catch (OSSException oe) {
+            // 处理OSS异常情况
             if ("NoSuchKey".equals(oe.getErrorCode())) {
                 log.warn("对象不存在: bucket={}, objectKey={}", bucketName, objectKey);
                 return null;
@@ -138,8 +150,10 @@ public class OssClientService {
                     bucketName, objectKey, oe.getErrorCode(), oe.getMessage());
             throw oe;
         } catch (Exception e) {
+            // 处理其他异常情况
             log.error("获取对象元数据失败: bucket={}, objectKey={}", bucketName, objectKey, e);
             throw new RuntimeException("获取对象元数据失败", e);
         }
     }
+
 }

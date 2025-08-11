@@ -45,7 +45,9 @@ public class OssMetadataService {
      * @throws IOException 获取元数据失败时抛出
      */
     public long getContentLength(String bucketName, String objectKey) throws IOException {
+        // 获取对象的元数据信息
         ObjectMetadata metadata = getObjectMetadataSafely(bucketName, objectKey);
+        // 返回对象的内容长度
         return metadata.getContentLength();
     }
 
@@ -58,12 +60,17 @@ public class OssMetadataService {
      * @throws IOException 当获取元数据失败时
      */
     public long getLastModified(String bucketName, String objectKey) throws IOException {
+        // 安全地获取对象元数据
         ObjectMetadata metadata = getObjectMetadataSafely(bucketName, objectKey);
         Date lastModified = metadata.getLastModified();
+
+        // 检查最后修改时间是否为空
         if (lastModified == null) {
             log.warn("获取最后修改时间失败: 返回值为 null, bucket={}, objectKey={}", bucketName, objectKey);
             throw new IOException("获取OSS对象最后修改时间失败：返回值为 null");
         }
+
+        // 返回最后修改时间的毫秒值
         return lastModified.getTime();
     }
 
@@ -76,6 +83,7 @@ public class OssMetadataService {
      * @throws IOException 获取失败时抛出
      */
     private ObjectMetadata getObjectMetadataSafely(String bucketName, String objectKey) throws IOException {
+        // 尝试获取OSS对象元数据，捕获所有异常并统一转换为IOException
         try {
             return ossClientService.getObjectMetadata(bucketName, objectKey);
         } catch (Exception e) {
@@ -83,4 +91,5 @@ public class OssMetadataService {
             throw new IOException("获取OSS对象元数据失败", e);
         }
     }
+
 }
