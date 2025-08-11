@@ -41,4 +41,5 @@ public class JasperGeneratorManager {
                 // 调用找到的JasperGenerator实现的generate方法生成报告
                 .generate(data, jasperResponse, outputStream);
     }
+
 }

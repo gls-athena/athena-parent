@@ -52,7 +52,9 @@ public class HtmlJasperGenerator implements JasperGenerator {
      */
     @Override
     public boolean supports(JasperResponse jasperResponse) {
+        // 判断文件类型是否为HTML且生成器类型是否为JasperGenerator
         return FileEnums.HTML.equals(jasperResponse.fileType())
                 && jasperResponse.generator() == JasperGenerator.class;
     }
+
 }

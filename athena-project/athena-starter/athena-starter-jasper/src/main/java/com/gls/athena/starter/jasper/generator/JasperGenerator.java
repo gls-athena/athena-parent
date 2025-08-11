@@ -63,6 +63,8 @@ public interface JasperGenerator {
      * @return boolean 如果当前生成器的类与jasperResponse中指定的生成器类匹配，则返回true，否则返回false
      */
     default boolean supports(JasperResponse jasperResponse) {
+        // 比较当前生成器类与注解中指定的生成器类是否相同
         return jasperResponse.generator().equals(this.getClass());
     }
+
 }

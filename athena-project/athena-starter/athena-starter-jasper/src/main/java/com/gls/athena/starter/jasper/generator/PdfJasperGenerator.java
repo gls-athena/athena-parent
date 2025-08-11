@@ -30,6 +30,7 @@ public class PdfJasperGenerator implements JasperGenerator {
      */
     @Override
     public void exportReport(JasperPrint jasperPrint, OutputStream outputStream) throws JRException {
+        // 调用JasperReports的导出管理器将报表导出为PDF格式并写入输出流
         JasperExportManager.exportReportToPdfStream(jasperPrint, outputStream);
     }
 
@@ -41,7 +42,9 @@ public class PdfJasperGenerator implements JasperGenerator {
      */
     @Override
     public boolean supports(JasperResponse jasperResponse) {
+        // 判断文件类型是否为PDF且生成器类型是否为JasperGenerator
         return FileEnums.PDF.equals(jasperResponse.fileType())
                 && jasperResponse.generator() == JasperGenerator.class;
     }
+
 }

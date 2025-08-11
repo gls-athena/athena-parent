@@ -27,14 +27,24 @@ public class JasperResponseHandler implements HandlerMethodReturnValueHandler {
 
     /**
      * 判断是否支持返回类型
+     *
+     * @param returnType 方法参数对象，包含返回类型信息
+     * @return true-如果方法被@JasperResponse注解标记，false-否则
      */
     @Override
     public boolean supportsReturnType(MethodParameter returnType) {
+        // 检查方法是否包含JasperResponse注解来判断是否支持该返回类型
         return returnType.hasMethodAnnotation(JasperResponse.class);
     }
 
     /**
-     * 处理返回值
+     * 处理返回值，生成并导出 Jasper 报表文件
+     *
+     * @param returnValue  方法返回值对象，用于生成报表的数据源
+     * @param returnType   方法返回值类型参数，包含方法注解等元数据信息
+     * @param mavContainer ModelAndView 容器，用于标记请求处理状态
+     * @param webRequest   原生 Web 请求对象，用于获取 HTTP 响应输出流
+     * @throws Exception 当报表生成或文件导出过程中发生错误时抛出
      */
     @Override
     public void handleReturnValue(Object returnValue, MethodParameter returnType,
@@ -54,4 +64,5 @@ public class JasperResponseHandler implements HandlerMethodReturnValueHandler {
             throw e;
         }
     }
+
 }

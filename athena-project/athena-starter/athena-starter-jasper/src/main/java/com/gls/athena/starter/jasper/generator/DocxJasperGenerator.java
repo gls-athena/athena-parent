@@ -52,4 +52,5 @@ public class DocxJasperGenerator implements JasperGenerator {
         return FileEnums.DOCX.equals(jasperResponse.fileType())
                 && jasperResponse.generator() == JasperGenerator.class;
     }
+
 }
