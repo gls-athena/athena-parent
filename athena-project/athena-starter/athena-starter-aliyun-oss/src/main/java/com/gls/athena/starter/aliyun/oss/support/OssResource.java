@@ -52,11 +52,6 @@ public class OssResource implements WritableResource {
     private final OssMetadataService ossMetadataService;
 
     /**
-     * 缓存是否是 bucket 类型资源
-     */
-    private final boolean isBucket = uriParser.isBucket();
-
-    /**
      * 获取OSS对象的输出流，用于写入数据。
      *
      * @return 用于写入数据的输出流
@@ -69,7 +64,7 @@ public class OssResource implements WritableResource {
             throw new FileNotFoundException(String.format("文件不存在: %s", uriParser.getUri()));
         }
 
-        if (isBucket) {
+        if (uriParser.isBucket()) {
             throw new IllegalStateException(String.format("无法对存储空间创建输出流: %s", uriParser.getUri()));
         }
 
@@ -89,7 +84,7 @@ public class OssResource implements WritableResource {
         if (!exists()) {
             throw new FileNotFoundException(String.format("文件不存在: %s", uriParser.getUri()));
         }
-        if (isBucket) {
+        if (uriParser.isBucket()) {
             throw new IllegalStateException(String.format("无法对存储空间创建输入流: %s", uriParser.getUri()));
         }
 
@@ -103,7 +98,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public boolean exists() {
-        return isBucket
+        return uriParser.isBucket()
                 ? ossClientService.doesBucketExist(uriParser.getBucketName())
                 : ossClientService.doesObjectExist(uriParser.getBucketName(), uriParser.getObjectKey());
     }
@@ -149,7 +144,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public long contentLength() throws IOException {
-        if (isBucket) {
+        if (uriParser.isBucket()) {
             return 0;
         }
         return ossMetadataService.getContentLength(uriParser.getBucketName(), uriParser.getObjectKey());
@@ -163,7 +158,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public long lastModified() throws IOException {
-        if (isBucket) {
+        if (uriParser.isBucket()) {
             return 0;
         }
         return ossMetadataService.getLastModified(uriParser.getBucketName(), uriParser.getObjectKey());
@@ -178,9 +173,6 @@ public class OssResource implements WritableResource {
      */
     @Override
     public Resource createRelative(String relativePath) throws IOException {
-        if (relativePath == null) {
-            throw new IllegalArgumentException("relativePath 不能为空");
-        }
 
         // 构建新的完整路径
         String newLocation = buildRelativePath(relativePath);
@@ -195,7 +187,7 @@ public class OssResource implements WritableResource {
      */
     @Override
     public String getFilename() {
-        return isBucket ? uriParser.getBucketName() : extractFilename(uriParser.getObjectKey());
+        return uriParser.isBucket() ? uriParser.getBucketName() : extractFilename(uriParser.getObjectKey());
     }
 
     /**
@@ -216,7 +208,7 @@ public class OssResource implements WritableResource {
      */
     private String buildRelativePath(String relativePath) {
         StringBuilder sb = new StringBuilder("oss://").append(uriParser.getBucketName()).append("/");
-        if (isBucket) {
+        if (uriParser.isBucket()) {
             sb.append(relativePath);
         } else {
             String parentPath = getParentPath(uriParser.getObjectKey());
