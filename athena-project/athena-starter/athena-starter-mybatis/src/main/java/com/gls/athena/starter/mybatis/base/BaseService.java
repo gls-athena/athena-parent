@@ -1,6 +1,6 @@
 package com.gls.athena.starter.mybatis.base;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gls.athena.common.bean.base.BaseVo;
 import com.gls.athena.common.bean.page.PageRequest;
@@ -42,21 +42,20 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public V insert(V vo) {
-        // 检查传入的VO对象是否为null，若为null则抛出异常
         if (vo == null) {
             log.error("插入操作失败，传入的VO对象为null");
             return null;
         }
 
         try {
-            // 将VO对象转换为实体对象
             E entity = converter.convert(vo);
-            // 保存实体对象
-            save(entity);
-            // 将保存后的实体对象转换回VO对象并返回
-            return converter.reverse(getById(entity.getId()));
+            boolean saved = save(entity);
+            if (!saved) {
+                log.warn("插入操作未成功保存实体");
+                return null;
+            }
+            return converter.reverse(entity);
         } catch (Exception e) {
-            // 记录日志或抛出自定义异常
             log.error("插入操作失败", e);
             return null;
         }
@@ -71,18 +70,24 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public V update(V vo) {
-        // 非空检查：确保 VO 对象和转换器都不为 null
         if (vo == null || converter == null) {
             log.error("更新操作失败，传入的VO对象或转换器为null");
             return null;
         }
 
         try {
-            // 将 VO 对象转换为实体对象
             E entity = converter.convert(vo);
-            // 更新实体对象
-            updateById(entity);
-            // 将更新后的实体对象转换回 VO 对象并返回
+            Long id = entity.getId();
+            if (id == null || id <= 0L || !existsById(id)) {
+                log.warn("更新操作失败，指定ID不存在或非法: {}", id);
+                return null;
+            }
+
+            boolean updated = updateById(entity);
+            if (!updated) {
+                log.warn("更新操作未成功更新实体");
+                return null;
+            }
             return converter.reverse(entity);
         } catch (Exception e) {
             log.error("更新操作失败", e);
@@ -100,14 +105,12 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     @Override
     public Boolean delete(Long id) {
         try {
-            // 参数有效性校验
             if (id == null || id <= 0L) {
                 log.error("删除操作失败，传入的ID为空或小于等于0");
                 return false;
             }
             return removeById(id);
         } catch (Exception e) {
-            // 记录异常日志（根据实际情况实现日志记录）
             log.error("删除操作失败", e);
             return false;
         }
@@ -128,7 +131,12 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
         }
 
         try {
-            return converter.reverse(getById(id));
+            E entity = getById(id);
+            if (entity == null) {
+                log.warn("未找到ID为 {} 的实体", id);
+                return null;
+            }
+            return converter.reverse(entity);
         } catch (Exception e) {
             log.error("根据主键ID获取实体视图对象失败", e);
             return null;
@@ -144,19 +152,14 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public List<V> list(V vo) {
-        // 防御性校验
         if (vo == null || converter == null) {
             log.error("根据查询条件获取VO对象列表失败，输入参数为null");
             return null;
         }
         try {
-            // 转换查询条件
-            final E queryCondition = converter.convert(vo);
-
-            // 构建查询条件包装器
-            QueryWrapper<E> queryWrapper = new QueryWrapper<>(queryCondition);
-
-            // 执行基础查询并转换结果
+            E queryCondition = converter.convert(vo);
+            LambdaQueryWrapper<E> queryWrapper = new LambdaQueryWrapper<>(queryCondition);
+            // 可根据实际需求添加字段过滤逻辑
             return converter.reverseList(list(queryWrapper));
         } catch (Exception e) {
             log.error("根据查询条件获取VO对象列表失败", e);
@@ -173,26 +176,27 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public PageResponse<V> page(PageRequest<V> pageRequest) {
-        // 参数校验
         if (pageRequest == null) {
             log.error("分页查询失败，传入的PageRequest对象为null");
             return null;
         }
 
         try {
-            // 设置默认分页参数
             int pageNum = Math.max(pageRequest.getPage(), 1);
             int pageSize = pageRequest.getSize() > 0 ?
                     Math.min(pageRequest.getSize(), 500) : 10;
-            pageRequest.setPage(pageNum);
-            pageRequest.setSize(pageSize);
-            return Optional.of(pageRequest)
+
+            PageRequest<V> safePageRequest = new PageRequest<>();
+            safePageRequest.setPage(pageNum);
+            safePageRequest.setSize(pageSize);
+            safePageRequest.setParams(pageRequest.getParams());
+
+            return Optional.of(safePageRequest)
                     .map(converter::convertPage)
                     .map(baseMapper::selectPage)
                     .map(converter::reversePage)
                     .orElse(null);
         } catch (Exception e) {
-            // 记录异常日志
             log.error("分页查询失败", e);
             return null;
         }
@@ -213,10 +217,21 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
             return false;
         }
         try {
-            return saveBatch(converter.convertList(vs));
+            List<E> entities = converter.convertList(vs);
+            return saveBatch(entities, 100);
         } catch (Exception e) {
             log.error("批量插入失败", e);
             return false;
         }
+    }
+
+    /**
+     * 检查指定ID的实体是否存在。
+     *
+     * @param id 实体ID
+     * @return 存在返回true，否则返回false
+     */
+    private boolean existsById(Long id) {
+        return id != null && id > 0 && getById(id) != null;
     }
 }
