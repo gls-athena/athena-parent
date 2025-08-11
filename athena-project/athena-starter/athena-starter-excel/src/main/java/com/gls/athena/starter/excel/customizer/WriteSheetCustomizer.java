@@ -36,7 +36,9 @@ public class WriteSheetCustomizer extends BaseWriteCustomizer<WriteSheet> {
      * @return 返回定制化的WriteSheet对象
      */
     public static WriteSheet getWriteSheet(ExcelSheet excelSheet) {
+        // 创建WriteSheet实例
         WriteSheet writeSheet = new WriteSheet();
+        // 创建并应用自定义配置
         WriteSheetCustomizer writeSheetCustomizer = new WriteSheetCustomizer(excelSheet);
         writeSheetCustomizer.customize(writeSheet);
         return writeSheet;
@@ -49,6 +51,7 @@ public class WriteSheetCustomizer extends BaseWriteCustomizer<WriteSheet> {
      * @return 返回定制化的WriteSheet对象列表
      */
     public static List<WriteSheet> getWriteSheets(ExcelSheet[] excelSheets) {
+        // 将ExcelSheet数组转换为列表，并调用重载方法进行处理
         return getWriteSheets(List.of(excelSheets));
     }
 
@@ -59,6 +62,7 @@ public class WriteSheetCustomizer extends BaseWriteCustomizer<WriteSheet> {
      * @return 返回定制化的WriteSheet对象列表
      */
     public static List<WriteSheet> getWriteSheets(List<ExcelSheet> excelSheets) {
+        // 将ExcelSheet注解列表转换为WriteSheet对象列表
         return excelSheets.stream().map(WriteSheetCustomizer::getWriteSheet).toList();
     }
 
@@ -79,4 +83,5 @@ public class WriteSheetCustomizer extends BaseWriteCustomizer<WriteSheet> {
             writeSheet.setSheetName(excelSheet.sheetName());
         }
     }
+
 }

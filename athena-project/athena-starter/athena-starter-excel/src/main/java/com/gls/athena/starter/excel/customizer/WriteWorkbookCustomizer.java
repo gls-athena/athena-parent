@@ -48,24 +48,30 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
     /**
      * 获取ExcelWriter实例
      *
-     * @param excelResponse Excel响应配置
-     * @param outputStream  输出流
+     * @param excelResponse   Excel响应配置
+     * @param outputStream    输出流
+     * @param excelProperties Excel属性配置
      * @return ExcelWriter实例
      */
     public static ExcelWriter getExcelWriter(ExcelResponse excelResponse, OutputStream outputStream, ExcelProperties excelProperties) {
+        // 获取写入工作簿实例
         WriteWorkbook writeWorkbook = getWriteWorkbook(excelResponse, outputStream, excelProperties);
+        // 创建并返回ExcelWriter实例
         return new ExcelWriter(writeWorkbook);
     }
 
     /**
      * 获取配置好的WriteWorkbook实例
      *
-     * @param excelResponse Excel响应配置
-     * @param outputStream  输出流
+     * @param excelResponse   Excel响应配置
+     * @param outputStream    输出流
+     * @param excelProperties Excel属性配置
      * @return 配置好的WriteWorkbook实例
      */
     public static WriteWorkbook getWriteWorkbook(ExcelResponse excelResponse, OutputStream outputStream, ExcelProperties excelProperties) {
+        // 创建WriteWorkbook实例
         WriteWorkbook writeWorkbook = new WriteWorkbook();
+        // 创建自定义器并应用配置
         WriteWorkbookCustomizer writeWorkbookCustomizer = new WriteWorkbookCustomizer(excelResponse, outputStream, excelProperties);
         writeWorkbookCustomizer.customize(writeWorkbook);
         return writeWorkbook;
@@ -130,4 +136,5 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
             writeWorkbook.setWriteExcelOnException(excelResponse.writeExcelOnException());
         }
     }
+
 }

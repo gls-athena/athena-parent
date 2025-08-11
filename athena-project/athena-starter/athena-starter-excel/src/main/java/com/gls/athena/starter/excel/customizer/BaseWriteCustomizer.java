@@ -30,8 +30,11 @@ public abstract class BaseWriteCustomizer<Parameter extends WriteBasicParameter>
      */
     @Override
     public void customize(Parameter parameter) {
+        // 执行基础自定义设置
         customizeBasic(parameter);
+        // 执行写入基础自定义设置
         customizeWriteBasic(parameter);
+        // 执行特定于写的自定义设置
         customizeWrite(parameter);
     }
 
@@ -168,4 +171,5 @@ public abstract class BaseWriteCustomizer<Parameter extends WriteBasicParameter>
             parameter.setOrderByIncludeColumn(config.orderByIncludeColumn());
         }
     }
+
 }

@@ -36,7 +36,9 @@ public class WriteTableCustomizer extends BaseWriteCustomizer<WriteTable> {
      * @return 定制后的WriteTable对象
      */
     public static WriteTable getWriteTable(ExcelTable excelTable) {
+        // 创建WriteTable实例
         WriteTable writeTable = new WriteTable();
+        // 创建自定义器并应用ExcelTable注解配置
         WriteTableCustomizer writeTableCustomizer = new WriteTableCustomizer(excelTable);
         writeTableCustomizer.customize(writeTable);
         return writeTable;
@@ -50,6 +52,7 @@ public class WriteTableCustomizer extends BaseWriteCustomizer<WriteTable> {
      * @return 包含所有定制后的WriteTable对象的列表
      */
     public static List<WriteTable> getWriteTables(ExcelTable... tables) {
+        // 将可变参数数组转换为List，并调用重载方法进行处理
         return getWriteTables(List.of(tables));
     }
 
@@ -60,6 +63,7 @@ public class WriteTableCustomizer extends BaseWriteCustomizer<WriteTable> {
      * @return 包含所有定制后的WriteTable对象的列表
      */
     public static List<WriteTable> getWriteTables(List<ExcelTable> tables) {
+        // 将ExcelTable注解列表转换为WriteTable对象列表
         return tables.stream().map(WriteTableCustomizer::getWriteTable).toList();
     }
 
@@ -76,4 +80,5 @@ public class WriteTableCustomizer extends BaseWriteCustomizer<WriteTable> {
             writeTable.setTableNo(excelTable.tableNo());
         }
     }
+
 }
