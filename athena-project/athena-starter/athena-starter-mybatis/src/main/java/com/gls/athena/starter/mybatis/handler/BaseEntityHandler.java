@@ -27,12 +27,12 @@ public class BaseEntityHandler implements MetaObjectHandler {
     public void insertFill(MetaObject metaObject) {
         // 打印日志
         log.info("insertFill metaObject: {}", metaObject);
-        // 获取当前用户 ID
+
+        // 获取当前用户信息和时间
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
-        // 获取当前用户昵称
         String userName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
-        // 获取当前时间
         Date now = new Date();
+
         // 严格插入填充
         this.strictInsertFill(metaObject, "deleted", Boolean.class, false);
         this.strictInsertFill(metaObject, "createUserId", Long.class, userId);
@@ -52,15 +52,16 @@ public class BaseEntityHandler implements MetaObjectHandler {
     public void updateFill(MetaObject metaObject) {
         // 打印日志
         log.info("updateFill metaObject: {}", metaObject);
-        // 获取当前用户 ID
+
+        // 获取当前用户信息和时间
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
-        // 获取当前用户昵称
         String userName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
-        // 获取当前时间
         Date now = new Date();
-        // 严格更新填充
+
+        // 严格更新填充用户ID、用户昵称和更新时间字段
         this.strictUpdateFill(metaObject, "updateUserId", Long.class, userId);
         this.strictUpdateFill(metaObject, "updateUserName", String.class, userName);
         this.strictUpdateFill(metaObject, "updateTime", Date.class, now);
     }
+
 }

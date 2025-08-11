@@ -47,6 +47,7 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
             return null;
         }
 
+        // 将视图对象转换为实体对象并保存
         try {
             E entity = converter.convert(vo);
             boolean saved = save(entity);
@@ -70,24 +71,31 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public V update(V vo) {
+        // 参数校验：检查VO对象和转换器是否为null
         if (vo == null || converter == null) {
             log.error("更新操作失败，传入的VO对象或转换器为null");
             return null;
         }
 
         try {
+            // 将VO对象转换为实体对象并获取ID
             E entity = converter.convert(vo);
             Long id = entity.getId();
+
+            // 校验ID的有效性：ID必须存在且大于0，同时数据库中必须存在该ID的记录
             if (id == null || id <= 0L || !existsById(id)) {
                 log.warn("更新操作失败，指定ID不存在或非法: {}", id);
                 return null;
             }
 
+            // 执行更新操作
             boolean updated = updateById(entity);
             if (!updated) {
                 log.warn("更新操作未成功更新实体");
                 return null;
             }
+
+            // 更新成功后，将实体对象转换回VO对象并返回
             return converter.reverse(entity);
         } catch (Exception e) {
             log.error("更新操作失败", e);
@@ -105,12 +113,15 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     @Override
     public Boolean delete(Long id) {
         try {
+            // 验证传入的ID是否有效
             if (id == null || id <= 0L) {
                 log.error("删除操作失败，传入的ID为空或小于等于0");
                 return false;
             }
+            // 执行删除操作
             return removeById(id);
         } catch (Exception e) {
+            // 记录删除操作异常
             log.error("删除操作失败", e);
             return false;
         }
@@ -125,17 +136,20 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      */
     @Override
     public V get(Long id) {
+        // 参数校验：检查ID是否为空或小于等于0
         if (id == null || id <= 0L) {
             log.error("根据主键ID获取实体视图对象失败，传入的ID为空或小于等于0");
             return null;
         }
 
         try {
+            // 根据ID获取实体对象
             E entity = getById(id);
             if (entity == null) {
                 log.warn("未找到ID为 {} 的实体", id);
                 return null;
             }
+            // 将实体对象转换为视图对象并返回
             return converter.reverse(entity);
         } catch (Exception e) {
             log.error("根据主键ID获取实体视图对象失败", e);
@@ -157,9 +171,12 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
             return null;
         }
         try {
+            // 将视图对象转换为实体查询条件
             E queryCondition = converter.convert(vo);
+            // 构造查询条件包装器
             LambdaQueryWrapper<E> queryWrapper = new LambdaQueryWrapper<>(queryCondition);
             // 可根据实际需求添加字段过滤逻辑
+            // 执行查询并将结果转换为视图对象列表
             return converter.reverseList(list(queryWrapper));
         } catch (Exception e) {
             log.error("根据查询条件获取VO对象列表失败", e);
@@ -182,6 +199,7 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
         }
 
         try {
+            // 校验并设置安全的分页参数，页码最小为1，页面大小范围为1-500
             int pageNum = Math.max(pageRequest.getPage(), 1);
             int pageSize = pageRequest.getSize() > 0 ?
                     Math.min(pageRequest.getSize(), 500) : 10;
@@ -191,6 +209,7 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
             safePageRequest.setSize(pageSize);
             safePageRequest.setParams(pageRequest.getParams());
 
+            // 执行分页查询流程：转换请求->数据库查询->转换响应
             return Optional.of(safePageRequest)
                     .map(converter::convertPage)
                     .map(baseMapper::selectPage)
@@ -212,14 +231,18 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean saveBatch(List<V> vs) {
+        // 参数校验：检查传入的视图对象列表是否为空
         if (vs == null || vs.isEmpty()) {
             log.error("批量插入失败，传入的VO列表为空或为空列表");
             return false;
         }
+
         try {
+            // 将视图对象列表转换为实体对象列表并执行批量保存
             List<E> entities = converter.convertList(vs);
             return saveBatch(entities, 100);
         } catch (Exception e) {
+            // 记录批量插入异常日志并返回失败状态
             log.error("批量插入失败", e);
             return false;
         }
@@ -232,6 +255,8 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
      * @return 存在返回true，否则返回false
      */
     private boolean existsById(Long id) {
+        // 检查ID是否有效且对应的实体存在
         return id != null && id > 0 && getById(id) != null;
     }
+
 }
