@@ -15,7 +15,6 @@
         <module>athena-cloud</module>
         <module>athena-common</module>
         <module>athena-sdk</module>
-        <module>athena-security</module>
         <module>athena-starter</module>
     </modules>
 
