@@ -1,5 +1,8 @@
 package com.gls.athena.common.bean.base;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * 通用枚举接口定义
  * <p>
@@ -15,7 +18,13 @@ package com.gls.athena.common.bean.base;
 public interface IEnum<T> {
 
     /**
-     * 根据编码值查找对应的枚举实例
+     * 枚举实例缓存，提高查找性能
+     */
+    Map<Class<?>, Map<Object, IEnum<?>>> ENUM_CACHE = new ConcurrentHashMap<>();
+    Map<Class<?>, Map<String, IEnum<?>>> NAME_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * 根据编码值查找对应的枚举实例（使用缓存优化）
      *
      * @param enumClass 枚举类的Class对象，不能为null
      * @param code      枚举编码值
@@ -24,6 +33,7 @@ public interface IEnum<T> {
      * @return 匹配的枚举实例，未找到则返回null
      * @throws IllegalArgumentException 当enumClass为null时抛出
      */
+    @SuppressWarnings("unchecked")
     static <E extends IEnum<T>, T> E of(Class<E> enumClass, T code) {
         if (enumClass == null) {
             throw new IllegalArgumentException("枚举类Class对象不能为null");
@@ -31,12 +41,17 @@ public interface IEnum<T> {
         if (code == null) {
             return null;
         }
-        for (E item : enumClass.getEnumConstants()) {
-            if (code.equals(item.getCode())) {
-                return item;
+
+        // 从缓存中获取或构建
+        Map<Object, IEnum<?>> codeMap = ENUM_CACHE.computeIfAbsent(enumClass, k -> {
+            Map<Object, IEnum<?>> map = new ConcurrentHashMap<>();
+            for (E item : enumClass.getEnumConstants()) {
+                map.put(item.getCode(), item);
             }
-        }
-        return null;
+            return map;
+        });
+
+        return (E) codeMap.get(code);
     }
 
     /**
@@ -54,7 +69,7 @@ public interface IEnum<T> {
     }
 
     /**
-     * 根据名称查找对应的枚举实例
+     * 根据名称查找对应的枚举实例（使用缓存优化）
      *
      * @param enumClass     枚举类的Class对象，不能为null
      * @param name          枚举名称
@@ -64,6 +79,7 @@ public interface IEnum<T> {
      * @return 匹配的枚举实例，未找到则返回null
      * @throws IllegalArgumentException 当enumClass为null时抛出
      */
+    @SuppressWarnings("unchecked")
     static <E extends IEnum<T>, T> E fromName(Class<E> enumClass, String name, boolean caseSensitive) {
         if (enumClass == null) {
             throw new IllegalArgumentException("枚举类Class对象不能为null");
@@ -71,13 +87,28 @@ public interface IEnum<T> {
         if (name == null) {
             return null;
         }
-        for (E item : enumClass.getEnumConstants()) {
-            String enumName = item.getName();
-            if (caseSensitive ? name.equals(enumName) : name.equalsIgnoreCase(enumName)) {
-                return item;
+
+        // 如果不区分大小写，使用线性查找（较少使用）
+        if (!caseSensitive) {
+            for (E item : enumClass.getEnumConstants()) {
+                String enumName = item.getName();
+                if (name.equalsIgnoreCase(enumName)) {
+                    return item;
+                }
             }
+            return null;
         }
-        return null;
+
+        // 区分大小写时使用缓存
+        Map<String, IEnum<?>> nameMap = NAME_CACHE.computeIfAbsent(enumClass, k -> {
+            Map<String, IEnum<?>> map = new ConcurrentHashMap<>();
+            for (E item : enumClass.getEnumConstants()) {
+                map.put(item.getName(), item);
+            }
+            return map;
+        });
+
+        return (E) nameMap.get(name);
     }
 
     /**
