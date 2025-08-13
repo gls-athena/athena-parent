@@ -120,7 +120,7 @@ public class AliyunOssProperties extends BaseProperties {
      * <p>
      * 用于配置异步任务执行所需的线程池参数。
      */
-    private ExecutorConfig executor;
+    private ExecutorConfig executor = new ExecutorConfig();
 
     /**
      * OSS客户端配置。
