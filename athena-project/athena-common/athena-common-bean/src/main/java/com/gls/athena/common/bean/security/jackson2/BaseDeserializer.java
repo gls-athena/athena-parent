@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gls.athena.common.bean.base.BaseVo;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -50,12 +50,12 @@ public abstract class BaseDeserializer<T extends BaseVo> extends JsonDeserialize
         // 解析创建相关审计字段
         Optional.ofNullable(node.get("createUserId")).map(JsonNode::asLong).ifPresent(baseVo::setCreateUserId);
         Optional.ofNullable(node.get("createUserName")).map(JsonNode::asText).ifPresent(baseVo::setCreateUserName);
-        Optional.ofNullable(node.get("createTime")).map(date -> mapper.convertValue(date, Date.class)).ifPresent(baseVo::setCreateTime);
+        Optional.ofNullable(node.get("createTime")).map(date -> mapper.convertValue(date, LocalDateTime.class)).ifPresent(baseVo::setCreateTime);
 
         // 解析更新相关审计字段
         Optional.ofNullable(node.get("updateUserId")).map(JsonNode::asLong).ifPresent(baseVo::setUpdateUserId);
         Optional.ofNullable(node.get("updateUserName")).map(JsonNode::asText).ifPresent(baseVo::setUpdateUserName);
-        Optional.ofNullable(node.get("updateTime")).map(date -> mapper.convertValue(date, Date.class)).ifPresent(baseVo::setUpdateTime);
+        Optional.ofNullable(node.get("updateTime")).map(date -> mapper.convertValue(date, LocalDateTime.class)).ifPresent(baseVo::setUpdateTime);
 
         return baseVo;
     }

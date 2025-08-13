@@ -8,7 +8,7 @@ import jakarta.persistence.PreUpdate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * JPA实体默认监听器
@@ -46,7 +46,7 @@ public class DefaultEntityListener {
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
         String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
         Long tenantId = LoginUserHelper.getCurrentUserTenantId().orElse(IConstants.DEFAULT_TENANT_ID);
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
 
         // 设置审计字段
         entity.setTenantId(tenantId);
@@ -73,9 +73,10 @@ public class DefaultEntityListener {
         // 获取当前用户信息并更新修改相关字段
         Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
         String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
+        LocalDateTime now = LocalDateTime.now();
 
         entity.setUpdateUserId(userId);
         entity.setUpdateUserName(userRealName);
-        entity.setUpdateTime(new Date());
+        entity.setUpdateTime(now);
     }
 }
