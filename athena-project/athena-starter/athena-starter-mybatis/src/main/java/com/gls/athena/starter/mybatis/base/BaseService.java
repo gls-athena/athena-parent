@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 基础服务类
@@ -199,22 +198,8 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
         }
 
         try {
-            // 校验并设置安全的分页参数，页码最小为1，页面大小范围为1-500
-            int pageNum = Math.max(pageRequest.getPage(), 1);
-            int pageSize = pageRequest.getSize() > 0 ?
-                    Math.min(pageRequest.getSize(), 500) : 10;
-
-            PageRequest<V> safePageRequest = new PageRequest<>();
-            safePageRequest.setPage(pageNum);
-            safePageRequest.setSize(pageSize);
-            safePageRequest.setParams(pageRequest.getParams());
-
-            // 执行分页查询流程：转换请求->数据库查询->转换响应
-            return Optional.of(safePageRequest)
-                    .map(converter::convertPage)
-                    .map(baseMapper::selectPage)
-                    .map(converter::reversePage)
-                    .orElse(null);
+            return this.baseMapper.selectPage(pageRequest.map(converter::convert))
+                    .map(converter::reverse);
         } catch (Exception e) {
             log.error("分页查询失败", e);
             return null;

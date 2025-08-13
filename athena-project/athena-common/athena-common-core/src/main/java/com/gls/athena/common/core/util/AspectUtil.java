@@ -6,8 +6,11 @@ import org.aspectj.lang.reflect.MethodSignature;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * AOP切面工具类
@@ -70,8 +73,81 @@ public class AspectUtil {
         if (throwable == null) {
             return "";
         }
-        StringWriter sw = new StringWriter();
-        throwable.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
+        try (StringWriter sw = new StringWriter();
+             PrintWriter pw = new PrintWriter(sw)) {
+            throwable.printStackTrace(pw);
+            return sw.toString();
+        } catch (Exception e) {
+            return "Error getting stack trace: " + e.getMessage();
+        }
+    }
+
+    /**
+     * 获取方法名称
+     *
+     * @param point 切点对象
+     * @return 方法名称
+     */
+    public String getMethodName(ProceedingJoinPoint point) {
+        return Optional.ofNullable(point)
+                .map(ProceedingJoinPoint::getSignature)
+                .map(signature -> signature.getName())
+                .orElse("");
+    }
+
+    /**
+     * 获取类名
+     *
+     * @param point 切点对象
+     * @return 类名
+     */
+    public String getClassName(ProceedingJoinPoint point) {
+        return Optional.ofNullable(point)
+                .map(ProceedingJoinPoint::getTarget)
+                .map(target -> target.getClass().getSimpleName())
+                .orElse("");
+    }
+
+    /**
+     * 获取方法上的注解
+     *
+     * @param point           切点对象
+     * @param annotationClass 注解类型
+     * @param <T>             注解类型
+     * @return 注解实例，如果不存在则返回null
+     */
+    public <T extends Annotation> T getMethodAnnotation(ProceedingJoinPoint point, Class<T> annotationClass) {
+        if (point == null || annotationClass == null) {
+            return null;
+        }
+
+        try {
+            MethodSignature signature = (MethodSignature) point.getSignature();
+            Method method = signature.getMethod();
+            return method.getAnnotation(annotationClass);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 获取执行时间信息
+     *
+     * @param startTime 开始时间（毫秒）
+     * @return 执行时间信息字符串
+     */
+    public String getExecutionTimeInfo(long startTime) {
+        long endTime = System.currentTimeMillis();
+        long executionTime = endTime - startTime;
+
+        if (executionTime < 1000) {
+            return executionTime + "ms";
+        } else if (executionTime < 60000) {
+            return String.format("%.2fs", executionTime / 1000.0);
+        } else {
+            long minutes = executionTime / 60000;
+            long seconds = (executionTime % 60000) / 1000;
+            return minutes + "m" + seconds + "s";
+        }
     }
 }

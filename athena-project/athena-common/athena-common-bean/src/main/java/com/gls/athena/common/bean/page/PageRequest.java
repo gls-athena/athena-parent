@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.function.Function;
+
 /**
  * 分页查询请求对象
  * 用于封装分页查询的请求参数，包括页码、每页条数、排序信息等
@@ -111,6 +113,30 @@ public class PageRequest<T> {
     }
 
     /**
+     * 将当前PageRequest对象转换为另一种类型的PageRequest对象
+     *
+     * @param <R>       转换后的参数类型
+     * @param converter 用于转换参数的函数接口
+     * @return 转换后的新PageRequest对象
+     */
+    public <R> PageRequest<R> map(Function<T, R> converter) {
+        // 创建新的PageRequest对象并复制基础属性
+        PageRequest<R> newRequest = new PageRequest<>();
+        newRequest.setPage(this.page);
+        newRequest.setSize(this.size);
+        newRequest.setSort(this.sort);
+        newRequest.setOrder(order);
+
+        // 转换并设置参数
+        if (this.params != null) {
+            newRequest.setParams(converter.apply(this.params));
+        }
+
+        // 验证并返回新请求对象
+        return newRequest.validate();
+    }
+
+    /**
      * 验证并修正分页参数
      * 包括页码、每页条数以及排序方式的有效性校验
      *
@@ -131,7 +157,8 @@ public class PageRequest<T> {
 
         // 验证排序方式
         if (order != null && !order.equalsIgnoreCase("asc") && !order.equalsIgnoreCase("desc")) {
-            order = "desc"; // 默认降序
+            // 默认降序
+            order = "desc";
         }
 
         return this;

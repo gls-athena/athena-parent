@@ -1,7 +1,5 @@
 package com.gls.athena.common.core.base;
 
-import com.gls.athena.common.bean.page.PageRequest;
-import com.gls.athena.common.bean.page.PageResponse;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.MappingTarget;
@@ -66,29 +64,6 @@ public interface IConverter<S, T> {
     }
 
     /**
-     * 转换分页请求对象，将源分页请求对象转换为目标分页请求对象。
-     * 该函数主要用于将一种类型的分页请求（源分页）转换为另一种类型的分页请求（目标分页）。
-     * 转换过程中，源分页的页码、每页大小、排序字段、排序顺序等属性会被复制到目标分页中，
-     * 同时源分页的参数会通过 {@link #convert(Object)} 方法进行转换并设置到目标分页中。
-     *
-     * @param sourcePage 源分页请求对象，包含需要转换的分页信息。
-     * @return 目标分页请求对象，包含转换后的分页信息。
-     */
-    default PageRequest<T> convertPage(PageRequest<S> sourcePage) {
-        if (sourcePage == null) {
-            return null;
-        }
-        S params = sourcePage.getParams();
-        T convertedParams = params != null ? convert(params) : null;
-        return new PageRequest<T>()
-                .setPage(sourcePage.getPage())
-                .setSize(sourcePage.getSize())
-                .setSort(sourcePage.getSort())
-                .setOrder(sourcePage.getOrder())
-                .setParams(convertedParams);
-    }
-
-    /**
      * 将目标对象反向转换为源对象。
      *
      * @param target 目标对象
@@ -132,26 +107,6 @@ public interface IConverter<S, T> {
             return Collections.emptySet();
         }
         return targets.stream().map(this::reverse).collect(Collectors.toSet());
-    }
-
-    /**
-     * 将目标分页响应对象转换为源分页响应对象。
-     * 该函数主要用于将目标分页响应对象中的分页信息（如页码、每页大小、总记录数、总页数）以及数据列表转换为源分页响应对象。
-     * 数据列表的转换通过调用 {@code reverseList} 方法实现。
-     *
-     * @param targetPage 目标分页响应对象，包含需要转换的分页信息和数据列表
-     * @return 转换后的源分页响应对象，包含与目标分页相同的分页信息，但数据列表已通过 {@code reverseList} 方法转换
-     */
-    default PageResponse<S> reversePage(PageResponse<T> targetPage) {
-        if (targetPage == null) {
-            return null;
-        }
-        return new PageResponse<S>()
-                .setPage(targetPage.getPage())
-                .setSize(targetPage.getSize())
-                .setTotal(targetPage.getTotal())
-                .setPages(targetPage.getPages())
-                .setData(reverseList(targetPage.getData()));
     }
 
 }

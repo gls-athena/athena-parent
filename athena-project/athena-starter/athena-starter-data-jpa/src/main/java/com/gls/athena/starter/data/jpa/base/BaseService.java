@@ -12,7 +12,6 @@ import org.springframework.util.Assert;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 通用基础服务实现类
@@ -158,11 +157,12 @@ public abstract class BaseService<V extends BaseVo, E extends BaseEntity,
         Assert.isTrue(pageRequest.getPage() >= 0, "页码不能小于0");
         Assert.isTrue(pageRequest.getSize() > 0, "每页大小必须大于0");
 
-        return Optional.of(pageRequest)
-                .map(converter::convertPage)
-                .map(repository::findAll)
-                .map(converter::reversePage)
-                .orElseThrow(() -> new IllegalArgumentException("分页查询请求不能为空"));
+        try {
+            return repository.findAll(pageRequest.map(converter::convert))
+                    .map(converter::reverse);
+        } catch (Exception e) {
+            throw new RuntimeException("分页查询记录失败: " + e.getMessage(), e);
+        }
     }
 
     /**

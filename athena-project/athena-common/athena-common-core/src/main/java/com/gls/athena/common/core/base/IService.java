@@ -23,7 +23,7 @@ public interface IService<Vo extends BaseVo> {
      * @param vo 待新增的VO对象
      * @return 新增后的VO对象
      */
-    @CachePut(key = "#result.id")
+    @CachePut(key = "#result.id", condition = "#result != null && #result.id != null")
     Vo insert(Vo vo);
 
     /**
@@ -32,7 +32,7 @@ public interface IService<Vo extends BaseVo> {
      * @param vo 待修改的VO对象
      * @return 修改后的VO对象
      */
-    @CachePut(key = "#result.id")
+    @CachePut(key = "#result.id", condition = "#result != null && #result.id != null")
     Vo update(Vo vo);
 
     /**
@@ -41,7 +41,7 @@ public interface IService<Vo extends BaseVo> {
      * @param id 待删除数据的ID
      * @return 删除是否成功
      */
-    @CacheEvict(key = "#id")
+    @CacheEvict(key = "#id", condition = "#id != null")
     Boolean delete(Long id);
 
     /**
@@ -50,7 +50,7 @@ public interface IService<Vo extends BaseVo> {
      * @param id 数据ID
      * @return 查询到的VO对象
      */
-    @Cacheable(key = "#id")
+    @Cacheable(key = "#id", condition = "#id != null", unless = "#result == null")
     Vo get(Long id);
 
     /**
@@ -77,4 +77,3 @@ public interface IService<Vo extends BaseVo> {
      */
     Boolean saveBatch(List<Vo> voList);
 }
-

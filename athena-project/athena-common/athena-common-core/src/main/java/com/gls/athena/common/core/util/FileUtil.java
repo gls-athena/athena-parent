@@ -8,6 +8,10 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Set;
 
 /**
  * 文件工具类，提供静态方法来处理文件相关的操作
@@ -20,6 +24,16 @@ public class FileUtil {
 
     public static final String CLASSPATH = "classpath:";
     public static final String PREFIX = "/";
+
+    // 常见的图片文件扩展名
+    private static final Set<String> IMAGE_EXTENSIONS = Set.of(
+            "jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "ico"
+    );
+
+    // 常见的文档文件扩展名
+    private static final Set<String> DOCUMENT_EXTENSIONS = Set.of(
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "rtf"
+    );
 
     /**
      * 获取文件扩展名
@@ -103,15 +117,139 @@ public class FileUtil {
     }
 
     /**
-     * 提取公共逻辑：获取最后一个 '.' 的索引
+     * 获取文件最后一个点的索引位置
      *
      * @param fileName 文件名
-     * @return 最后一个 '.' 的索引，如果没有 '.' 则返回-1
+     * @return 最后一个点的索引，如果没有找到则返回-1
      */
     private int getLastDotIndex(String fileName) {
-        if (fileName == null) {
-            return -1;
-        }
         return fileName.lastIndexOf('.');
+    }
+
+    /**
+     * 验证文件扩展名是否安全
+     *
+     * @param fileName          文件名
+     * @param allowedExtensions 允许的扩展名集合
+     * @return 如果扩展名在允许列表中返回true，否则返回false
+     */
+    public boolean isAllowedExtension(String fileName, Set<String> allowedExtensions) {
+        if (!StringUtils.hasText(fileName) || allowedExtensions == null || allowedExtensions.isEmpty()) {
+            return false;
+        }
+        String extension = getFileExtension(fileName).toLowerCase();
+        return allowedExtensions.contains(extension);
+    }
+
+    /**
+     * 判断是否为图片文件
+     *
+     * @param fileName 文件名
+     * @return 如果是图片文件返回true，否则返回false
+     */
+    public boolean isImageFile(String fileName) {
+        return isAllowedExtension(fileName, IMAGE_EXTENSIONS);
+    }
+
+    /**
+     * 判断是否为文档文件
+     *
+     * @param fileName 文件名
+     * @return 如果是文档文件返回true，否则返回false
+     */
+    public boolean isDocumentFile(String fileName) {
+        return isAllowedExtension(fileName, DOCUMENT_EXTENSIONS);
+    }
+
+    /**
+     * 格式化文件大小
+     *
+     * @param bytes 文件大小（字节）
+     * @return 格式化后的文件大小字符串
+     */
+    public String formatFileSize(long bytes) {
+        if (bytes < 0) {
+            return "0 B";
+        }
+
+        String[] units = {"B", "KB", "MB", "GB", "TB"};
+        int unitIndex = 0;
+        double size = bytes;
+
+        while (size >= 1024 && unitIndex < units.length - 1) {
+            size /= 1024;
+            unitIndex++;
+        }
+
+        return String.format("%.2f %s", size, units[unitIndex]);
+    }
+
+    /**
+     * 安全的文件名处理，移除潜在的危险字符
+     *
+     * @param fileName 原始文件名
+     * @return 安全的文件名
+     */
+    public String sanitizeFileName(String fileName) {
+        if (!StringUtils.hasText(fileName)) {
+            return "unnamed";
+        }
+
+        // 移除路径分隔符和其他危险字符
+        String sanitized = fileName.replaceAll("[/\\\\:*?\"<>|]", "_");
+
+        // 移除连续的点号（防止目录遍历）
+        sanitized = sanitized.replaceAll("\\.{2,}", ".");
+
+        // 确保不以点号开头或结尾
+        sanitized = sanitized.replaceAll("^\\.|\\.$", "");
+
+        // 如果处理后为空，则使用默认名称
+        if (!StringUtils.hasText(sanitized)) {
+            sanitized = "unnamed";
+        }
+
+        return sanitized;
+    }
+
+    /**
+     * 检查文件是否存在
+     *
+     * @param filePath 文件路径
+     * @return 如果文件存在返回true，否则返回false
+     */
+    public boolean exists(String filePath) {
+        if (!StringUtils.hasText(filePath)) {
+            return false;
+        }
+
+        try {
+            Path path = Paths.get(filePath);
+            return Files.exists(path);
+        } catch (Exception e) {
+            log.warn("检查文件是否存在时发生异常: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 创建目录（如果不存在）
+     *
+     * @param dirPath 目录路径
+     * @return 创建成功返回true，否则返回false
+     */
+    public boolean createDirectories(String dirPath) {
+        if (!StringUtils.hasText(dirPath)) {
+            return false;
+        }
+
+        try {
+            Path path = Paths.get(dirPath);
+            Files.createDirectories(path);
+            return true;
+        } catch (IOException e) {
+            log.error("创建目录失败: {}, 错误: {}", dirPath, e.getMessage());
+            return false;
+        }
     }
 }
