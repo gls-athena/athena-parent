@@ -1,6 +1,6 @@
 package com.gls.athena.common.bean.base;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 领域对象基础接口
@@ -104,14 +104,14 @@ public interface IDomain {
      *
      * @return 数据创建时间
      */
-    LocalDateTime getCreateTime();
+    Date getCreateTime();
 
     /**
      * 设置数据创建时间
      *
      * @param createTime 数据创建时间
      */
-    void setCreateTime(LocalDateTime createTime);
+    void setCreateTime(Date createTime);
 
     /**
      * 获取最后更新用户ID
@@ -149,12 +149,12 @@ public interface IDomain {
      *
      * @return 数据最后更新时间
      */
-    LocalDateTime getUpdateTime();
+    Date getUpdateTime();
 
     /**
      * 设置最后更新时间
      *
      * @param updateTime 数据最后更新时间
      */
-    void setUpdateTime(LocalDateTime updateTime);
+    void setUpdateTime(Date updateTime);
 }

@@ -4,7 +4,7 @@ import cn.idev.excel.annotation.ExcelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 基础值对象(Value Object)抽象类
@@ -86,7 +86,7 @@ public abstract class BaseVo implements IDomain {
      */
     @ExcelProperty(value = "创建时间")
     @Schema(title = "创建时间", description = "记录的创建时间", example = "2024-01-01 10:00:00")
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 更新人ID
@@ -110,5 +110,5 @@ public abstract class BaseVo implements IDomain {
      */
     @ExcelProperty(value = "更新时间")
     @Schema(title = "更新时间", description = "记录的最后更新时间", example = "2024-01-02 15:30:00")
-    private LocalDateTime updateTime;
+    private Date updateTime;
 }

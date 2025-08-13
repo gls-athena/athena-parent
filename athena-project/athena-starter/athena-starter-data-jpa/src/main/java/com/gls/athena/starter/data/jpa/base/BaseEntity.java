@@ -10,7 +10,7 @@ import jakarta.persistence.Version;
 import lombok.Data;
 import org.hibernate.annotations.Comment;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * JPA实体基类
@@ -73,7 +73,7 @@ public abstract class BaseEntity implements IDomain {
      * 创建时间
      */
     @Comment("创建时间")
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 最后修改人ID
@@ -91,5 +91,5 @@ public abstract class BaseEntity implements IDomain {
      * 最后修改时间
      */
     @Comment("最后修改时间")
-    private LocalDateTime updateTime;
+    private Date updateTime;
 }

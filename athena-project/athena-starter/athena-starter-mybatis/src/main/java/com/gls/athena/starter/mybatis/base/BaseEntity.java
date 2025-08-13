@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.gls.athena.common.bean.base.IDomain;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 基础实体类，包含ID、租户ID、版本号等通用字段。
@@ -63,7 +63,7 @@ public abstract class BaseEntity implements IDomain {
      * 创建时间，不允许插入和更新时手动设置。
      */
     @TableField(insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 修改人ID，自动填充。
@@ -81,5 +81,5 @@ public abstract class BaseEntity implements IDomain {
      * 更新时间，不允许插入和更新时手动设置。
      */
     @TableField(insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
-    private LocalDateTime updateTime;
+    private Date updateTime;
 }
