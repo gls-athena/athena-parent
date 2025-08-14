@@ -2,17 +2,20 @@ package com.gls.athena.starter.data.redis.support;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.TypeReference;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +58,7 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 @UtilityClass
+@Slf4j
 public class RedisUtil {
 
     /**
@@ -89,7 +93,15 @@ public class RedisUtil {
      * @throws IllegalArgumentException 如果 cacheName 或 key 为空
      */
     public Object getCacheValue(String cacheName, String key) {
-        return getRedisTemplate().opsForValue().get(getCacheKey(cacheName, key));
+        validateParameters(cacheName, "cacheName");
+        validateParameters(key, "key");
+
+        try {
+            return getRedisTemplate().opsForValue().get(getCacheKey(cacheName, key));
+        } catch (Exception e) {
+            log.error("Failed to get cache value for cacheName: {}, key: {}", cacheName, key, e);
+            return null;
+        }
     }
 
     /**
@@ -170,11 +182,37 @@ public class RedisUtil {
      * @apiNote 该方法会使用 KEYS 命令，在生产环境中应谨慎使用
      */
     public List<Object> getCacheValueList(String cacheName) {
-        Set<String> keys = getRedisTemplate().keys(getCacheKey(cacheName, "*"));
-        if (keys == null) {
+        validateParameters(cacheName, "cacheName");
+
+        String pattern = getCacheKey(cacheName, "*");
+        Set<String> keys = new HashSet<>();
+
+        // 使用SCAN命令替代KEYS命令，修复废弃API问题
+        getRedisTemplate().execute((RedisCallback<Void>) connection -> {
+            try (Cursor<byte[]> cursor = connection.keyCommands().scan(ScanOptions.scanOptions()
+                    .match(pattern)
+                    .count(100)
+                    .build())) {
+                while (cursor.hasNext()) {
+                    keys.add(new String(cursor.next()));
+                }
+            } catch (Exception e) {
+                log.error("Failed to scan cache keys with pattern: {}", pattern, e);
+            }
             return null;
+        });
+
+        if (keys.isEmpty()) {
+            return new ArrayList<>();
         }
-        return getRedisTemplate().opsForValue().multiGet(keys);
+
+        try {
+            List<Object> values = getRedisTemplate().opsForValue().multiGet(keys);
+            return values != null ? values : new ArrayList<>();
+        } catch (Exception e) {
+            log.error("Failed to get multiple cache values for keys: {}", keys, e);
+            return new ArrayList<>();
+        }
     }
 
     /**
@@ -287,11 +325,41 @@ public class RedisUtil {
      * @apiNote 该方法会使用 KEYS 命令，在生产环境中应谨慎使用
      */
     public long deleteCacheByPattern(String cacheName) {
-        Set<String> keys = getRedisTemplate().keys(getCacheKey(cacheName, "*"));
-        if (keys != null && !keys.isEmpty()) {
-            return Objects.requireNonNull(getRedisTemplate().delete(keys));
-        }
-        return 0L;
+        validateParameters(cacheName, "cacheName");
+
+        String pattern = getCacheKey(cacheName, "*");
+        AtomicLong deletedCount = new AtomicLong(0);
+
+        getRedisTemplate().execute((RedisCallback<Void>) connection -> {
+            try (Cursor<byte[]> cursor = connection.keyCommands().scan(ScanOptions.scanOptions()
+                    .match(pattern)
+                    .count(100)
+                    .build())) {
+
+                List<String> batch = new ArrayList<>();
+                while (cursor.hasNext()) {
+                    batch.add(new String(cursor.next()));
+
+                    // 分批删除，每批100个键
+                    if (batch.size() >= 100) {
+                        Long deleted = getRedisTemplate().delete(batch);
+                        deletedCount.addAndGet(deleted != null ? deleted : 0);
+                        batch.clear();
+                    }
+                }
+
+                // 删除剩余的键
+                if (!batch.isEmpty()) {
+                    Long deleted = getRedisTemplate().delete(batch);
+                    deletedCount.addAndGet(deleted != null ? deleted : 0);
+                }
+            } catch (Exception e) {
+                log.error("Failed to delete cache by pattern: {}", pattern, e);
+            }
+            return null;
+        });
+
+        return deletedCount.get();
     }
 
     // ========== 分布式锁相关方法 ==========
@@ -349,16 +417,39 @@ public class RedisUtil {
      * @throws IllegalMonitorStateException 如果当前线程未持有该锁
      */
     public void releaseLock(String lockName, String key) {
-        getRedissonClient().getLock(getLockKey(lockName, key)).unlock();
+        validateParameters(lockName, "lockName");
+        validateParameters(key, "key");
+
+        try {
+            RLock lock = getRedissonClient().getLock(getLockKey(lockName, key));
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            } else {
+                log.warn("Attempt to release lock not held by current thread: {}:{}", lockName, key);
+            }
+        } catch (Exception e) {
+            log.error("Failed to release lock: {}:{}", lockName, key, e);
+        }
     }
 
     /**
-     * 释放分布式锁（简化版）
+     * 释放分布式锁（简化版，安全版本）
      *
      * @param key 锁键
      */
     public void releaseLock(String key) {
-        getRedissonClient().getLock(getLockKey(key)).unlock();
+        validateParameters(key, "key");
+
+        try {
+            RLock lock = getRedissonClient().getLock(getLockKey(key));
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            } else {
+                log.warn("Attempt to release lock not held by current thread: {}", key);
+            }
+        } catch (Exception e) {
+            log.error("Failed to release lock: {}", key, e);
+        }
     }
 
     /**
@@ -386,22 +477,19 @@ public class RedisUtil {
     // ========== 计数器相关方法 ==========
 
     /**
-     * 计数器递增（步长为1）
-     * <p>对指定计数器进行原子性递增操作，如果计数器不存在则初始化为0后递增</p>
+     * 计数器递增（步长为1）优化版本
+     * <p>对指定计数器进行原子性递增操作，Redis会自动处理不存在的键</p>
      *
      * @param counterName 计数器名称
      * @param key         计数器键
      * @return 递增后的值
      */
     public Long incrementCounter(String counterName, String key) {
-        if (!getRedisTemplate().hasKey(getCounterKey(counterName, key))) {
-            getRedisTemplate().opsForValue().set(getCounterKey(counterName, key), 0);
-        }
         return getRedisTemplate().opsForValue().increment(getCounterKey(counterName, key));
     }
 
     /**
-     * 计数器递增（自定义步长）
+     * 计数器递增（自定义步长）优化版本
      * <p>对指定计数器进行原子性递增操作，支持自定义递增步长</p>
      *
      * @param counterName 计数器名称
@@ -410,36 +498,27 @@ public class RedisUtil {
      * @return 递增后的值
      */
     public Long incrementCounter(String counterName, String key, long delta) {
-        if (!getRedisTemplate().hasKey(getCounterKey(counterName, key))) {
-            getRedisTemplate().opsForValue().set(getCounterKey(counterName, key), 0);
-        }
         return getRedisTemplate().opsForValue().increment(getCounterKey(counterName, key), delta);
     }
 
     /**
-     * 计数器递增（简化版，步长为1）
+     * 计数器递增（简化版，步长为1）优化版本
      *
      * @param key 计数器键
      * @return 递增后的值
      */
     public Long incrementCounter(String key) {
-        if (!getRedisTemplate().hasKey(getCounterKey(key))) {
-            getRedisTemplate().opsForValue().set(getCounterKey(key), 0);
-        }
         return getRedisTemplate().opsForValue().increment(getCounterKey(key));
     }
 
     /**
-     * 计数器递增（简化版，自定义步长）
+     * 计数器递增（简化版，自定义步长）优化版本
      *
      * @param key   计数器键
      * @param delta 递增步长
      * @return 递增后的值
      */
     public Long incrementCounter(String key, long delta) {
-        if (!getRedisTemplate().hasKey(getCounterKey(key))) {
-            getRedisTemplate().opsForValue().set(getCounterKey(key), 0);
-        }
         return getRedisTemplate().opsForValue().increment(getCounterKey(key), delta);
     }
 
@@ -454,6 +533,87 @@ public class RedisUtil {
     public Long getCounterValue(String counterName, String key) {
         Object value = getRedisTemplate().opsForValue().get(getCounterKey(counterName, key));
         return value == null ? 0L : Convert.convert(Long.class, value);
+    }
+
+    // ========== 缓存过期时间管理 ==========
+
+    /**
+     * 设置缓存键的过期时间
+     *
+     * @param cacheName 缓存名称
+     * @param key       缓存键
+     * @param timeout   过期时间
+     * @param timeUnit  时间单位
+     * @return 是否设置成功
+     */
+    public boolean expireCacheValue(String cacheName, String key, long timeout, TimeUnit timeUnit) {
+        validateParameters(cacheName, "cacheName");
+        validateParameters(key, "key");
+
+        try {
+            return getRedisTemplate().expire(getCacheKey(cacheName, key), timeout, timeUnit);
+        } catch (Exception e) {
+            log.error("Failed to set expiration for cache: {}:{}", cacheName, key, e);
+            return false;
+        }
+    }
+
+    /**
+     * 设置缓存键的过期时间（简化版）
+     *
+     * @param key      缓存键
+     * @param timeout  过期时间
+     * @param timeUnit 时间单位
+     * @return 是否设置成功
+     */
+    public boolean expireCacheValue(String key, long timeout, TimeUnit timeUnit) {
+        validateParameters(key, "key");
+
+        try {
+            return getRedisTemplate().expire(getCacheKey(key), timeout, timeUnit);
+        } catch (Exception e) {
+            log.error("Failed to set expiration for cache: {}", key, e);
+            return false;
+        }
+    }
+
+    /**
+     * 获取缓存键的剩余过期时间
+     *
+     * @param cacheName 缓存名称
+     * @param key       缓存键
+     * @param timeUnit  时间单位
+     * @return 剩余过期时间，-1表示永不过期，-2表示键不存在
+     */
+    public long getCacheExpireTime(String cacheName, String key, TimeUnit timeUnit) {
+        validateParameters(cacheName, "cacheName");
+        validateParameters(key, "key");
+
+        try {
+            return getRedisTemplate().getExpire(getCacheKey(cacheName, key), timeUnit);
+        } catch (Exception e) {
+            log.error("Failed to get expiration time for cache: {}:{}", cacheName, key, e);
+            return -2;
+        }
+    }
+
+    /**
+     * 检查缓存键是否存在
+     *
+     * @param cacheName 缓存名称
+     * @param key       缓存键
+     * @return 是否存在
+     */
+    public boolean hasCacheKey(String cacheName, String key) {
+        validateParameters(cacheName, "cacheName");
+        validateParameters(key, "key");
+
+        try {
+            return getRedisTemplate().hasKey(getCacheKey(cacheName, key));
+        } catch (Exception e) {
+            log.error("Failed to check cache key existence: {}:{}", cacheName, key, e);
+            return false;
+        }
     }
 
     // ========== 私有工具方法 ==========
@@ -657,5 +817,18 @@ public class RedisUtil {
             return null;
         }
         return Convert.convert(typeReference, value);
+    }
+
+    /**
+     * 参数校验
+     *
+     * @param parameter 参数值
+     * @param paramName 参数名称
+     * @throws IllegalArgumentException 当参数为空时抛出异常
+     */
+    private void validateParameters(String parameter, String paramName) {
+        if (StrUtil.isBlank(parameter)) {
+            throw new IllegalArgumentException(paramName + " cannot be null or empty");
+        }
     }
 }
