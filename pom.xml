@@ -26,10 +26,10 @@
         <module>athena-project</module>
     </modules>
     <scm>
-        <connection>scm:git:https://github.com/your-org/athena-parent.git</connection>
-        <developerConnection>scm:git:https://github.com/your-org/athena-parent.git</developerConnection>
+        <connection>scm:git:https://github.com/gls-athena/athena-parent.git</connection>
+        <developerConnection>scm:git:https://github.com/gls-athena/athena-parent.git</developerConnection>
         <tag>HEAD</tag>
-        <url>https://github.com/your-org/athena-parent</url>
+        <url>https://github.com/gls-athena/athena-parent</url>
     </scm>
     <properties>
         <java.version>21</java.version>
