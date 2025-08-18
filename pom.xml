@@ -26,15 +26,23 @@
         <module>athena-project</module>
     </modules>
     <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
+        <connection>scm:git:https://github.com/gls-athena/athena-parent.git</connection>
+        <developerConnection>scm:git:https://github.com/gls-athena/athena-parent.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/gls-athena/athena-parent</url>
     </scm>
     <properties>
         <java.version>21</java.version>
         <!-- 版本占位符，支持CI/CD动态版本号 -->
         <revision>0.0.1-SNAPSHOT</revision>
+        <!-- Maven 插件版本 -->
+        <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+        <maven-scm-provider-gitexe.version>2.1.0</maven-scm-provider-gitexe.version>
+        <gitflow-maven-plugin.version>1.21.0</gitflow-maven-plugin.version>
+        <!-- 代码质量和安全插件版本 -->
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <dependency-check-maven.version>11.0.1</dependency-check-maven.version>
+        <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
         <!-- 第三方依赖版本 -->
         <grpc.version>1.72.0</grpc.version>
         <netflix-dgs.version>10.2.1</netflix-dgs.version>
@@ -295,6 +303,28 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Maven Release Plugin for version management -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <pushChanges>false</pushChanges>
+                    <localCheckout>true</localCheckout>
+                    <goals>deploy</goals>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>${maven-scm-provider-gitexe.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -342,6 +372,75 @@
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
+                </plugin>
+                <!-- JaCoCo Maven Plugin for code coverage -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>jacoco-check</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <rule>
+                                        <element>PACKAGE</element>
+                                        <limits>
+                                            <limit>
+                                                <counter>LINE</counter>
+                                                <value>COVEREDRATIO</value>
+                                                <minimum>0.50</minimum>
+                                            </limit>
+                                        </limits>
+                                    </rule>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- OWASP Dependency Check Maven Plugin for security vulnerabilities -->
+                <plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>${dependency-check-maven.version}</version>
+                    <configuration>
+                        <failBuildOnCVSS>7</failBuildOnCVSS>
+                        <suppressionFile>owasp-suppression.xml</suppressionFile>
+                        <formats>
+                            <format>HTML</format>
+                            <format>XML</format>
+                            <format>JSON</format>
+                        </formats>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- SonarQube Maven Plugin for code quality analysis -->
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>${sonar-maven-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>

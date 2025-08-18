@@ -106,7 +106,7 @@ athena-parent/
  * @since 0.0.1
  */
 public interface UserService {
-    
+
     /**
      * 根据用户ID获取用户信息
      *
@@ -138,15 +138,16 @@ public interface UserService {
 - 测试方法命名使用 `should_xxx_when_xxx` 格式
 
 ```java
+
 @Test
 void should_return_user_when_user_exists() {
     // given
     Long userId = 1L;
     User expectedUser = new User(userId, "test");
-    
+
     // when
     User actualUser = userService.getUserById(userId);
-    
+
     // then
     assertThat(actualUser).isEqualTo(expectedUser);
 }
