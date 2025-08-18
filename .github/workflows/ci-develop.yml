@@ -47,7 +47,7 @@ jobs:
       - name: Run tests
         run: mvn clean test -Drevision=${{ steps.extract_version.outputs.version }}
 
-      # 使用更新的测试报告 action 并添加权限配置
+      # 使用插件管理中配置的JaCoCo插件生成覆盖率报告
       - name: Generate test report
         uses: dorny/test-reporter@v1.9.1
         if: success() || failure()
@@ -57,6 +57,7 @@ jobs:
           reporter: java-junit
           fail-on-error: false
 
+      # JaCoCo插件现在已在pom.xml中配置，可以直接调用report目标
       - name: Code coverage
         run: mvn jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
 
@@ -174,7 +175,7 @@ jobs:
   # 构建任务
   build:
     runs-on: ubuntu-latest
-    needs: [test, security-scan, code-quality]
+    needs: [ test, security-scan, code-quality ]
 
     permissions:
       contents: read
@@ -213,7 +214,7 @@ jobs:
   # 通知任务
   notify:
     runs-on: ubuntu-latest
-    needs: [test, security-scan, code-quality, build]
+    needs: [ test, security-scan, code-quality, build ]
     if: always()
 
     permissions:
