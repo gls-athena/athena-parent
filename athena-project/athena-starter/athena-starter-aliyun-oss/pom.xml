@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.gls.athena.starter</groupId>
         <artifactId>athena-starter</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <groupId>com.gls.athena.starter.aliyun.oss</groupId>
