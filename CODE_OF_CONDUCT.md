@@ -1,32 +1,38 @@
-# Athena Parent Code of Conduct
+# Athena Parent 行为准则
 
-Like the technical community as a whole, the Athena Parent team and community is made up of a mixture of professionals and volunteers from all over the world, working on every aspect of the mission - including mentorship, teaching, and connecting people.
+与整个技术社区一样，Athena Parent 团队和社区由来自世界各地的专业人士和志愿者组成，他们致力于使命的各个方面——包括指导、教学和连接人们。
 
-Diversity is one of our huge strengths, but it can also lead to communication issues and unhappiness. To that end, we have a few ground rules that we ask people to adhere to. This code applies equally to founders, mentors and those seeking help and guidance.
+多样性是我们巨大的优势之一，但它也可能导致沟通问题和不愉快。为此，我们制定了一些基本规则，希望大家遵守。本准则同样适用于创始人、导师和寻求帮助和指导的人员。
 
-This isn’t an exhaustive list of things that you can’t do. Rather, take it in the spirit in which it’s intended - a guide to make it easier to enrich all of us and the technical communities in which we participate.
+这不是您不能做的事情的详尽清单。相反，请以制定它的精神来理解它——这是一个指南，旨在让我们所有人以及我们参与的技术社区更容易受益。
 
-This code of conduct applies to all spaces managed by the Athena Parent project or gls-athena. This includes IRC, the mailing lists, the issue tracker, DSF events, and any other forums created by the project team which the community uses for communication. In addition, violations of this code outside these spaces may affect a person's ability to participate within them.
+本行为准则适用于 Athena Parent 项目或 gls-athena 管理的所有空间。这包括 IRC、邮件列表、问题跟踪器、DSF
+活动以及项目团队创建的社区用于交流的任何其他论坛。此外，在这些空间之外违反本准则的行为可能会影响个人在其中的参与能力。
 
-If you believe someone is violating the code of conduct, we ask that you report it by emailing [](mailto:). For more details please see our 
+如果您认为有人违反了行为准则，请发送邮件至 []() 举报。更多详情请查看我们的
 
-- **Be friendly and patient.**
-- **Be welcoming.** We strive to be a community that welcomes and supports people of all backgrounds and identities. This includes, but is not limited to members of any race, ethnicity, culture, national origin, colour, immigration status, social and economic class, educational level, sex, sexual orientation, gender identity and expression, age, size, family status, political belief, religion, and mental and physical ability.
-- **Be considerate.** Your work will be used by other people, and you in turn will depend on the work of others. Any decision you take will affect users and colleagues, and you should take those consequences into account when making decisions. Remember that we're a world-wide community, so you might not be communicating in someone else's primary language.
-- **Be respectful.** Not all of us will agree all the time, but disagreement is no excuse for poor behavior and poor manners. We might all experience some frustration now and then, but we cannot allow that frustration to turn into a personal attack. It’s important to remember that a community where people feel uncomfortable or threatened is not a productive one. Members of the Athena Parent community should be respectful when dealing with other members as well as with people outside the Athena Parent community.
-- **Be careful in the words that you choose.** We are a community of professionals, and we conduct ourselves professionally. Be kind to others. Do not insult or put down other participants. Harassment and other exclusionary behavior aren't acceptable. This includes, but is not limited to: 
- - Violent threats or language directed against another person.
- - Discriminatory jokes and language.
- - Posting sexually explicit or violent material.
- - Posting (or threatening to post) other people's personally identifying information ("doxing").
- - Personal insults, especially those using racist or sexist terms.
- - Unwelcome sexual attention.
- - Advocating for, or encouraging, any of the above behavior.
- - Repeated harassment of others. In general, if someone asks you to stop, then stop.
-- **When we disagree, try to understand why.** Disagreements, both social and technical, happen all the time and Athena Parent is no exception. It is important that we resolve disagreements and differing views constructively. Remember that we’re different. The strength of Athena Parent comes from its varied community, people from a wide range of backgrounds. Different people have different perspectives on issues. Being unable to understand why someone holds a viewpoint doesn’t mean that they’re wrong. Don’t forget that it is human to err and blaming each other doesn’t get us anywhere. Instead, focus on helping to resolve issues and learning from mistakes.
+- **友好和耐心。**
+- **欢迎他人。**
+  我们努力成为一个欢迎和支持各种背景和身份的人的社区。这包括但不限于任何种族、民族、文化、国籍、肤色、移民身份、社会和经济阶层、教育水平、性别、性取向、性别认同和表达、年龄、体型、家庭状况、政治信仰、宗教以及身心能力的成员。
+- **体贴他人。** 您的工作将被其他人使用，您也将依赖其他人的工作。您做出的任何决定都会影响用户和同事，在做决定时应该考虑到这些后果。请记住，我们是一个全球性的社区，因此您可能不是用别人的母语进行交流。
+- **相互尊重。**
+  我们并不总是意见一致，但分歧不是不良行为和不良态度的借口。我们可能都会时不时地感到一些挫折，但我们不能让这种挫折演变成人身攻击。重要的是要记住，一个让人感到不舒服或受到威胁的社区不是一个富有成效的社区。Athena
+  Parent 社区的成员在与其他成员以及 Athena Parent 社区之外的人打交道时应该相互尊重。
+- **谨言慎行。** 我们是一个专业人士社区，我们以专业的方式行事。善待他人。不要侮辱或贬低其他参与者。骚扰和其他排斥行为是不可接受的。这包括但不限于：
+- 针对他人的暴力威胁或语言。
+- 歧视性的笑话和语言。
+- 发布性暴露或暴力材料。
+- 发布（或威胁发布）他人的个人身份信息（"人肉搜索"）。
+- 人身侮辱，尤其是使用种族主义或性别歧视术语的侮辱。
+- 不受欢迎的性关注。
+- 倡导或鼓励上述任何行为。
+- 反复骚扰他人。一般来说，如果有人要求您停止，那就停止。
+- **当我们意见不合时，试着理解原因。** 分歧，无论是社会性的还是技术性的，经常发生，Athena Parent
+  也不例外。重要的是我们要建设性地解决分歧和不同观点。请记住，我们是不同的。Athena Parent
+  的力量来自其多样化的社区，来自各种背景的人们。不同的人对问题有不同的看法。无法理解某人为什么持有某种观点并不意味着他们是错误的。不要忘记犯错是人之常情，相互指责不会让我们有任何进展。相反，专注于帮助解决问题和从错误中学习。
 
-Original text courtesy of the [Speak Up! project](http://web.archive.org/web/20141109123859/http://speakup.io/coc.html).
+原文来源于 [Speak Up! 项目](http://web.archive.org/web/20141109123859/http://speakup.io/coc.html)。
 
-## Questions?
+## 有疑问？
 
-If you have questions, please see . If that doesn't answer your questions, feel free to [contact us](mailto:).
+如果您有疑问，请查看 。如果这不能回答您的问题，请随时[联系我们](mailto:)。
