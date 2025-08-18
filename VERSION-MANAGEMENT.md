@@ -166,7 +166,7 @@ athena-parent (根模块)
 
 1. **构建失败**：确保所有POM文件都使用了正确的版本占位符格式
 2. **版本解析错误**：检查父POM中是否正确定义了revision、changelist、sha1属性
-3. **依赖解析问题**：确保BOM文件正确导入并使用${revision}
+3. **依赖解析问题**：确保BOM文件正确导入并使用${project.version}
 
 ### 验证方法
 
