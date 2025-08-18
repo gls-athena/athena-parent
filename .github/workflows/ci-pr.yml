@@ -8,6 +8,13 @@
 
 name: CI - Pull Request
 
+# 为工作流添加必要的权限
+permissions:
+  contents: read          # 读取仓库内容
+  pull-requests: write    # 写入 PR 评论
+  checks: write          # 写入检查状态
+  actions: read          # 读取 Actions 相关信息
+
 on:
   pull_request:
     branches: [ develop, master ]
