@@ -1,0 +1,137 @@
+name: CI - Develop Branch
+
+# 触发条件：当向 develop 分支推送代码或创建针对 develop 分支的 Pull Request 时触发
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  # 测试任务：执行单元测试、生成测试报告和代码覆盖率分析
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码到工作目录
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 配置 JDK 21 环境并启用 Maven 缓存以加速构建
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 从 pom.xml 中提取项目版本号，并将其输出供后续步骤使用
+      - name: Extract version from pom.xml
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      # 执行 Maven 清理并运行所有测试，使用提取的版本号作为参数
+      - name: Run tests
+        run: mvn clean test -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 生成并上传 JUnit 格式的测试报告（无论成功或失败都执行）
+      - name: Generate test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Maven Tests
+          path: '**/target/surefire-reports/*.xml'
+          reporter: java-junit
+
+      # 生成 JaCoCo 代码覆盖率报告
+      - name: Code coverage
+        run: mvn jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 将覆盖率报告上传至 Codecov 平台（仅在测试成功时执行）
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        if: success()
+        with:
+          file: ./target/site/jacoco/jacoco.xml
+
+      # 编译项目源码
+      - name: Build project
+        run: mvn clean compile -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 验证项目结构是否符合 Maven 规范
+      - name: Validate project structure
+        run: mvn validate -Drevision=${{ steps.extract_version.outputs.version }}
+
+  # 安全扫描任务：依赖项安全检查，依赖于 test 任务完成
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      # 检出代码到工作目录
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 设置 JDK 21 环境并启用 Maven 缓存
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 使用 OWASP Dependency Check 插件进行依赖安全扫描
+      - name: Run security scan
+        run: mvn org.owasp:dependency-check-maven:check
+
+      # 上传安全扫描结果 HTML 报告（无论任务成功或失败都执行）
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan-report
+          path: target/dependency-check-report.html
+
+  # 质量门禁任务：代码质量分析，依赖于 test 和 security-scan 两个任务完成
+  quality-gate:
+    runs-on: ubuntu-latest
+    needs: [ test, security-scan ]
+
+    steps:
+      # 检出代码到工作目录
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 设置 JDK 21 环境并启用 Maven 缓存
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 再次提取项目版本号用于 SonarQube 分析
+      - name: Extract version
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # 使用 SonarQube 进行代码质量分析（如果配置了 SONAR_TOKEN）
+      - name: Code quality analysis with SonarQube
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            mvn sonar:sonar \
+              -Dsonar.projectKey=athena-parent \
+              -Dsonar.organization=${{ github.repository_owner }} \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Drevision=${{ steps.extract_version.outputs.version }}
+          else
+            echo "SonarQube analysis skipped - SONAR_TOKEN not configured"
+          fi

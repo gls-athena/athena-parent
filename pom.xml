@@ -26,15 +26,19 @@
         <module>athena-project</module>
     </modules>
     <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
+        <connection>scm:git:https://github.com/your-org/athena-parent.git</connection>
+        <developerConnection>scm:git:https://github.com/your-org/athena-parent.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/your-org/athena-parent</url>
     </scm>
     <properties>
         <java.version>21</java.version>
         <!-- 版本占位符，支持CI/CD动态版本号 -->
         <revision>0.0.1-SNAPSHOT</revision>
+        <!-- Maven 插件版本 -->
+        <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+        <maven-scm-provider-gitexe.version>2.1.0</maven-scm-provider-gitexe.version>
+        <gitflow-maven-plugin.version>1.21.0</gitflow-maven-plugin.version>
         <!-- 第三方依赖版本 -->
         <grpc.version>1.72.0</grpc.version>
         <netflix-dgs.version>10.2.1</netflix-dgs.version>
@@ -294,6 +298,28 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Maven Release Plugin for version management -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <pushChanges>false</pushChanges>
+                    <localCheckout>true</localCheckout>
+                    <goals>deploy</goals>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>${maven-scm-provider-gitexe.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
         <pluginManagement>
