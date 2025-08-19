@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.gls.athena.common</groupId>
         <artifactId>athena-common</artifactId>
-        <version>${revision}</version>
+        <version>0.0.2</version>
     </parent>
 
     <groupId>com.gls.athena.common.bean</groupId>

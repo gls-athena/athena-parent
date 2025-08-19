@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.gls.athena.starter</groupId>
         <artifactId>athena-starter</artifactId>
-        <version>${revision}</version>
+        <version>0.0.2</version>
     </parent>
 
     <groupId>com.gls.athena.starter.swagger</groupId>

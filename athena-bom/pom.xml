@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.gls.athena</groupId>
         <artifactId>athena-parent</artifactId>
-        <version>${revision}</version>
+        <version>0.0.2</version>
     </parent>
 
     <artifactId>athena-bom</artifactId>

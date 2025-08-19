@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.gls.athena.sdk</groupId>
         <artifactId>athena-sdk</artifactId>
-        <version>${revision}</version>
+        <version>0.0.2</version>
     </parent>
 
     <groupId>com.gls.athena.sdk.xxl.job</groupId>
