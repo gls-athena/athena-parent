@@ -57,13 +57,16 @@ jobs:
           CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
           VERSION_TYPE="${{ github.event.inputs.version_type || 'patch' }}"
           
-          # 解析版本号
-          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          # 当前版本就是要发布的版本（去掉SNAPSHOT后缀）
+          RELEASE_VERSION="$CURRENT_VERSION"
+          
+          # 解析版本号用于计算下一个开发版本
+          IFS='.' read -ra VERSION_PARTS <<< "$RELEASE_VERSION"
           MAJOR=${VERSION_PARTS[0]}
           MINOR=${VERSION_PARTS[1]}
           PATCH=${VERSION_PARTS[2]}
           
-          # 根据类型递增版本
+          # 根据类型递增版本来计算下一个开发版本
           case $VERSION_TYPE in
             "major")
               MAJOR=$((MAJOR + 1))
@@ -79,12 +82,11 @@ jobs:
               ;;
           esac
           
-          NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
-          NEXT_SNAPSHOT_VERSION="$MAJOR.$MINOR.$((PATCH + 1))-SNAPSHOT"
+          NEXT_SNAPSHOT_VERSION="$MAJOR.$MINOR.$PATCH-SNAPSHOT"
           
-          echo "next=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "next=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "next_snapshot=$NEXT_SNAPSHOT_VERSION" >> $GITHUB_OUTPUT
-          echo "Next release version: $NEXT_VERSION"
+          echo "Release version: $RELEASE_VERSION"
           echo "Next development version: $NEXT_SNAPSHOT_VERSION"
 
       - name: Run tests before release
