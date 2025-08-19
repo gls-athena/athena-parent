@@ -34,7 +34,7 @@
     <properties>
         <java.version>21</java.version>
         <!-- 版本占位符，支持CI/CD动态版本号 -->
-        <revision>0.0.3-SNAPSHOT</revision>
+        <revision>0.0.5-SNAPSHOT</revision>
         <!-- Maven 插件版本 -->
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
         <maven-scm-provider-gitexe.version>2.1.0</maven-scm-provider-gitexe.version>
