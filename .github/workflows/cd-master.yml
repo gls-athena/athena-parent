@@ -91,10 +91,10 @@ jobs:
         run: |
           mvn clean test -Drevision=${{ steps.next_version.outputs.next }}
 
-      - name: Update version for release
+      - name: Update revision property for release
         run: |
-          mvn versions:set -DnewVersion=${{ steps.next_version.outputs.next }} -DgenerateBackupPoms=false
-          mvn versions:update-child-modules -DgenerateBackupPoms=false
+          # 更新 pom.xml 中的 revision 属性而不是 version
+          sed -i "s/<revision>.*<\/revision>/<revision>${{ steps.next_version.outputs.next }}<\/revision>/g" pom.xml
 
       - name: Build and package
         run: |
@@ -109,10 +109,10 @@ jobs:
         run: |
           git tag -a "v${{ steps.next_version.outputs.next }}" -m "Release version ${{ steps.next_version.outputs.next }}"
 
-      - name: Update to next development version
+      - name: Update revision property for next development version
         run: |
-          mvn versions:set -DnewVersion=${{ steps.next_version.outputs.next_snapshot }} -DgenerateBackupPoms=false
-          mvn versions:update-child-modules -DgenerateBackupPoms=false
+          # 更新 revision 属性为下一个开发版本
+          sed -i "s/<revision>.*<\/revision>/<revision>${{ steps.next_version.outputs.next_snapshot }}<\/revision>/g" pom.xml
 
       - name: Commit next development version
         run: |

@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.gls.athena</groupId>
     <artifactId>athena-parent</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
     <name>Athena Parent</name>
     <description>基础工具包</description>
