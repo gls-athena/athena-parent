@@ -1,22 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-    Maven 项目对象模型 (POM) 文件，定义了项目的元数据、依赖管理、插件配置等信息。
-    该文件是 Maven 构建系统的核心配置文件，用于描述项目结构和构建行为。
--->
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <!-- 指定当前 POM 的模型版本 -->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- 父项目引用，继承 Spring Boot 提供的默认配置 -->
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
-
-    <!-- 当前项目的唯一标识符 -->
+    <!-- 项目基础信息 -->
     <groupId>com.gls.athena</groupId>
     <!-- 当前项目的 artifactId，用于构建产物命名 -->
     <artifactId>athena-parent</artifactId>
@@ -28,16 +16,25 @@
     <!-- 项目名称与描述信息 -->
     <name>Athena Parent</name>
     <description>基础工具包</description>
-    <url/>
+    <url>https://github.com/gls-athena/athena-parent</url>
 
-    <!-- 许可证信息（未填写） -->
+    <!-- 许可证信息 -->
     <licenses>
-        <license/>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
     </licenses>
 
-    <!-- 开发者信息（未填写） -->
+    <!-- 开发者信息 -->
     <developers>
-        <developer/>
+        <developer>
+            <id>gls-athena</id>
+            <name>GLS Athena Team</name>
+            <email>athena@gls.com</email>
+            <organization>GLS</organization>
+            <organizationUrl>https://github.com/gls-athena</organizationUrl>
+        </developer>
     </developers>
 
     <!-- 子模块列表，定义当前项目包含的子项目 -->
@@ -493,4 +490,99 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <!-- 发布配置部分，包括分发管理和发布相关的 profile -->
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <!-- 发布相关的 profile 配置 -->
+    <profiles>
+        <!-- 发布到 Maven 中央仓库的配置 -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <!-- Maven Source Plugin - 生成源代码 jar -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Maven Javadoc Plugin - 生成 Javadoc -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.11.1</version>
+                        <configuration>
+                            <encoding>UTF-8</encoding>
+                            <charset>UTF-8</charset>
+                            <docencoding>UTF-8</docencoding>
+                            <failOnError>false</failOnError>
+                            <doclint>none</doclint>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Maven GPG Plugin - GPG 签名 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.7</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Nexus Staging Maven Plugin - 发布到 Sonatype OSSRH -->
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.7.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
