@@ -1,39 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven 项目对象模型 (POM) 文件，定义了项目的元数据、依赖管理、插件配置等信息。
+    该文件是 Maven 构建系统的核心配置文件，用于描述项目结构和构建行为。
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- 指定当前 POM 的模型版本 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目引用，继承 Spring Boot 提供的默认配置 -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
+
+    <!-- 当前项目的唯一标识符 -->
     <groupId>com.gls.athena</groupId>
+    <!-- 当前项目的 artifactId，用于构建产物命名 -->
     <artifactId>athena-parent</artifactId>
+    <!-- 项目版本号，使用占位符支持 CI/CD 动态替换 -->
     <version>${revision}</version>
+    <!-- 打包方式为 pom，表示这是一个聚合项目或父项目 -->
     <packaging>pom</packaging>
+
+    <!-- 项目名称与描述信息 -->
     <name>Athena Parent</name>
     <description>基础工具包</description>
     <url/>
+
+    <!-- 许可证信息（未填写） -->
     <licenses>
         <license/>
     </licenses>
+
+    <!-- 开发者信息（未填写） -->
     <developers>
         <developer/>
     </developers>
+
+    <!-- 子模块列表，定义当前项目包含的子项目 -->
     <modules>
         <module>athena-bom</module>
         <module>athena-project</module>
     </modules>
+
+    <!-- 源码管理配置，包括 Git 地址和连接方式 -->
     <scm>
         <connection>scm:git:https://github.com/gls-athena/athena-parent.git</connection>
         <developerConnection>scm:git:https://github.com/gls-athena/athena-parent.git</developerConnection>
         <tag>HEAD</tag>
         <url>https://github.com/gls-athena/athena-parent</url>
     </scm>
+
+    <!-- 项目属性定义，包括 Java 版本、插件版本、第三方依赖版本等 -->
     <properties>
         <java.version>21</java.version>
-        <!-- 版本占位符，支持CI/CD动态版本号 -->
+        <!-- 版本占位符，支持 CI/CD 动态版本号 -->
         <revision>0.0.7-SNAPSHOT</revision>
         <!-- Maven 插件版本 -->
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
@@ -77,8 +101,11 @@
         <spring-ai-alibaba.version>1.0.0.2</spring-ai-alibaba.version>
         <commons-io.version>2.19.0</commons-io.version>
     </properties>
+
+    <!-- 依赖管理部分，统一管理所有子模块的依赖版本 -->
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Cloud 依赖管理 -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -86,6 +113,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring Boot Admin 依赖管理 -->
             <dependency>
                 <groupId>de.codecentric</groupId>
                 <artifactId>spring-boot-admin-dependencies</artifactId>
@@ -93,6 +121,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring Modulith BOM -->
             <dependency>
                 <groupId>org.springframework.modulith</groupId>
                 <artifactId>spring-modulith-bom</artifactId>
@@ -100,6 +129,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Netflix DGS GraphQL 平台依赖 -->
             <dependency>
                 <groupId>com.netflix.graphql.dgs</groupId>
                 <artifactId>graphql-dgs-platform-dependencies</artifactId>
@@ -107,6 +137,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring Cloud Services 依赖管理 -->
             <dependency>
                 <groupId>io.pivotal.spring.cloud</groupId>
                 <artifactId>spring-cloud-services-dependencies</artifactId>
@@ -114,6 +145,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Sentry BOM -->
             <dependency>
                 <groupId>io.sentry</groupId>
                 <artifactId>sentry-bom</artifactId>
@@ -121,6 +153,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring AI BOM -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
@@ -128,6 +161,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Timefold Solver BOM -->
             <dependency>
                 <groupId>ai.timefold.solver</groupId>
                 <artifactId>timefold-solver-bom</artifactId>
@@ -135,6 +169,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Vaadin BOM -->
             <dependency>
                 <groupId>com.vaadin</groupId>
                 <artifactId>vaadin-bom</artifactId>
@@ -142,6 +177,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring gRPC 依赖管理 -->
             <dependency>
                 <groupId>org.springframework.grpc</groupId>
                 <artifactId>spring-grpc-dependencies</artifactId>
@@ -150,6 +186,7 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- 其他常用依赖 -->
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
@@ -276,8 +313,10 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- 构建配置部分，包括插件定义和插件管理 -->
     <build>
         <plugins>
+            <!-- Flatten Maven Plugin 用于处理 CI 友好的版本占位符 -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
@@ -303,7 +342,8 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Maven Release Plugin for version management -->
+
+            <!-- Maven Release Plugin 用于版本发布管理 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -326,8 +366,11 @@
                 </dependencies>
             </plugin>
         </plugins>
+
+        <!-- 插件管理部分，统一管理所有插件的默认配置 -->
         <pluginManagement>
             <plugins>
+                <!-- Spring Boot Maven Plugin 配置 repackage 目标 -->
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
@@ -347,6 +390,8 @@
                         </excludes>
                     </configuration>
                 </plugin>
+
+                <!-- Maven Compiler Plugin 配置编译参数和注解处理器 -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -373,7 +418,8 @@
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
-                <!-- JaCoCo Maven Plugin for code coverage -->
+
+                <!-- JaCoCo Maven Plugin 用于代码覆盖率检查 -->
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
@@ -414,7 +460,8 @@
                         </execution>
                     </executions>
                 </plugin>
-                <!-- OWASP Dependency Check Maven Plugin for security vulnerabilities -->
+
+                <!-- OWASP Dependency Check Maven Plugin 用于检测依赖中的安全漏洞 -->
                 <plugin>
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
@@ -436,7 +483,8 @@
                         </execution>
                     </executions>
                 </plugin>
-                <!-- SonarQube Maven Plugin for code quality analysis -->
+
+                <!-- SonarQube Maven Plugin 用于代码质量分析 -->
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <artifactId>sonar-maven-plugin</artifactId>
