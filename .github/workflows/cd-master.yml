@@ -159,17 +159,17 @@ jobs:
           # 检查develop分支是否存在
           if git show-ref --verify --quiet refs/remotes/origin/develop; then
             echo "Develop branch exists, syncing changes..."
-            
+          
             # 切换到develop分支
             git checkout develop
             git pull origin develop
-            
+          
             # 合并master分支的变更到develop
             git merge master --no-ff -m "Sync release v${{ steps.next_version.outputs.next }} changes back to develop"
-            
+          
             # 推送develop分支
             git push origin develop
-            
+          
             echo "✅ Successfully synced changes to develop branch"
           else
             echo "⚠️ Develop branch does not exist, skipping sync"
