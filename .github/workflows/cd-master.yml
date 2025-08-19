@@ -89,6 +89,34 @@ jobs:
           echo "Release version: $RELEASE_VERSION"
           echo "Next development version: $NEXT_SNAPSHOT_VERSION"
 
+      - name: Generate release notes from git log
+        id: release_notes
+        run: |
+          # 获取上一个版本的标签
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            # 获取从上一个标签到当前HEAD的提交日志
+            COMMITS=$(git log ${PREVIOUS_TAG}..HEAD --oneline --no-merges --format="- %s (%h)" | head -50)
+            echo "Found commits since $PREVIOUS_TAG:"
+            echo "$COMMITS"
+          else
+            # 如果没有找到上一个标签，获取最近的10个提交
+            COMMITS=$(git log HEAD --oneline --no-merges --format="- %s (%h)" | head -10)
+            echo "No previous tags found, showing recent commits:"
+            echo "$COMMITS"
+          fi
+          
+          # 保存到输出变量，处理多行文本
+          {
+            echo 'commits<<EOF'
+            echo "$COMMITS"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+          
+          # 保存上一个版本信息
+          echo "previous_tag=${PREVIOUS_TAG:-'Initial release'}" >> $GITHUB_OUTPUT
+
       - name: Run tests before release
         run: |
           mvn clean test -Drevision=${{ steps.next_version.outputs.next }}
@@ -136,14 +164,16 @@ jobs:
           body: |
             ## Release Notes for v${{ steps.next_version.outputs.next }}
             
-            ### Changes
-            - Automated release from master branch
-            - Version increment: ${{ github.event.inputs.version_type || 'patch' }}
+            **Release Type:** ${{ github.event.inputs.version_type || 'patch' }} version increment
+            **Previous Version:** ${{ steps.release_notes.outputs.previous_tag }}
             
-            ### Artifacts
+            ### 🚀 What's Changed
+            ${{ steps.release_notes.outputs.commits }}
+            
+            ### 📦 Artifacts
             This release includes all Maven modules in the athena-parent project.
             
-            ### Installation
+            ### 💾 Installation
             ```xml
             <dependency>
                 <groupId>com.gls.athena</groupId>
@@ -153,6 +183,9 @@ jobs:
                 <scope>import</scope>
             </dependency>
             ```
+            
+            ### 📝 Full Changelog
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.release_notes.outputs.previous_tag }}...v${{ steps.next_version.outputs.next }}
           draft: false
           prerelease: false
 
