@@ -57,13 +57,16 @@ jobs:
           CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
           VERSION_TYPE="${{ github.event.inputs.version_type || 'patch' }}"
           
-          # 解析版本号
-          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          # 当前版本就是要发布的版本（去掉SNAPSHOT后缀）
+          RELEASE_VERSION="$CURRENT_VERSION"
+          
+          # 解析版本号用于计算下一个开发版本
+          IFS='.' read -ra VERSION_PARTS <<< "$RELEASE_VERSION"
           MAJOR=${VERSION_PARTS[0]}
           MINOR=${VERSION_PARTS[1]}
           PATCH=${VERSION_PARTS[2]}
           
-          # 根据类型递增版本
+          # 根据类型递增版本来计算下一个开发版本
           case $VERSION_TYPE in
             "major")
               MAJOR=$((MAJOR + 1))
@@ -79,13 +82,40 @@ jobs:
               ;;
           esac
           
-          NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
-          NEXT_SNAPSHOT_VERSION="$MAJOR.$MINOR.$((PATCH + 1))-SNAPSHOT"
+          NEXT_SNAPSHOT_VERSION="$MAJOR.$MINOR.$PATCH-SNAPSHOT"
           
-          echo "next=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "next=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "next_snapshot=$NEXT_SNAPSHOT_VERSION" >> $GITHUB_OUTPUT
-          echo "Next release version: $NEXT_VERSION"
+          echo "Release version: $RELEASE_VERSION"
           echo "Next development version: $NEXT_SNAPSHOT_VERSION"
+
+      - name: Generate release notes from git log
+        id: release_notes
+        run: |
+          # 获取上一个版本的标签
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            # 获取从上一个标签到当前HEAD的提交日志
+            COMMITS=$(git log ${PREVIOUS_TAG}..HEAD --oneline --no-merges --format="- %s (%h)" | head -50)
+            echo "Found commits since $PREVIOUS_TAG:"
+            echo "$COMMITS"
+          else
+            # 如果没有找到上一个标签，获取最近的10个提交
+            COMMITS=$(git log HEAD --oneline --no-merges --format="- %s (%h)" | head -10)
+            echo "No previous tags found, showing recent commits:"
+            echo "$COMMITS"
+          fi
+          
+          # 保存到输出变量，处理多行文本
+          {
+            echo 'commits<<EOF'
+            echo "$COMMITS"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+          
+          # 保存上一个版本信息
+          echo "previous_tag=${PREVIOUS_TAG:-'Initial release'}" >> $GITHUB_OUTPUT
 
       - name: Run tests before release
         run: |
@@ -124,6 +154,27 @@ jobs:
           git push origin master
           git push origin "v${{ steps.next_version.outputs.next }}"
 
+      - name: Sync changes back to develop branch
+        run: |
+          # 检查develop分支是否存在
+          if git show-ref --verify --quiet refs/remotes/origin/develop; then
+            echo "Develop branch exists, syncing changes..."
+            
+            # 切换到develop分支
+            git checkout develop
+            git pull origin develop
+            
+            # 合并master分支的变更到develop
+            git merge master --no-ff -m "Sync release v${{ steps.next_version.outputs.next }} changes back to develop"
+            
+            # 推送develop分支
+            git push origin develop
+            
+            echo "✅ Successfully synced changes to develop branch"
+          else
+            echo "⚠️ Develop branch does not exist, skipping sync"
+          fi
+
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
@@ -134,14 +185,16 @@ jobs:
           body: |
             ## Release Notes for v${{ steps.next_version.outputs.next }}
             
-            ### Changes
-            - Automated release from master branch
-            - Version increment: ${{ github.event.inputs.version_type || 'patch' }}
+            **Release Type:** ${{ github.event.inputs.version_type || 'patch' }} version increment
+            **Previous Version:** ${{ steps.release_notes.outputs.previous_tag }}
             
-            ### Artifacts
+            ### 🚀 What's Changed
+            ${{ steps.release_notes.outputs.commits }}
+            
+            ### 📦 Artifacts
             This release includes all Maven modules in the athena-parent project.
             
-            ### Installation
+            ### 💾 Installation
             ```xml
             <dependency>
                 <groupId>com.gls.athena</groupId>
@@ -151,6 +204,9 @@ jobs:
                 <scope>import</scope>
             </dependency>
             ```
+            
+            ### 📝 Full Changelog
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.release_notes.outputs.previous_tag }}...v${{ steps.next_version.outputs.next }}
           draft: false
           prerelease: false
 
