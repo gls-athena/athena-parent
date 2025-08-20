@@ -5,60 +5,27 @@
           http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
     <servers>
-        <!-- OSSRH Sonatype 仓库认证 -->
         <server>
             <id>ossrh</id>
-            <username>${env.OSSRH_USERNAME}</username>
-            <password>${env.OSSRH_PASSWORD}</password>
+            <username>${maven.repo.username}</username>
+            <password>${maven.repo.password}</password>
         </server>
-
-        <!-- GitHub Packages 认证 -->
         <server>
             <id>github</id>
-            <username>${env.GITHUB_USERNAME}</username>
-            <password>${env.GITHUB_TOKEN}</password>
-        </server>
-
-        <!-- Maven Central 发布认证 -->
-        <server>
-            <id>central</id>
-            <username>${env.OSSRH_USERNAME}</username>
-            <password>${env.OSSRH_PASSWORD}</password>
+            <username>${maven.repo.username}</username>
+            <password>${maven.repo.password}</password>
         </server>
     </servers>
 
     <profiles>
-        <!-- 发布 profile 配置 -->
         <profile>
             <id>release</id>
             <properties>
                 <gpg.executable>gpg</gpg.executable>
-                <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
-                <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+                <gpg.passphrase>${gpg.passphrase}</gpg.passphrase>
             </properties>
-        </profile>
-
-        <!-- OSSRH 快照仓库配置 -->
-        <profile>
-            <id>ossrh</id>
-            <repositories>
-                <repository>
-                    <id>ossrh-snapshots</id>
-                    <name>OSSRH Snapshots</name>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
         </profile>
     </profiles>
 
-    <activeProfiles>
-        <activeProfile>ossrh</activeProfile>
-    </activeProfiles>
-
 </settings>
+
