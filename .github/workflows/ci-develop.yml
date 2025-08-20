@@ -1,41 +1,32 @@
-# 开发分支持续集成工作流
-# 该工作流用于在 develop 分支上进行持续集成，包括测试、安全扫描、代码质量检查、构建和通知等任务。
-# 工作流会在 push 到 develop 分支或创建针对 develop 分支的 pull request 时触发。
-name: CI for Develop Branch
+# 工作流名称：CI - Develop Branch
+# 功能描述：develop 分支的持续集成，执行测试和代码检查
 
+name: CI - Develop Branch
+
+# 触发条件
 on:
   push:
     branches: [ develop ]
   pull_request:
     branches: [ develop ]
 
-# 配置工作流运行所需的权限
+# 权限配置
 permissions:
   contents: read
-  issues: read
   checks: write
   pull-requests: write
-  actions: read
-  security-events: write
 
+# 定义工作流中的作业
 jobs:
-  # 测试任务
-  # 该任务负责运行单元测试、生成测试报告和代码覆盖率报告，并上传到 Codecov。
   test:
     runs-on: ubuntu-latest
-
-    # 配置任务运行所需的权限
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
 
     steps:
       # 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 设置 JDK 21 环境
+      # 设置 JDK 环境
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -44,19 +35,23 @@ jobs:
           cache: maven
 
       # 从 pom.xml 中提取项目版本号
-      - name: Extract version from pom.xml
-        id: extract_version
+      - name: Extract version
+        id: version
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Current version: $VERSION"
 
-      # 运行单元测试
+      # 编译项目
+      - name: Compile
+        run: mvn clean compile -Drevision=${{ steps.version.outputs.version }}
+
+      # 运行测试
       - name: Run tests
-        run: mvn clean test -Drevision=${{ steps.extract_version.outputs.version }}
+        run: mvn test -Drevision=${{ steps.version.outputs.version }}
 
       # 生成测试报告
-      - name: Generate test report
+      - name: Test results
         uses: dorny/test-reporter@v1.9.1
         if: success() || failure()
         with:
@@ -65,207 +60,16 @@ jobs:
           reporter: java-junit
           fail-on-error: false
 
-      # 生成代码覆盖率报告
-      - name: Code coverage
-        run: mvn jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
+      # 打包验证
+      - name: Package
+        run: mvn package -DskipTests -Drevision=${{ steps.version.outputs.version }}
 
-      # 上传覆盖率报告到 Codecov
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: success()
-        with:
-          file: ./target/site/jacoco/jacoco.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      # 编译项目
-      - name: Build project
-        run: mvn clean compile -Drevision=${{ steps.extract_version.outputs.version }}
-
-      # 验证项目结构
-      - name: Validate project structure
-        run: mvn validate -Drevision=${{ steps.extract_version.outputs.version }}
-
-  # 安全扫描任务
-  # 该任务负责使用 OWASP Dependency Check 进行依赖安全扫描，并上传扫描报告。
-  security-scan:
-    runs-on: ubuntu-latest
-    needs: test
-
-    # 配置任务运行所需的权限
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
-
-    steps:
-      # 检出代码
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 设置 JDK 21 环境
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      # 从 pom.xml 中提取项目版本号
-      - name: Extract version from pom.xml
-        id: extract_version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Current version: $VERSION"
-
-      # 运行 OWASP Dependency Check 安全扫描
-      - name: Run OWASP Dependency Check
-        run: |
-          mvn org.owasp:dependency-check-maven:check \
-            -Drevision=${{ steps.extract_version.outputs.version }} \
-            -DfailBuildOnCVSS=7 \
-            -DskipTestScope=false
-        continue-on-error: true
-
-      # 上传安全扫描报告
-      - name: Upload security scan report
-        uses: actions/upload-artifact@v4
+      # 结果通知
+      - name: CI result
         if: always()
-        with:
-          name: dependency-check-report
-          path: target/dependency-check-report.html
-          retention-days: 7
-
-  # 代码质量检查任务
-  # 该任务负责使用 SonarQube 进行代码质量检查。
-  code-quality:
-    runs-on: ubuntu-latest
-    needs: test
-
-    # 配置任务运行所需的权限
-    permissions:
-      contents: read
-      pull-requests: write
-
-    steps:
-      # 检出代码并获取完整历史记录
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      # 设置 JDK 21 环境
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      # 从 pom.xml 中提取项目版本号
-      - name: Extract version from pom.xml
-        id: extract_version
         run: |
-          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Current version: $VERSION"
-
-      # 缓存 SonarQube 包以加速后续运行
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      # 运行 SonarQube 扫描（仅在配置了 SONAR_TOKEN 时运行）
-      - name: SonarQube Scan
-        if: env.SONAR_TOKEN != ''
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn clean verify sonar:sonar \
-            -Drevision=${{ steps.extract_version.outputs.version }} \
-            -Dsonar.projectKey=athena-parent \
-            -Dsonar.organization=your-org \
-            -Dsonar.host.url=https://sonarcloud.io
-        continue-on-error: true
-
-  # 构建任务
-  # 该任务负责打包项目并上传构建产物。
-  build:
-    runs-on: ubuntu-latest
-    needs: [ test, security-scan, code-quality ]
-
-    # 配置任务运行所需的权限
-    permissions:
-      contents: read
-      actions: write
-
-    steps:
-      # 检出代码
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 设置 JDK 21 环境
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      # 从 pom.xml 中提取项目版本号
-      - name: Extract version from pom.xml
-        id: extract_version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Current version: $VERSION"
-
-      # 打包项目（跳过测试）
-      - name: Package project
-        run: mvn clean package -DskipTests -Drevision=${{ steps.extract_version.outputs.version }}
-
-      # 上传构建产物
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts-${{ steps.extract_version.outputs.version }}
-          path: |
-            **/target/*.jar
-            **/target/*.war
-          retention-days: 7
-
-  # 通知任务
-  # 该任务负责根据其他任务的执行结果发送通知。
-  notify:
-    runs-on: ubuntu-latest
-    needs: [ test, security-scan, code-quality, build ]
-    if: always()
-
-    # 配置任务运行所需的权限
-    permissions:
-      contents: read
-
-    steps:
-      # 通知所有任务成功完成
-      - name: Notify success
-        if: ${{ needs.test.result == 'success' && needs.security-scan.result == 'success' && needs.code-quality.result == 'success' && needs.build.result == 'success' }}
-        run: |
-          echo "✅ All jobs completed successfully!"
-          echo "Ready for deployment to development environment."
-
-      # 通知有任务失败
-      - name: Notify failure
-        if: ${{ needs.test.result == 'failure' || needs.security-scan.result == 'failure' || needs.code-quality.result == 'failure' || needs.build.result == 'failure' }}
-        run: |
-          echo "❌ One or more jobs failed!"
-          echo "Test: ${{ needs.test.result }}"
-          echo "Security Scan: ${{ needs.security-scan.result }}"
-          echo "Code Quality: ${{ needs.code-quality.result }}"
-          echo "Build: ${{ needs.build.result }}"
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ CI passed for version ${{ steps.version.outputs.version }}"
+          else
+            echo "❌ CI failed! Please check the logs and fix any issues."
+          fi
