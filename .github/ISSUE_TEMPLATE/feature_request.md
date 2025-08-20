@@ -127,7 +127,7 @@ graph TD
 // 1. 添加依赖
 // 在 pom.xml 中添加
 <dependency>
-    <groupId>com.gls.athena</groupId>
+    <groupId>io.github.gls-athena</groupId>
     <artifactId>athena-starter-xxx</artifactId>
 </dependency>
 

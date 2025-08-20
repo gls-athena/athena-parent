@@ -231,7 +231,7 @@ jobs:
             
             ```xml
             <dependency>
-                <groupId>com.gls.athena</groupId>
+                <groupId>io.github.gls-athena</groupId>
                 <artifactId>athena-parent</artifactId>
                 <version>${{ steps.next_version.outputs.next }}</version>
                 <type>pom</type>

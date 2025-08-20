@@ -10,7 +10,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <!-- 项目基础信息 -->
-    <groupId>com.gls.athena</groupId>
+    <groupId>io.github.gls-athena</groupId>
     <!-- 当前项目的 artifactId，用于构建产物命名 -->
     <artifactId>athena-parent</artifactId>
     <!-- 项目版本号，使用占位符支持 CI/CD 动态替换 -->
@@ -887,14 +887,12 @@
 
                     <!-- Nexus Staging Maven Plugin - 发布到 Sonatype OSSRH -->
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.7.0</version>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.8.0</version>
                         <extensions>true</extensions>
                         <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <publishingServerId>central</publishingServerId>
                         </configuration>
                     </plugin>
                 </plugins>
