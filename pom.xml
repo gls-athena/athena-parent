@@ -66,7 +66,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <!-- 版本占位符，支持 CI/CD 动态版本号 -->
-        <revision>0.0.8</revision>
+        <revision>0.0.9-SNAPSHOT</revision>
 
         <!-- Maven 核心插件版本 -->
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
