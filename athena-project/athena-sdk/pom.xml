@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.gls.athena</groupId>
+        <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-project</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <groupId>com.gls.athena.sdk</groupId>
+    <groupId>io.github.gls-athena.sdk</groupId>
     <artifactId>athena-sdk</artifactId>
     <packaging>pom</packaging>
 
@@ -25,7 +25,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.gls.athena.starter.core</groupId>
+            <groupId>io.github.gls-athena.starter.core</groupId>
             <artifactId>athena-starter-core</artifactId>
         </dependency>
         <dependency>

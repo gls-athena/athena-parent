@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.gls.athena</groupId>
+        <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-parent</artifactId>
         <version>${revision}</version>
     </parent>
@@ -16,135 +16,135 @@
         <dependencies>
             <!-- Athena Cloud -->
             <dependency>
-                <groupId>com.gls.athena.cloud.boot</groupId>
+                <groupId>io.github.gls-athena.cloud.boot</groupId>
                 <artifactId>athena-cloud-boot</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.cloud.core</groupId>
+                <groupId>io.github.gls-athena.cloud.core</groupId>
                 <artifactId>athena-cloud-core</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- Athena Common -->
             <dependency>
-                <groupId>com.gls.athena.common.bean</groupId>
+                <groupId>io.github.gls-athena.common.bean</groupId>
                 <artifactId>athena-common-bean</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.common.core</groupId>
+                <groupId>io.github.gls-athena.common.core</groupId>
                 <artifactId>athena-common-core</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- Athena SDK -->
             <dependency>
-                <groupId>com.gls.athena.sdk.amap</groupId>
+                <groupId>io.github.gls-athena.sdk.amap</groupId>
                 <artifactId>athena-sdk-amap</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.sdk.core</groupId>
+                <groupId>io.github.gls-athena.sdk.core</groupId>
                 <artifactId>athena-sdk-core</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.sdk.feishu</groupId>
+                <groupId>io.github.gls-athena.sdk.feishu</groupId>
                 <artifactId>athena-sdk-feishu</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.sdk.log</groupId>
+                <groupId>io.github.gls-athena.sdk.log</groupId>
                 <artifactId>athena-sdk-log</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.sdk.message</groupId>
+                <groupId>io.github.gls-athena.sdk.message</groupId>
                 <artifactId>athena-sdk-message</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.sdk.wechat</groupId>
+                <groupId>io.github.gls-athena.sdk.wechat</groupId>
                 <artifactId>athena-sdk-wechat</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.sdk.xxl.job</groupId>
+                <groupId>io.github.gls-athena.sdk.xxl.job</groupId>
                 <artifactId>athena-sdk-xxl-job</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- Athena Starter -->
             <dependency>
-                <groupId>com.gls.athena.starter.aliyun.core</groupId>
+                <groupId>io.github.gls-athena.starter.aliyun.core</groupId>
                 <artifactId>athena-starter-aliyun-core</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.aliyun.oss</groupId>
+                <groupId>io.github.gls-athena.starter.aliyun.oss</groupId>
                 <artifactId>athena-starter-aliyun-oss</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.aliyun.sms</groupId>
+                <groupId>io.github.gls-athena.starter.aliyun.sms</groupId>
                 <artifactId>athena-starter-aliyun-sms</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.core</groupId>
+                <groupId>io.github.gls-athena.starter.core</groupId>
                 <artifactId>athena-starter-core</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.data.jpa</groupId>
+                <groupId>io.github.gls-athena.starter.data.jpa</groupId>
                 <artifactId>athena-starter-data-jpa</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.data.redis</groupId>
+                <groupId>io.github.gls-athena.starter.data.redis</groupId>
                 <artifactId>athena-starter-data-redis</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.dynamic.datasource</groupId>
+                <groupId>io.github.gls-athena.starter.dynamic.datasource</groupId>
                 <artifactId>athena-starter-dynamic-datasource</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.excel</groupId>
+                <groupId>io.github.gls-athena.starter.excel</groupId>
                 <artifactId>athena-starter-excel</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.jasper</groupId>
+                <groupId>io.github.gls-athena.starter.jasper</groupId>
                 <artifactId>athena-starter-jasper</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.json</groupId>
+                <groupId>io.github.gls-athena.starter.json</groupId>
                 <artifactId>athena-starter-json</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.mybatis</groupId>
+                <groupId>io.github.gls-athena.starter.mybatis</groupId>
                 <artifactId>athena-starter-mybatis</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.pdf</groupId>
+                <groupId>io.github.gls-athena.starter.pdf</groupId>
                 <artifactId>athena-starter-pdf</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.swagger</groupId>
+                <groupId>io.github.gls-athena.starter.swagger</groupId>
                 <artifactId>athena-starter-swagger</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.web</groupId>
+                <groupId>io.github.gls-athena.starter.web</groupId>
                 <artifactId>athena-starter-web</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.gls.athena.starter.word</groupId>
+                <groupId>io.github.gls-athena.starter.word</groupId>
                 <artifactId>athena-starter-word</artifactId>
                 <version>${revision}</version>
             </dependency>

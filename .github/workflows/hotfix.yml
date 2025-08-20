@@ -122,7 +122,7 @@ jobs:
             
             ```xml
             <dependency>
-                <groupId>com.gls.athena</groupId>
+                <groupId>io.github.gls-athena</groupId>
                 <artifactId>athena-parent</artifactId>
                 <version>${{ github.event.inputs.hotfix_version }}</version>
                 <type>pom</type>

@@ -4,41 +4,41 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.gls.athena.cloud</groupId>
+        <groupId>io.github.gls-athena.cloud</groupId>
         <artifactId>athena-cloud</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <groupId>com.gls.athena.cloud.core</groupId>
+    <groupId>io.github.gls-athena.cloud.core</groupId>
     <artifactId>athena-cloud-core</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>com.gls.athena.starter.web</groupId>
+            <groupId>io.github.gls-athena.starter.web</groupId>
             <artifactId>athena-starter-web</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.starter.mybatis</groupId>
+            <groupId>io.github.gls-athena.starter.mybatis</groupId>
             <artifactId>athena-starter-mybatis</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.starter.data.redis</groupId>
+            <groupId>io.github.gls-athena.starter.data.redis</groupId>
             <artifactId>athena-starter-data-redis</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.starter.json</groupId>
+            <groupId>io.github.gls-athena.starter.json</groupId>
             <artifactId>athena-starter-json</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.starter.swagger</groupId>
+            <groupId>io.github.gls-athena.starter.swagger</groupId>
             <artifactId>athena-starter-swagger</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.starter.excel</groupId>
+            <groupId>io.github.gls-athena.starter.excel</groupId>
             <artifactId>athena-starter-excel</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gls.athena.sdk.log</groupId>
+            <groupId>io.github.gls-athena.sdk.log</groupId>
             <artifactId>athena-sdk-log</artifactId>
         </dependency>
 

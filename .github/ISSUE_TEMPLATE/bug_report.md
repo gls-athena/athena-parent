@@ -29,7 +29,7 @@ assignees: ''
 1. 添加依赖：
    ```xml
    <dependency>
-       <groupId>com.gls.athena</groupId>
+       <groupId>io.github.gls-athena</groupId>
        <artifactId>模块名称</artifactId>
        <version>版本号</version>
    </dependency>

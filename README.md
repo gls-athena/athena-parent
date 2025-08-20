@@ -155,7 +155,7 @@ athena-parent/
 <dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>com.gls.athena</groupId>
+            <groupId>io.github.gls-athena</groupId>
             <artifactId>athena-bom</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <type>pom</type>
@@ -174,25 +174,25 @@ athena-parent/
 <dependencies>
     <!-- Web启动器 -->
     <dependency>
-        <groupId>com.gls.athena</groupId>
+        <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-starter-web</artifactId>
     </dependency>
 
     <!-- MyBatis启动器 -->
     <dependency>
-        <groupId>com.gls.athena</groupId>
+        <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-starter-mybatis</artifactId>
     </dependency>
 
     <!-- Redis启动器 -->
     <dependency>
-        <groupId>com.gls.athena</groupId>
+        <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-starter-data-redis</artifactId>
     </dependency>
 
     <!-- Excel处理启动器 -->
     <dependency>
-        <groupId>com.gls.athena</groupId>
+        <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-starter-excel</artifactId>
     </dependency>
 </dependencies>
