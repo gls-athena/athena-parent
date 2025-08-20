@@ -59,31 +59,6 @@ jobs:
             echo "No test reports found"
           fi
 
-      # 使用插件管理中配置的JaCoCo插件生成覆盖率报告
-      - name: Generate test report
-        uses: dorny/test-reporter@v1.9.1
-        if: (success() || failure()) && steps.check_reports.outputs.reports_exist == 'true'
-        with:
-          name: Maven Tests
-          path: '**/target/surefire-reports/*.xml'
-          reporter: java-junit
-          fail-on-error: false
-
-      # JaCoCo插件现在已在pom.xml中配置，可以直接调用report目标
-      - name: Code coverage
-        run: mvn jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
-
-      # 使用更新的 Codecov action
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: success()
-        with:
-          file: ./target/site/jacoco/jacoco.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-
       - name: Build project
         run: mvn clean compile -Drevision=${{ steps.extract_version.outputs.version }}
 
