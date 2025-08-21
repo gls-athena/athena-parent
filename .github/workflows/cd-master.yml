@@ -252,12 +252,14 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           if [ -n "$MAVEN_USERNAME" ] && [ -n "$MAVEN_PASSWORD" ]; then
-            mvn deploy -DskipTests -Drevision=${{ steps.next_version.outputs.next }} \
+            mvn deploy -DskipTests -Drevision=${{ steps.next_version.outputs.next }} -Prelease \
               -s .github/settings.xml \
               -Dmaven.repo.username=$MAVEN_USERNAME \
-              -Dmaven.repo.password=$MAVEN_PASSWORD
+              -Dmaven.repo.password=$MAVEN_PASSWORD \
+              -Dgpg.passphrase=$GPG_PASSPHRASE
           else
             echo "Maven deployment skipped - credentials not configured"
           fi
