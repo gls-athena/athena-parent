@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven项目对象模型(POM)配置文件
+    用于定义Athena SDK核心模块的项目配置信息
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM模型版本，固定值4.0.0 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承父项目的通用配置 -->
     <parent>
+        <!-- 父项目组ID -->
         <groupId>io.github.gls-athena.sdk</groupId>
+        <!-- 父项目构件ID -->
         <artifactId>athena-sdk</artifactId>
+        <!-- 父项目版本号，使用占位符引用 -->
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前项目的组ID -->
     <groupId>io.github.gls-athena.sdk.core</groupId>
+    <!-- 当前项目的构件ID -->
     <artifactId>athena-sdk-core</artifactId>
+    <!-- 项目名称 -->
     <name>Athena SDK Core</name>
+    <!-- 项目描述信息 -->
     <description>Athena SDK 核心模块</description>
 </project>

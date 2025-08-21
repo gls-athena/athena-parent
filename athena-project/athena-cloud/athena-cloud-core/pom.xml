@@ -1,53 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven 项目对象模型（POM）文件，用于定义 Athena Cloud Core 模块的构建配置和依赖管理。
+    此模块是 Athena 云原生平台的核心功能模块，聚合了多个 starter 组件以提供基础服务支持。
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM 模型版本，固定为 4.0.0 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承 athena-cloud 的通用配置 -->
     <parent>
+        <!-- 父项目的 groupId -->
         <groupId>io.github.gls-athena.cloud</groupId>
+        <!-- 父项目的 artifactId -->
         <artifactId>athena-cloud</artifactId>
+        <!-- 父项目的版本号，使用占位符 ${revision} -->
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前模块的 groupId -->
     <groupId>io.github.gls-athena.cloud.core</groupId>
+    <!-- 当前模块的 artifactId -->
     <artifactId>athena-cloud-core</artifactId>
+    <!-- 模块名称：Athena Cloud Core -->
     <name>Athena Cloud Core</name>
+    <!-- 模块描述：Athena 云原生核心功能模块 -->
     <description>Athena 云原生核心功能模块</description>
 
+    <!-- 模块依赖列表 -->
     <dependencies>
+        <!-- Web Starter：提供基础 Web 功能支持 -->
         <dependency>
             <groupId>io.github.gls-athena.starter.web</groupId>
             <artifactId>athena-starter-web</artifactId>
         </dependency>
+
+        <!-- MyBatis Starter：集成 MyBatis 持久层框架 -->
         <dependency>
             <groupId>io.github.gls-athena.starter.mybatis</groupId>
             <artifactId>athena-starter-mybatis</artifactId>
         </dependency>
+
+        <!-- Redis Starter：提供 Redis 数据库访问支持 -->
         <dependency>
             <groupId>io.github.gls-athena.starter.data.redis</groupId>
             <artifactId>athena-starter-data-redis</artifactId>
         </dependency>
+
+        <!-- JSON Starter：提供 JSON 序列化与反序列化能力 -->
         <dependency>
             <groupId>io.github.gls-athena.starter.json</groupId>
             <artifactId>athena-starter-json</artifactId>
         </dependency>
+
+        <!-- Swagger Starter：提供 API 文档生成与展示功能 -->
         <dependency>
             <groupId>io.github.gls-athena.starter.swagger</groupId>
             <artifactId>athena-starter-swagger</artifactId>
         </dependency>
+
+        <!-- Excel Starter：提供 Excel 文件读写支持 -->
         <dependency>
             <groupId>io.github.gls-athena.starter.excel</groupId>
             <artifactId>athena-starter-excel</artifactId>
         </dependency>
+
+        <!-- Log SDK：提供日志记录功能 -->
         <dependency>
             <groupId>io.github.gls-athena.sdk.log</groupId>
             <artifactId>athena-sdk-log</artifactId>
         </dependency>
 
+        <!-- MySQL 驱动：用于连接 MySQL 数据库 -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
         </dependency>
+
+        <!-- Kafka 支持：用于消息队列功能 -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>

@@ -1,27 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven项目对象模型(POM)配置文件
+    用于定义Athena SDK日志模块的项目配置信息
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM模型版本，固定值4.0.0 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承athena-sdk父模块的配置 -->
     <parent>
+        <!-- 父项目组ID -->
         <groupId>io.github.gls-athena.sdk</groupId>
+        <!-- 父项目构件ID -->
         <artifactId>athena-sdk</artifactId>
+        <!-- 父项目版本号，使用revision属性引用 -->
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前模块的组ID -->
     <groupId>io.github.gls-athena.sdk.log</groupId>
+    <!-- 当前模块的构件ID -->
     <artifactId>athena-sdk-log</artifactId>
+    <!-- 模块名称 -->
     <name>Athena SDK Log</name>
+    <!-- 模块描述信息 -->
     <description>Athena SDK 日志模块</description>
 
+    <!-- 项目依赖配置 -->
     <dependencies>
+        <!-- Micrometer追踪桥接Brave依赖，用于分布式追踪功能 -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-brave</artifactId>
         </dependency>
+
+        <!-- Spring Kafka依赖，用于Kafka消息处理功能 -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
+            <!-- provided作用域，表示该依赖由容器提供 -->
             <scope>provided</scope>
         </dependency>
     </dependencies>

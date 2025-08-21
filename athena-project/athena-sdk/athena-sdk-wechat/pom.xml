@@ -1,17 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven项目对象模型(POM)配置文件
+    用于定义Athena微信SDK模块的项目配置信息
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM模型版本，固定值4.0.0 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承athena-sdk父模块 -->
     <parent>
+        <!-- 父项目组ID -->
         <groupId>io.github.gls-athena.sdk</groupId>
+        <!-- 父项目构件ID -->
         <artifactId>athena-sdk</artifactId>
+        <!-- 父项目版本号，使用revision属性引用 -->
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前项目的组ID，标识微信SDK模块 -->
     <groupId>io.github.gls-athena.sdk.wechat</groupId>
+    <!-- 当前项目的构件ID -->
     <artifactId>athena-sdk-wechat</artifactId>
+    <!-- 项目名称，用于显示用途 -->
     <name>Athena SDK WeChat</name>
+    <!-- 项目描述信息 -->
     <description>Athena 微信 SDK</description>
 
 </project>

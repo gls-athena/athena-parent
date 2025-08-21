@@ -263,12 +263,26 @@ jobs:
             # 导入 GPG 私钥
             echo "$GPG_PRIVATE_KEY" | gpg --batch --import --no-tty
           
-            # 配置 GPG 信任
-            GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
-            echo "$GPG_KEY_ID:6:" | gpg --import-ownertrust --no-tty
+            # 获取密钥 ID (修复版本)
+            GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep -A1 "sec" | grep -E "^\s*[A-F0-9]+" | head -1 | awk '{print $1}' | cut -d'/' -f2)
+          
+            # 如果上面的方法失败，尝试另一种方法
+            if [ -z "$GPG_KEY_ID" ]; then
+              GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep "sec" | head -1 | sed 's/.*\/\([A-F0-9]*\).*/\1/')
+            fi
+          
+            echo "GPG Key ID: $GPG_KEY_ID"
+          
+            # 配置 GPG 信任 (只有当获取到有效密钥 ID 时)
+            if [ -n "$GPG_KEY_ID" ] && [ "$GPG_KEY_ID" != "" ]; then
+              echo "$GPG_KEY_ID:6:" | gpg --import-ownertrust --no-tty
+              echo "✅ GPG trust configured for key: $GPG_KEY_ID"
+            else
+              echo "⚠️ Could not extract GPG key ID, skipping trust configuration"
+            fi
           
             # 测试 GPG 签名功能
-            echo "test" | gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback --sign --armor
+            echo "test" | gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback --sign --armor > /dev/null
           
             echo "✅ GPG setup completed successfully"
           else
