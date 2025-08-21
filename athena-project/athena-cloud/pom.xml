@@ -1,21 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven项目对象模型(POM)配置文件
+    用于定义Athena云原生应用模块集合的项目结构和依赖关系
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM模型版本，固定值4.0.0 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承athena-project的通用配置 -->
     <parent>
+        <!-- 父项目组ID -->
         <groupId>io.github.gls-athena</groupId>
+        <!-- 父项目构件ID -->
         <artifactId>athena-project</artifactId>
+        <!-- 父项目版本号，使用revision属性进行版本管理 -->
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前项目的组ID -->
     <groupId>io.github.gls-athena.cloud</groupId>
+    <!-- 当前项目的构件ID -->
     <artifactId>athena-cloud</artifactId>
+    <!-- 项目打包类型，pom表示这是一个聚合项目 -->
     <packaging>pom</packaging>
+    <!-- 项目显示名称 -->
     <name>Athena Cloud</name>
+    <!-- 项目描述信息 -->
     <description>Athena 云原生应用模块集合</description>
+
+    <!-- 子模块列表，定义该项目包含的子模块 -->
     <modules>
+        <!-- 云原生启动模块 -->
         <module>athena-cloud-boot</module>
+        <!-- 云原生核心模块 -->
         <module>athena-cloud-core</module>
     </modules>
 

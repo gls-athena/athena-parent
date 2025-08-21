@@ -1,20 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven项目对象模型(POM)配置文件
+    用于定义Athena SDK项目的构建配置、依赖管理和模块聚合
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!-- POM模型版本，固定值4.0.0 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承athena-project的配置 -->
     <parent>
         <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-project</artifactId>
         <version>${revision}</version>
     </parent>
 
+    <!-- 项目基本信息配置 -->
     <groupId>io.github.gls-athena.sdk</groupId>
     <artifactId>athena-sdk</artifactId>
     <packaging>pom</packaging>
     <name>Athena SDK</name>
     <description>Athena 第三方服务集成 SDK 模块集合</description>
 
+    <!-- 子模块列表，定义该项目包含的所有SDK模块 -->
     <modules>
         <module>athena-sdk-amap</module>
         <module>athena-sdk-core</module>
@@ -25,11 +35,14 @@
         <module>athena-sdk-xxl-job</module>
     </modules>
 
+    <!-- 项目依赖配置 -->
     <dependencies>
+        <!-- 核心启动器依赖 -->
         <dependency>
             <groupId>io.github.gls-athena.starter.core</groupId>
             <artifactId>athena-starter-core</artifactId>
         </dependency>
+        <!-- Spring Cloud OpenFeign依赖，用于服务间调用 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>

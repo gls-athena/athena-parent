@@ -215,10 +215,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v${{ steps.next_version.outputs.next }}" \
-            --title "Release v${{ steps.next_version.outputs.next }}" \
-            --notes "## Release Notes for v${{ steps.next_version.outputs.next }}
-            
+          # 创建临时文件存储release notes
+          cat > release_notes.md << 'EOF'
+          ## Release Notes for v${{ steps.next_version.outputs.next }}
+          
           **Release Type:** ${{ github.event.inputs.version_type || 'patch' }} version increment
           **Previous Version:** ${{ steps.release_notes.outputs.previous_tag }}
           
@@ -240,7 +240,13 @@ jobs:
           ```
           
           ### 📝 Full Changelog
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.release_notes.outputs.previous_tag }}...v${{ steps.next_version.outputs.next }}"
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.release_notes.outputs.previous_tag }}...v${{ steps.next_version.outputs.next }}
+          EOF
+          
+          # 使用文件创建release
+          gh release create "v${{ steps.next_version.outputs.next }}" \
+            --title "Release v${{ steps.next_version.outputs.next }}" \
+            --notes-file release_notes.md
 
       # 步骤17：设置 GPG 环境（如果需要部署到 Maven 仓库）
       - name: Setup GPG for Maven deployment
@@ -253,17 +259,17 @@ jobs:
         run: |
           if [ -n "$GPG_PRIVATE_KEY" ]; then
             echo "Setting up GPG for artifact signing..."
-            
+          
             # 导入 GPG 私钥
             echo "$GPG_PRIVATE_KEY" | gpg --batch --import --no-tty
-            
+          
             # 配置 GPG 信任
             GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
             echo "$GPG_KEY_ID:6:" | gpg --import-ownertrust --no-tty
-            
+          
             # 测试 GPG 签名功能
             echo "test" | gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback --sign --armor
-            
+          
             echo "✅ GPG setup completed successfully"
           else
             echo "⚠️ GPG_PRIVATE_KEY not found - GPG signing will be skipped"
