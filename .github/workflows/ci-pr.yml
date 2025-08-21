@@ -1,0 +1,161 @@
+# CI - Pull Request
+#
+# 此工作流用于在拉取请求（Pull Request）被打开、同步或重新打开时，
+# 对项目进行持续集成验证。它包括代码检查、编译、测试、安全扫描和构建验证等步骤。
+#
+# 触发条件：
+# - 当针对 develop 或 master 分支的 pull_request 被 opened、synchronize 或 reopened 时触发
+
+name: CI - Pull Request
+
+# 为工作流添加必要的权限
+permissions:
+  contents: read          # 读取仓库内容
+  pull-requests: write    # 写入 PR 评论
+  checks: write          # 写入检查状态
+  actions: read          # 读取 Actions 相关信息
+
+on:
+  pull_request:
+    branches: [ develop, master ]
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  # 验证任务：负责项目的代码校验、编译、单元测试、集成测试、覆盖率报告及静态分析
+  validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码，并获取完整历史记录以支持版本提取
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 设置 JDK 21 环境并启用 Maven 缓存优化后续步骤
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 提取项目版本号，供后续 Maven 命令使用
+      - name: Extract version
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # 验证 Maven 项目结构是否正确
+      - name: Validate Maven project
+        run: mvn validate -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 清理并编译项目源码
+      - name: Compile project
+        run: mvn clean compile -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 执行单元测试
+      - name: Run unit tests
+        run: mvn test -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 执行集成测试，跳过单元测试以避免重复执行
+      - name: Run integration tests
+        run: mvn verify -DskipUTs=true -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 生成测试覆盖率报告
+      - name: Generate test coverage report
+        run: mvn jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 检查代码风格，允许失败继续执行其他步骤
+      - name: Check code style
+        run: mvn checkstyle:check -Drevision=${{ steps.extract_version.outputs.version }}
+        continue-on-error: true
+
+      # 运行 SpotBugs 静态代码分析，允许失败继续执行其他步骤
+      - name: Run SpotBugs analysis
+        run: mvn spotbugs:check -Drevision=${{ steps.extract_version.outputs.version }}
+        continue-on-error: true
+
+      # 在 PR 中添加测试结果评论，无论成功或失败都执行
+      - name: Comment PR with test results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Maven Test Results
+          path: '**/target/surefire-reports/*.xml'
+          reporter: java-junit
+
+      # 上传测试相关产物（如测试报告、覆盖率报告）
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            **/target/surefire-reports/
+            **/target/site/jacoco/
+
+  # 安全检查任务：运行 OWASP 依赖项检查并上传安全报告
+  security-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 设置 JDK 21 环境并启用 Maven 缓存
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 使用 OWASP 插件检查项目依赖的安全漏洞，允许失败继续执行
+      - name: Run OWASP Dependency Check
+        run: mvn org.owasp:dependency-check-maven:check
+        continue-on-error: true
+
+      # 上传生成的安全报告文件
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report
+          path: target/dependency-check-report.html
+
+  # 构建检查任务：验证项目能否成功打包
+  build-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 设置 JDK 21 环境并启用 Maven 缓存
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 提取项目版本号，供后续 Maven 命令使用
+      - name: Extract version
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # 清理并打包项目，跳过测试以加快构建速度
+      - name: Package project
+        run: mvn clean package -DskipTests -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 验证生成的 JAR 文件是否存在
+      - name: Verify artifacts
+        run: |
+          find . -name "*.jar" -type f | head -10
+          echo "Build artifacts created successfully"

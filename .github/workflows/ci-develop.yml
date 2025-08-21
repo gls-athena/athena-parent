@@ -1,0 +1,249 @@
+# 开发分支持续集成工作流
+name: CI for Develop Branch
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+# 配置工作流权限
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
+  actions: read
+  security-events: write
+
+jobs:
+  # 测试任务
+  test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Extract version from pom.xml
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Run tests
+        run: mvn clean test -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 检查是否存在测试报告文件
+      - name: Check for test reports
+        id: check_reports
+        run: |
+          if find . -name "*.xml" -path "*/target/surefire-reports/*" -type f 2>/dev/null | grep -q .; then
+            echo "reports_exist=true" >> $GITHUB_OUTPUT
+            echo "Test reports found"
+          else
+            echo "reports_exist=false" >> $GITHUB_OUTPUT
+            echo "No test reports found"
+          fi
+
+      # 使用插件管理中配置的JaCoCo插件生成覆盖率报告
+      - name: Generate test report
+        uses: dorny/test-reporter@v1.9.1
+        if: (success() || failure()) && steps.check_reports.outputs.reports_exist == 'true'
+        with:
+          name: Maven Tests
+          path: '**/target/surefire-reports/*.xml'
+          reporter: java-junit
+          fail-on-error: false
+
+      # JaCoCo插件现在已在pom.xml中配置，可以直接调用report目标
+      - name: Code coverage
+        run: mvn jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
+
+      # 使用更新的 Codecov action
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: success()
+        with:
+          file: ./target/site/jacoco/jacoco.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Build project
+        run: mvn clean compile -Drevision=${{ steps.extract_version.outputs.version }}
+
+      - name: Validate project structure
+        run: mvn validate -Drevision=${{ steps.extract_version.outputs.version }}
+
+  # 安全扫描任务
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: test
+
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Extract version from pom.xml
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Run OWASP Dependency Check
+        run: |
+          mvn org.owasp:dependency-check-maven:check \
+            -Drevision=${{ steps.extract_version.outputs.version }} \
+            -DfailBuildOnCVSS=7 \
+            -DskipTestScope=false
+        continue-on-error: true
+
+      - name: Upload security scan report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.html
+          retention-days: 7
+
+  # 代码质量检查任务
+  code-quality:
+    runs-on: ubuntu-latest
+    needs: test
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Extract version from pom.xml
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      # 只有在配置了 SONAR_TOKEN 时才运行 SonarQube
+      - name: SonarQube Scan
+        if: env.SONAR_TOKEN != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn clean verify sonar:sonar \
+            -Drevision=${{ steps.extract_version.outputs.version }} \
+            -Dsonar.projectKey=athena-parent \
+            -Dsonar.organization=your-org \
+            -Dsonar.host.url=https://sonarcloud.io
+        continue-on-error: true
+
+  # 构建任务
+  build:
+    runs-on: ubuntu-latest
+    needs: [ test, security-scan, code-quality ]
+
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Extract version from pom.xml
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Package project
+        run: mvn clean package -DskipTests -Drevision=${{ steps.extract_version.outputs.version }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ steps.extract_version.outputs.version }}
+          path: |
+            **/target/*.jar
+            **/target/*.war
+          retention-days: 7
+
+  # 通知任务
+  notify:
+    runs-on: ubuntu-latest
+    needs: [ test, security-scan, code-quality, build ]
+    if: always()
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Notify success
+        if: ${{ needs.test.result == 'success' && needs.security-scan.result == 'success' && needs.code-quality.result == 'success' && needs.build.result == 'success' }}
+        run: |
+          echo "✅ All jobs completed successfully!"
+          echo "Ready for deployment to development environment."
+
+      - name: Notify failure
+        if: ${{ needs.test.result == 'failure' || needs.security-scan.result == 'failure' || needs.code-quality.result == 'failure' || needs.build.result == 'failure' }}
+        run: |
+          echo "❌ One or more jobs failed!"
+          echo "Test: ${{ needs.test.result }}"
+          echo "Security Scan: ${{ needs.security-scan.result }}"
+          echo "Code Quality: ${{ needs.code-quality.result }}"
+          echo "Build: ${{ needs.build.result }}"

@@ -1,0 +1,243 @@
+name: CD - Master Branch Release
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version increment type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout | sed 's/-SNAPSHOT//')
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Calculate next version
+        id: next_version
+        run: |
+          CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
+          VERSION_TYPE="${{ github.event.inputs.version_type || 'patch' }}"
+          
+          # 当前版本就是要发布的版本（去掉SNAPSHOT后缀）
+          RELEASE_VERSION="$CURRENT_VERSION"
+          
+          # 解析版本号用于计算下一个开发版本
+          IFS='.' read -ra VERSION_PARTS <<< "$RELEASE_VERSION"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+          
+          # 根据类型递增版本来计算下一个开发版本
+          case $VERSION_TYPE in
+            "major")
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            "minor")
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            "patch")
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEXT_SNAPSHOT_VERSION="$MAJOR.$MINOR.$PATCH-SNAPSHOT"
+          
+          echo "next=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "next_snapshot=$NEXT_SNAPSHOT_VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $RELEASE_VERSION"
+          echo "Next development version: $NEXT_SNAPSHOT_VERSION"
+
+      - name: Generate release notes from git log
+        id: release_notes
+        run: |
+          # 获取上一个版本的标签
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            # 获取从上一个标签到当前HEAD的提交日志
+            COMMITS=$(git log ${PREVIOUS_TAG}..HEAD --oneline --no-merges --format="- %s (%h)" | head -50)
+            echo "Found commits since $PREVIOUS_TAG:"
+            echo "$COMMITS"
+          else
+            # 如果没有找到上一个标签，获取最近的10个提交
+            COMMITS=$(git log HEAD --oneline --no-merges --format="- %s (%h)" | head -10)
+            echo "No previous tags found, showing recent commits:"
+            echo "$COMMITS"
+          fi
+          
+          # 保存到输出变量，处理多行文本
+          {
+            echo 'commits<<EOF'
+            echo "$COMMITS"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+          
+          # 保存上一个版本信息
+          echo "previous_tag=${PREVIOUS_TAG:-'Initial release'}" >> $GITHUB_OUTPUT
+
+      - name: Run tests before release
+        run: |
+          mvn clean test -Drevision=${{ steps.next_version.outputs.next }}
+
+      - name: Update revision property for release
+        run: |
+          # 更新 pom.xml 中的 revision 属性而不是 version
+          sed -i "s/<revision>.*<\/revision>/<revision>${{ steps.next_version.outputs.next }}<\/revision>/g" pom.xml
+
+      - name: Build and package
+        run: |
+          mvn clean package -DskipTests -Drevision=${{ steps.next_version.outputs.next }}
+
+      - name: Commit release version
+        run: |
+          git add .
+          git commit -m "Release version ${{ steps.next_version.outputs.next }}" || echo "No changes to commit"
+
+      - name: Create release tag
+        run: |
+          git tag -a "v${{ steps.next_version.outputs.next }}" -m "Release version ${{ steps.next_version.outputs.next }}"
+
+      - name: Update revision property for next development version
+        run: |
+          # 更新 revision 属性为下一个开发版本
+          sed -i "s/<revision>.*<\/revision>/<revision>${{ steps.next_version.outputs.next_snapshot }}<\/revision>/g" pom.xml
+
+      - name: Commit next development version
+        run: |
+          git add .
+          git commit -m "Prepare for next development iteration ${{ steps.next_version.outputs.next_snapshot }}" || echo "No changes to commit"
+
+      - name: Push changes and tags
+        run: |
+          git push origin master
+          git push origin "v${{ steps.next_version.outputs.next }}"
+
+      - name: Sync changes back to develop branch
+        run: |
+          # 检查develop分支是否存在
+          if git show-ref --verify --quiet refs/remotes/origin/develop; then
+            echo "Develop branch exists, syncing changes..."
+          
+            # 切换到develop分支
+            git checkout develop
+            git pull origin develop
+          
+            # 合并master分支的变更到develop
+            git merge master --no-ff -m "Sync release v${{ steps.next_version.outputs.next }} changes back to develop"
+          
+            # 推送develop分支
+            git push origin develop
+          
+            echo "✅ Successfully synced changes to develop branch"
+          else
+            echo "⚠️ Develop branch does not exist, skipping sync"
+          fi
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "v${{ steps.next_version.outputs.next }}"
+          release_name: "Release v${{ steps.next_version.outputs.next }}"
+          body: |
+            ## Release Notes for v${{ steps.next_version.outputs.next }}
+            
+            **Release Type:** ${{ github.event.inputs.version_type || 'patch' }} version increment
+            **Previous Version:** ${{ steps.release_notes.outputs.previous_tag }}
+            
+            ### 🚀 What's Changed
+            ${{ steps.release_notes.outputs.commits }}
+            
+            ### 📦 Artifacts
+            This release includes all Maven modules in the athena-parent project.
+            
+            ### 💾 Installation
+            ```xml
+            <dependency>
+                <groupId>io.github.gls-athena</groupId>
+                <artifactId>athena-parent</artifactId>
+                <version>${{ steps.next_version.outputs.next }}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            ```
+            
+            ### 📝 Full Changelog
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.release_notes.outputs.previous_tag }}...v${{ steps.next_version.outputs.next }}
+          draft: false
+          prerelease: false
+
+      - name: Deploy to Maven Repository
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+        run: |
+          if [ -n "$MAVEN_USERNAME" ] && [ -n "$MAVEN_PASSWORD" ]; then
+            mvn deploy -DskipTests -Drevision=${{ steps.next_version.outputs.next }} \
+              -s .github/settings.xml \
+              -Dmaven.repo.username=$MAVEN_USERNAME \
+              -Dmaven.repo.password=$MAVEN_PASSWORD
+          else
+            echo "Maven deployment skipped - credentials not configured"
+          fi
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: release
+    if: always()
+
+    steps:
+      - name: Notify on success
+        if: needs.release.result == 'success'
+        run: |
+          echo "✅ Release completed successfully!"
+          echo "New version: v${{ needs.release.outputs.next_version }}"
+
+      - name: Notify on failure
+        if: needs.release.result == 'failure'
+        run: |
+          echo "❌ Release failed!"
+          echo "Please check the logs and fix any issues."
