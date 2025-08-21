@@ -215,10 +215,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v${{ steps.next_version.outputs.next }}" \
-            --title "Release v${{ steps.next_version.outputs.next }}" \
-            --notes "## Release Notes for v${{ steps.next_version.outputs.next }}
-            
+          # 创建临时文件存储release notes
+          cat > release_notes.md << 'EOF'
+          ## Release Notes for v${{ steps.next_version.outputs.next }}
+          
           **Release Type:** ${{ github.event.inputs.version_type || 'patch' }} version increment
           **Previous Version:** ${{ steps.release_notes.outputs.previous_tag }}
           
@@ -240,7 +240,13 @@ jobs:
           ```
           
           ### 📝 Full Changelog
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.release_notes.outputs.previous_tag }}...v${{ steps.next_version.outputs.next }}"
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.release_notes.outputs.previous_tag }}...v${{ steps.next_version.outputs.next }}
+          EOF
+          
+          # 使用文件创建release
+          gh release create "v${{ steps.next_version.outputs.next }}" \
+            --title "Release v${{ steps.next_version.outputs.next }}" \
+            --notes-file release_notes.md
 
       # 步骤17：设置 GPG 环境（如果需要部署到 Maven 仓库）
       - name: Setup GPG for Maven deployment
