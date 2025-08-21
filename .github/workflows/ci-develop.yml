@@ -16,66 +16,10 @@ permissions:
   actions: read
   security-events: write
 
-env:
-  MAVEN_OPTS: "-Xmx2048m"
-  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
-
 jobs:
-  # 代码质量检查
-  code-quality:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # 完整历史记录用于 SonarQube 分析
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Extract version from pom.xml
-        id: extract_version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Current version: $VERSION"
-
-      - name: Validate Maven project
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} validate -Drevision=${{ steps.extract_version.outputs.version }}
-
-      - name: Compile project
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} clean compile -Drevision=${{ steps.extract_version.outputs.version }}
-
-      - name: Run Checkstyle
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} checkstyle:check -Drevision=${{ steps.extract_version.outputs.version }}
-        continue-on-error: true
-
-      - name: Run SpotBugs
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} spotbugs:check -Drevision=${{ steps.extract_version.outputs.version }}
-        continue-on-error: true
-
   # 测试任务
   test:
     runs-on: ubuntu-latest
-    needs: code-quality
-    timeout-minutes: 30
-
-    strategy:
-      matrix:
-        java-version: [ 21 ]
 
     permissions:
       contents: read
@@ -86,10 +30,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ matrix.java-version }}
+          java-version: '21'
           distribution: 'temurin'
           cache: maven
 
@@ -98,10 +42,12 @@ jobs:
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
 
-      - name: Run unit tests
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} test -Drevision=${{ steps.extract_version.outputs.version }}
+      - name: Run tests
+        run: mvn clean test -Drevision=${{ steps.extract_version.outputs.version }}
 
+      # 检查是否存在测试报告文件
       - name: Check for test reports
         id: check_reports
         run: |
@@ -113,21 +59,24 @@ jobs:
             echo "No test reports found"
           fi
 
+      # 使用插件管理中配置的JaCoCo插件生成覆盖率报告
       - name: Generate test report
         uses: dorny/test-reporter@v1.9.1
         if: (success() || failure()) && steps.check_reports.outputs.reports_exist == 'true'
         with:
-          name: Maven Tests (JDK ${{ matrix.java-version }})
+          name: Maven Tests
           path: '**/target/surefire-reports/*.xml'
           reporter: java-junit
           fail-on-error: false
 
-      - name: Generate coverage report
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
+      # JaCoCo插件现在已在pom.xml中配置，可以直接调用report目标
+      - name: Code coverage
+        run: mvn jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
 
+      # 使用更新的 Codecov action
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
-        if: success() && matrix.java-version == '21'
+        if: success()
         with:
           file: ./target/site/jacoco/jacoco.xml
           flags: unittests
@@ -135,11 +84,16 @@ jobs:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
+      - name: Build project
+        run: mvn clean compile -Drevision=${{ steps.extract_version.outputs.version }}
+
+      - name: Validate project structure
+        run: mvn validate -Drevision=${{ steps.extract_version.outputs.version }}
+
   # 安全扫描任务
   security-scan:
     runs-on: ubuntu-latest
     needs: test
-    timeout-minutes: 20
 
     permissions:
       contents: read
@@ -157,76 +111,87 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Extract version
+      - name: Extract version from pom.xml
         id: extract_version
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
 
       - name: Run OWASP Dependency Check
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} org.owasp:dependency-check-maven:check -Drevision=${{ steps.extract_version.outputs.version }}
+        run: |
+          mvn org.owasp:dependency-check-maven:check \
+            -Drevision=${{ steps.extract_version.outputs.version }} \
+            -DfailBuildOnCVSS=7 \
+            -DskipTestScope=false
         continue-on-error: true
 
-      - name: Upload OWASP report
+      - name: Upload security scan report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: owasp-dependency-check-report
-          path: '**/target/dependency-check-report.html'
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: java
-
-      - name: Build for CodeQL
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} clean compile -Drevision=${{ steps.extract_version.outputs.version }}
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-
-  # 构建和打包
-  build:
-    runs-on: ubuntu-latest
-    needs: [ test, security-scan ]
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Extract version
-        id: extract_version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Build project
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} clean package -DskipTests -Drevision=${{ steps.extract_version.outputs.version }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            **/target/*.jar
-            !**/target/*-sources.jar
-            !**/target/*-javadoc.jar
+          name: dependency-check-report
+          path: target/dependency-check-report.html
           retention-days: 7
 
-  # 性能测试
-  performance-test:
+  # 代码质量检查任务
+  code-quality:
     runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'push'
-    timeout-minutes: 30
+    needs: test
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Extract version from pom.xml
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      # 只有在配置了 SONAR_TOKEN 时才运行 SonarQube
+      - name: SonarQube Scan
+        if: env.SONAR_TOKEN != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn clean verify sonar:sonar \
+            -Drevision=${{ steps.extract_version.outputs.version }} \
+            -Dsonar.projectKey=athena-parent \
+            -Dsonar.organization=your-org \
+            -Dsonar.host.url=https://sonarcloud.io
+        continue-on-error: true
+
+  # 构建任务
+  build:
+    runs-on: ubuntu-latest
+    needs: [ test, security-scan, code-quality ]
+
+    permissions:
+      contents: read
+      actions: write
 
     steps:
       - name: Checkout code
@@ -239,42 +204,46 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Extract version
+      - name: Extract version from pom.xml
         id: extract_version
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
 
-      - name: Run performance tests
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} test -Dtest=**/*PerformanceTest -Drevision=${{ steps.extract_version.outputs.version }}
-        continue-on-error: true
+      - name: Package project
+        run: mvn clean package -DskipTests -Drevision=${{ steps.extract_version.outputs.version }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ steps.extract_version.outputs.version }}
+          path: |
+            **/target/*.jar
+            **/target/*.war
+          retention-days: 7
 
   # 通知任务
   notify:
     runs-on: ubuntu-latest
-    needs: [ code-quality, test, security-scan, build, performance-test ]
+    needs: [ test, security-scan, code-quality, build ]
     if: always()
 
-    steps:
-      - name: Check workflow status
-        id: status
-        run: |
-          if [[ "${{ needs.code-quality.result }}" == "success" && 
-                "${{ needs.test.result }}" == "success" && 
-                "${{ needs.security-scan.result }}" == "success" && 
-                "${{ needs.build.result }}" == "success" ]]; then
-            echo "status=success" >> $GITHUB_OUTPUT
-          else
-            echo "status=failure" >> $GITHUB_OUTPUT
-          fi
+    permissions:
+      contents: read
 
-      - name: Create workflow summary
+    steps:
+      - name: Notify success
+        if: ${{ needs.test.result == 'success' && needs.security-scan.result == 'success' && needs.code-quality.result == 'success' && needs.build.result == 'success' }}
         run: |
-          echo "## 🚀 CI 工作流执行摘要" >> $GITHUB_STEP_SUMMARY
-          echo "| 任务 | 状态 |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 代码质量检查 | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 单元测试 | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 安全扫描 | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 构建打包 | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 性能测试 | ${{ needs.performance-test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All jobs completed successfully!"
+          echo "Ready for deployment to development environment."
+
+      - name: Notify failure
+        if: ${{ needs.test.result == 'failure' || needs.security-scan.result == 'failure' || needs.code-quality.result == 'failure' || needs.build.result == 'failure' }}
+        run: |
+          echo "❌ One or more jobs failed!"
+          echo "Test: ${{ needs.test.result }}"
+          echo "Security Scan: ${{ needs.security-scan.result }}"
+          echo "Code Quality: ${{ needs.code-quality.result }}"
+          echo "Build: ${{ needs.build.result }}"

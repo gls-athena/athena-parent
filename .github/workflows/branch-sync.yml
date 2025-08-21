@@ -1,291 +1,90 @@
-# 分支同步工作流
 name: Branch Sync
 
+# 工作流触发器配置
+# 支持手动触发和定时触发两种方式
 on:
-  schedule:
-    # 每天早上 8:00 UTC (北京时间 16:00) 执行同步
-    - cron: '0 8 * * *'
+  # 手动触发配置，允许用户选择同步方向
   workflow_dispatch:
     inputs:
-      source_branch:
-        description: '源分支'
+      sync_direction:
+        description: 'Sync direction'
         required: true
-        default: 'master'
+        default: 'develop-to-master'
         type: choice
         options:
-          - master
-          - develop
-      target_branch:
-        description: '目标分支'
-        required: true
-        default: 'develop'
-        type: choice
-        options:
-          - develop
-          - master
-      force_sync:
-        description: '强制同步（忽略冲突警告）'
-        required: false
-        default: false
-        type: boolean
+          - develop-to-master
+          - master-to-develop
+  # 定时触发配置
+  schedule:
+    # 每周日凌晨 2 点自动同步 develop 到 master（如果有新提交）
+    - cron: '0 2 * * 0'
 
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-
+# 定义工作流中的任务
 jobs:
-  # 分支同步检查
-  sync-check:
+  # 分支同步任务
+  sync-branches:
+    # 指定运行环境为最新版 Ubuntu
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      needs-sync: ${{ steps.check.outputs.needs-sync }}
-      source-branch: ${{ steps.branches.outputs.source }}
-      target-branch: ${{ steps.branches.outputs.target }}
-      commits-behind: ${{ steps.check.outputs.commits-behind }}
 
+    # 定义任务执行步骤
     steps:
+      # 检出代码步骤，获取完整的 Git 历史记录
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Determine branches
-        id: branches
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "source=${{ github.event.inputs.source_branch }}" >> $GITHUB_OUTPUT
-            echo "target=${{ github.event.inputs.target_branch }}" >> $GITHUB_OUTPUT
-          else
-            # 定时任务默认从 master 同步到 develop
-            echo "source=master" >> $GITHUB_OUTPUT
-            echo "target=develop" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Check sync status
-        id: check
-        run: |
-          SOURCE_BRANCH="${{ steps.branches.outputs.source }}"
-          TARGET_BRANCH="${{ steps.branches.outputs.target }}"
-          
-          git fetch origin $SOURCE_BRANCH:$SOURCE_BRANCH
-          git fetch origin $TARGET_BRANCH:$TARGET_BRANCH
-          
-          # 检查目标分支是否落后于源分支
-          COMMITS_BEHIND=$(git rev-list --count $TARGET_BRANCH..$SOURCE_BRANCH)
-          echo "commits-behind=$COMMITS_BEHIND" >> $GITHUB_OUTPUT
-          
-          if [ "$COMMITS_BEHIND" -gt 0 ]; then
-            echo "needs-sync=true" >> $GITHUB_OUTPUT
-            echo "Target branch $TARGET_BRANCH is $COMMITS_BEHIND commits behind $SOURCE_BRANCH"
-          else
-            echo "needs-sync=false" >> $GITHUB_OUTPUT
-            echo "Target branch $TARGET_BRANCH is up to date with $SOURCE_BRANCH"
-          fi
-
-  # 执行同步
-  perform-sync:
-    runs-on: ubuntu-latest
-    needs: sync-check
-    if: needs.sync-check.outputs.needs-sync == 'true'
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
+      # 配置 Git 用户信息，用于后续的提交操作
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Attempt automatic sync
-        id: auto-sync
+      # 同步 develop 分支到 master 分支
+      # 当手动选择 develop-to-master 或者定时触发时执行
+      - name: Sync develop to master
+        if: github.event.inputs.sync_direction == 'develop-to-master' || github.event_name == 'schedule'
         run: |
-          SOURCE_BRANCH="${{ needs.sync-check.outputs.source-branch }}"
-          TARGET_BRANCH="${{ needs.sync-check.outputs.target-branch }}"
+          git checkout master
+          git pull origin master
+          git checkout develop
+          git pull origin develop
           
-          git checkout $TARGET_BRANCH
-          git pull origin $TARGET_BRANCH
+          # 检查 develop 分支相对于 master 分支是否有新的提交
+          COMMITS_AHEAD=$(git rev-list --count master..develop)
+          echo "Commits ahead: $COMMITS_AHEAD"
           
-          # 尝试自动合并
-          if git merge origin/$SOURCE_BRANCH --no-edit; then
-            echo "merge-success=true" >> $GITHUB_OUTPUT
-            git push origin $TARGET_BRANCH
-            echo "Automatic sync from $SOURCE_BRANCH to $TARGET_BRANCH completed successfully"
+          if [ "$COMMITS_AHEAD" -gt 0 ]; then
+            echo "Syncing develop to master..."
+            git checkout master
+            git merge develop --no-ff -m "Auto-sync: Merge develop into master"
+            git push origin master
+            echo "Sync completed successfully"
           else
-            echo "merge-success=false" >> $GITHUB_OUTPUT
-            git merge --abort
-            echo "Automatic sync failed due to conflicts"
+            echo "No new commits to sync"
           fi
 
-      - name: Create sync PR on conflict
-        if: steps.auto-sync.outputs.merge-success == 'false' && github.event.inputs.force_sync != 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const sourceBranch = '${{ needs.sync-check.outputs.source-branch }}';
-            const targetBranch = '${{ needs.sync-check.outputs.target-branch }}';
-            const commitsBehind = '${{ needs.sync-check.outputs.commits-behind }}';
-            
-            // 创建同步分支
-            const syncBranchName = `sync/${sourceBranch}-to-${targetBranch}-${new Date().getTime()}`;
-            
-            await github.rest.git.createRef({
-              owner,
-              repo,
-              ref: `refs/heads/${syncBranchName}`,
-              sha: context.sha
-            });
-            
-            // 创建 PR
-            const pr = await github.rest.pulls.create({
-              owner,
-              repo,
-              title: `🔄 Sync ${sourceBranch} to ${targetBranch}`,
-              head: syncBranchName,
-              base: targetBranch,
-              body: `## 🔄 分支同步请求
-            
-              ### 📊 同步信息
-              - **源分支**: \`${sourceBranch}\`
-              - **目标分支**: \`${targetBranch}\`
-              - **落后提交数**: ${commitsBehind}
-            
-              ### ⚠️ 合并冲突
-              自动同步过程中检测到合并冲突，需要手动解决。
-            
-              ### 📋 操作步骤
-              1. 检出此分支到本地
-              2. 解决所有合并冲突
-              3. 提交解决方案
-              4. 合并此 PR
-            
-              ### 🤖 自动生成
-              此 PR 由分支同步工作流自动创建。如需强制同步，请使用 \`force_sync\` 选项重新运行工作流。`,
-              draft: false
-            });
-            
-            // 添加标签
-            await github.rest.issues.addLabels({
-              owner,
-              repo,
-              issue_number: pr.data.number,
-              labels: ['sync', 'conflict-resolution', 'automated']
-            });
-
-      - name: Force sync with conflicts
-        if: steps.auto-sync.outputs.merge-success == 'false' && github.event.inputs.force_sync == 'true'
+      # 同步 master 分支到 develop 分支
+      # 仅当手动选择 master-to-develop 时执行
+      - name: Sync master to develop
+        if: github.event.inputs.sync_direction == 'master-to-develop'
         run: |
-          SOURCE_BRANCH="${{ needs.sync-check.outputs.source-branch }}"
-          TARGET_BRANCH="${{ needs.sync-check.outputs.target-branch }}"
+          git checkout develop
+          git pull origin develop
+          git checkout master
+          git pull origin master
           
-          echo "Force syncing $SOURCE_BRANCH to $TARGET_BRANCH (this may overwrite conflicting changes)"
+          # 检查 master 分支相对于 develop 分支是否有新的提交
+          COMMITS_AHEAD=$(git rev-list --count develop..master)
+          echo "Commits ahead: $COMMITS_AHEAD"
           
-          git checkout $TARGET_BRANCH
-          git reset --hard origin/$SOURCE_BRANCH
-          git push --force-with-lease origin $TARGET_BRANCH
-          
-          echo "Force sync completed"
-
-  # 同步后验证
-  post-sync-validation:
-    runs-on: ubuntu-latest
-    needs: [ sync-check, perform-sync ]
-    if: needs.perform-sync.result == 'success'
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Validate project structure
-        run: |
-          mvn validate
-          echo "Project structure validation passed"
-
-      - name: Quick compile test
-        run: |
-          mvn clean compile -q
-          echo "Compilation test passed"
-
-  # 通知和摘要
-  sync-summary:
-    runs-on: ubuntu-latest
-    needs: [ sync-check, perform-sync, post-sync-validation ]
-    if: always()
-
-    steps:
-      - name: Generate sync summary
-        run: |
-          echo "## 🔄 分支同步执行摘要" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📊 同步信息" >> $GITHUB_STEP_SUMMARY
-          echo "- **源分支**: ${{ needs.sync-check.outputs.source-branch }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **目标分支**: ${{ needs.sync-check.outputs.target-branch }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **执行时间**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ needs.sync-check.outputs.needs-sync }}" = "true" ]; then
-            echo "### 📋 同步结果" >> $GITHUB_STEP_SUMMARY
-            echo "- **落后提交数**: ${{ needs.sync-check.outputs.commits-behind }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **同步状态**: ${{ needs.perform-sync.result }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **验证状态**: ${{ needs.post-sync-validation.result }}" >> $GITHUB_STEP_SUMMARY
-          
-            if [ "${{ needs.perform-sync.result }}" = "success" ]; then
-              echo "- ✅ 同步成功完成" >> $GITHUB_STEP_SUMMARY
-            elif [ "${{ needs.perform-sync.result }}" = "failure" ]; then
-              echo "- ❌ 同步失败，可能需要手动解决冲突" >> $GITHUB_STEP_SUMMARY
-            fi
+          if [ "$COMMITS_AHEAD" -gt 0 ]; then
+            echo "Syncing master to develop..."
+            git checkout develop
+            git merge master --no-ff -m "Auto-sync: Merge master into develop"
+            git push origin develop
+            echo "Sync completed successfully"
           else
-            echo "### ✅ 无需同步" >> $GITHUB_STEP_SUMMARY
-            echo "目标分支已与源分支保持同步。" >> $GITHUB_STEP_SUMMARY
+            echo "No new commits to sync"
           fi
-
-      - name: Create issue on sync failure
-        if: needs.perform-sync.result == 'failure'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            
-            await github.rest.issues.create({
-              owner,
-              repo,
-              title: `🚨 分支同步失败 - ${{ needs.sync-check.outputs.source-branch }} to ${{ needs.sync-check.outputs.target-branch }}`,
-              body: `## 🚨 分支同步失败报告
-            
-              ### 📊 失败信息
-              - **源分支**: \`${{ needs.sync-check.outputs.source-branch }}\`
-              - **目标分支**: \`${{ needs.sync-check.outputs.target-branch }}\`
-              - **落后提交数**: ${{ needs.sync-check.outputs.commits-behind }}
-              - **失败时间**: ${new Date().toISOString()}
-            
-              ### 📋 可能原因
-              - 合并冲突
-              - 权限问题
-              - 网络问题
-            
-              ### 🔧 建议解决方案
-              1. 查看工作流日志了解具体错误
-              2. 手动执行分支合并
-              3. 如需要，使用 \`force_sync\` 选项重新运行同步
-              4. 检查分支保护规则设置
-            
-              ### 🤖 自动生成
-              此问题由分支同步工作流自动创建。解决问题后请关闭此 issue。`,
-              labels: ['bug', 'sync-failure', 'automated', 'priority-high']
-            });

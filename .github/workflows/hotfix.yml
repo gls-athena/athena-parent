@@ -1,143 +1,36 @@
-# 热修复工作流
 name: Hotfix Release
 
 on:
-  push:
-    branches: [ 'hotfix/**' ]
   workflow_dispatch:
     inputs:
       hotfix_version:
-        description: '热修复版本号 (例如: 1.0.1)'
+        description: 'Hotfix version (e.g., 1.0.1)'
         required: true
         type: string
-      target_branch:
-        description: '目标分支'
+      base_branch:
+        description: 'Base branch for hotfix'
         required: true
         default: 'master'
         type: choice
         options:
           - master
           - develop
-
-permissions:
-  contents: write
-  packages: write
-  pull-requests: write
-  issues: write
-
-env:
-  MAVEN_OPTS: "-Xmx2048m"
-  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+      description:
+        description: 'Hotfix description'
+        required: true
+        type: string
 
 jobs:
-  # 热修复验证
-  hotfix-validation:
+  hotfix:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    outputs:
-      hotfix-version: ${{ steps.version.outputs.hotfix-version }}
-      base-version: ${{ steps.version.outputs.base-version }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Extract version information
-        id: version
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            HOTFIX_VERSION="${{ github.event.inputs.hotfix_version }}"
-          else
-            # 从分支名提取版本 (hotfix/1.0.1 -> 1.0.1)
-            BRANCH_NAME="${{ github.ref_name }}"
-            HOTFIX_VERSION=${BRANCH_NAME#hotfix/}
-          fi
-          
-          BASE_VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout | sed 's/-SNAPSHOT//')
-          
-          echo "hotfix-version=$HOTFIX_VERSION" >> $GITHUB_OUTPUT
-          echo "base-version=$BASE_VERSION" >> $GITHUB_OUTPUT
-          echo "Hotfix version: $HOTFIX_VERSION"
-          echo "Base version: $BASE_VERSION"
-
-      - name: Validate hotfix version
-        run: |
-          HOTFIX_VERSION="${{ steps.version.outputs.hotfix-version }}"
-          if ! [[ $HOTFIX_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Invalid version format. Expected format: x.y.z"
-            exit 1
-          fi
-          
-          if git tag | grep -q "^v$HOTFIX_VERSION$"; then
-            echo "Error: Version $HOTFIX_VERSION already exists"
-            exit 1
-          fi
-
-      - name: Update version for hotfix
-        run: |
-          mvn versions:set -DnewVersion=${{ steps.version.outputs.hotfix-version }}
-          mvn versions:commit
-
-      - name: Run critical tests
-        run: |
-          mvn ${{ env.MAVEN_CLI_OPTS }} clean test -Drevision=${{ steps.version.outputs.hotfix-version }}
-
-      - name: Build hotfix
-        run: |
-          mvn ${{ env.MAVEN_CLI_OPTS }} clean package -DskipTests -Drevision=${{ steps.version.outputs.hotfix-version }}
-
-  # 安全检查
-  security-check:
-    runs-on: ubuntu-latest
-    needs: hotfix-validation
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: OWASP Dependency Check
-        run: |
-          mvn ${{ env.MAVEN_CLI_OPTS }} org.owasp:dependency-check-maven:check \
-            -Drevision=${{ needs.hotfix-validation.outputs.hotfix-version }}
-        continue-on-error: true
-
-      - name: Upload security report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: hotfix-security-report
-          path: '**/target/dependency-check-report.html'
-
-  # 热修复发布
-  hotfix-release:
-    runs-on: ubuntu-latest
-    needs: [ hotfix-validation, security-check ]
-    if: needs.security-check.result == 'success'
-    timeout-minutes: 25
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+          ref: ${{ github.event.inputs.base_branch }}
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -151,189 +44,107 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Configure GPG
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Create hotfix branch
         run: |
-          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
-          echo "use-agent" >> ~/.gnupg/gpg.conf
-          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          HOTFIX_BRANCH="hotfix/${{ github.event.inputs.hotfix_version }}"
+          git checkout -b $HOTFIX_BRANCH
+          echo "hotfix_branch=$HOTFIX_BRANCH" >> $GITHUB_ENV
 
-      - name: Configure Maven settings
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-          server-id: central
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
-
-      - name: Update version
+      - name: Update version to hotfix version
         run: |
-          mvn versions:set -DnewVersion=${{ needs.hotfix-validation.outputs.hotfix-version }}
-          mvn versions:commit
+          mvn versions:set -DnewVersion=${{ github.event.inputs.hotfix_version }} -DgenerateBackupPoms=false
+          mvn versions:update-child-modules -DgenerateBackupPoms=false
 
-      - name: Build and deploy hotfix
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Run tests
         run: |
-          mvn ${{ env.MAVEN_CLI_OPTS }} clean deploy -P release -DskipTests \
-            -Drevision=${{ needs.hotfix-validation.outputs.hotfix-version }}
+          mvn clean test -Drevision=${{ github.event.inputs.hotfix_version }}
 
-      - name: Create and push hotfix tag
+      - name: Build and package
         run: |
-          HOTFIX_VERSION="${{ needs.hotfix-validation.outputs.hotfix-version }}"
+          mvn clean package -DskipTests -Drevision=${{ github.event.inputs.hotfix_version }}
+
+      - name: Commit hotfix changes
+        run: |
           git add .
-          git commit -m "hotfix: release version $HOTFIX_VERSION"
-          git tag -a "v$HOTFIX_VERSION" -m "Hotfix release $HOTFIX_VERSION"
-          git push origin "v$HOTFIX_VERSION"
+          git commit -m "Hotfix: ${{ github.event.inputs.description }} - v${{ github.event.inputs.hotfix_version }}"
 
-      - name: Generate hotfix changelog
-        id: changelog
+      - name: Create hotfix tag
         run: |
-          HOTFIX_VERSION="${{ needs.hotfix-validation.outputs.hotfix-version }}"
-          BASE_VERSION="${{ needs.hotfix-validation.outputs.base-version }}"
-          
-          # 查找上一个版本标签
-          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "v$BASE_VERSION")
-          
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD)
-          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          git tag -a "v${{ github.event.inputs.hotfix_version }}" -m "Hotfix release v${{ github.event.inputs.hotfix_version }}: ${{ github.event.inputs.description }}"
+
+      - name: Push hotfix branch and tag
+        run: |
+          git push origin ${{ env.hotfix_branch }}
+          git push origin "v${{ github.event.inputs.hotfix_version }}"
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ needs.hotfix-validation.outputs.hotfix-version }}
-          release_name: Hotfix v${{ needs.hotfix-validation.outputs.hotfix-version }}
+          tag_name: "v${{ github.event.inputs.hotfix_version }}"
+          release_name: "Hotfix v${{ github.event.inputs.hotfix_version }}"
           body: |
-            ## 🔥 Hotfix Release v${{ needs.hotfix-validation.outputs.hotfix-version }}
+            ## 🚨 Hotfix Release v${{ github.event.inputs.hotfix_version }}
             
-            ### ⚡ 紧急修复
-            此版本包含重要的问题修复，建议立即升级。
+            ### Description
+            ${{ github.event.inputs.description }}
             
-            ### 📋 修复内容
-            ${{ steps.changelog.outputs.CHANGELOG }}
+            ### Base Branch
+            Based on: `${{ github.event.inputs.base_branch }}`
             
-            ### 📦 Maven 坐标
+            ### Changes
+            This is a hotfix release addressing critical issues.
+            
+            ### Installation
             ```xml
             <dependency>
                 <groupId>io.github.gls-athena</groupId>
                 <artifactId>athena-parent</artifactId>
-                <version>${{ needs.hotfix-validation.outputs.hotfix-version }}</version>
+                <version>${{ github.event.inputs.hotfix_version }}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             ```
-            
-            ### 🔗 相关链接
-            - [Maven Central](https://search.maven.org/artifact/io.github.gls-athena/athena-parent/${{ needs.hotfix-validation.outputs.hotfix-version }}/pom)
-            - [问题追踪](https://github.com/gls-athena/athena-parent/issues)
           draft: false
           prerelease: false
 
-  # 合并回主分支
-  merge-back:
-    runs-on: ubuntu-latest
-    needs: [ hotfix-validation, hotfix-release ]
-    if: needs.hotfix-release.result == 'success'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Merge hotfix to master
-        run: |
-          git checkout master
-          git pull origin master
-          git merge ${{ github.ref_name }} --no-edit
-          git push origin master
-
-      - name: Merge hotfix to develop
-        run: |
-          git checkout develop
-          git pull origin develop
-          git merge master --no-edit
-          git push origin develop
-        continue-on-error: true
-
-      - name: Create PR if merge conflicts
-        if: failure()
+      - name: Create Pull Request to merge back
         uses: actions/github-script@v7
         with:
           script: |
-            const { owner, repo } = context.repo;
-            const hotfixVersion = '${{ needs.hotfix-validation.outputs.hotfix-version }}';
+            const { data: pullRequest } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Merge hotfix v${{ github.event.inputs.hotfix_version }} back to ${{ github.event.inputs.base_branch }}`,
+              head: '${{ env.hotfix_branch }}',
+              base: '${{ github.event.inputs.base_branch }}',
+              body: `
+              ## Hotfix Merge Back
             
-            await github.rest.pulls.create({
-              owner,
-              repo,
-              title: `Merge hotfix v${hotfixVersion} to develop`,
-              head: 'master',
-              base: 'develop',
-              body: `## 🔄 自动合并热修复
+              This PR merges the hotfix v${{ github.event.inputs.hotfix_version }} back to the ${{ github.event.inputs.base_branch }} branch.
             
-              热修复 v${hotfixVersion} 已发布到 master 分支，但自动合并到 develop 分支时遇到冲突。
+              ### Hotfix Details
+              - **Version**: v${{ github.event.inputs.hotfix_version }}
+              - **Description**: ${{ github.event.inputs.description }}
+              - **Base Branch**: ${{ github.event.inputs.base_branch }}
             
-              请手动解决冲突并合并此 PR。
-            
-              ### 📋 热修复内容
-              - 版本: v${hotfixVersion}
-              - 分支: ${context.ref}
-            
-              ### ⚠️ 注意事项
-              请确保所有冲突都已正确解决，并且不会影响 develop 分支的开发进度。`,
-              draft: false
+              Please review and merge to complete the hotfix process.
+              `
             });
+            
+            console.log(\`Created PR #\${pullRequest.number}\`);
 
-      - name: Clean up hotfix branch
-        if: success()
+      - name: Deploy hotfix to Maven Repository
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
         run: |
-          git push origin --delete ${{ github.ref_name }}
-
-  # 通知
-  notification:
-    runs-on: ubuntu-latest
-    needs: [ hotfix-validation, hotfix-release, merge-back ]
-    if: always()
-
-    steps:
-      - name: Create workflow summary
-        run: |
-          echo "## 🔥 热修复工作流执行摘要" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 热修复信息" >> $GITHUB_STEP_SUMMARY
-          echo "- **版本**: v${{ needs.hotfix-validation.outputs.hotfix-version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **基础版本**: v${{ needs.hotfix-validation.outputs.base-version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **发布时间**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📊 执行结果" >> $GITHUB_STEP_SUMMARY
-          echo "| 任务 | 状态 |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 热修复验证 | ${{ needs.hotfix-validation.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 热修复发布 | ${{ needs.hotfix-release.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 分支合并 | ${{ needs.merge-back.result }} |" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ needs.hotfix-release.result }}" = "success" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### 🎉 发布成功!" >> $GITHUB_STEP_SUMMARY
-            echo "- [GitHub Release](https://github.com/gls-athena/athena-parent/releases/tag/v${{ needs.hotfix-validation.outputs.hotfix-version }})" >> $GITHUB_STEP_SUMMARY
-            echo "- [Maven Central](https://search.maven.org/artifact/io.github.gls-athena/athena-parent/${{ needs.hotfix-validation.outputs.hotfix-version }}/pom)" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$MAVEN_USERNAME" ] && [ -n "$MAVEN_PASSWORD" ]; then
+            mvn deploy -DskipTests -Drevision=${{ github.event.inputs.hotfix_version }} \
+              -s .github/settings.xml \
+              -Dmaven.repo.username=$MAVEN_USERNAME \
+              -Dmaven.repo.password=$MAVEN_PASSWORD
+          else
+            echo "Maven deployment skipped - credentials not configured"
           fi

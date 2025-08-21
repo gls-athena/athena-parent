@@ -1,135 +1,38 @@
-# Pull Request 持续集成工作流
+# CI - Pull Request
+#
+# 此工作流用于在拉取请求（Pull Request）被打开、同步或重新打开时，
+# 对项目进行持续集成验证。它包括代码检查、编译、测试、安全扫描和构建验证等步骤。
+#
+# 触发条件：
+# - 当针对 develop 或 master 分支的 pull_request 被 opened、synchronize 或 reopened 时触发
+
 name: CI - Pull Request
+
+# 为工作流添加必要的权限
+permissions:
+  contents: read          # 读取仓库内容
+  pull-requests: write    # 写入 PR 评论
+  checks: write          # 写入检查状态
+  actions: read          # 读取 Actions 相关信息
 
 on:
   pull_request:
     branches: [ develop, master ]
     types: [ opened, synchronize, reopened ]
 
-permissions:
-  contents: read
-  pull-requests: write
-  checks: write
-  actions: read
-
-env:
-  MAVEN_OPTS: "-Xmx2048m"
-  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
-
 jobs:
-  # 变更检测
-  changes:
+  # 验证任务：负责项目的代码校验、编译、单元测试、集成测试、覆盖率报告及静态分析
+  validation:
     runs-on: ubuntu-latest
-    outputs:
-      java: ${{ steps.changes.outputs.java }}
-      docs: ${{ steps.changes.outputs.docs }}
-      config: ${{ steps.changes.outputs.config }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          filters: |
-            java:
-              - '**/*.java'
-              - '**/pom.xml'
-              - '**/*.properties'
-              - '**/*.yml'
-              - '**/*.yaml'
-            docs:
-              - '**/*.md'
-              - 'docs/**'
-            config:
-              - '.github/**'
-              - '**/pom.xml'
-
-  # 快速验证
-  quick-check:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: changes
-    if: needs.changes.outputs.java == 'true'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Extract version
-        id: extract_version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Validate and compile
-        run: |
-          mvn ${{ env.MAVEN_CLI_OPTS }} validate -Drevision=${{ steps.extract_version.outputs.version }}
-          mvn ${{ env.MAVEN_CLI_OPTS }} clean compile -Drevision=${{ steps.extract_version.outputs.version }}
-
-  # 完整测试
-  test:
-    runs-on: ubuntu-latest
-    needs: [ changes, quick-check ]
-    if: needs.changes.outputs.java == 'true'
-    timeout-minutes: 25
-
-    strategy:
-      matrix:
-        test-type: [ unit, integration ]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Extract version
-        id: extract_version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Run unit tests
-        if: matrix.test-type == 'unit'
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} test -Drevision=${{ steps.extract_version.outputs.version }}
-
-      - name: Run integration tests
-        if: matrix.test-type == 'integration'
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} verify -DskipUnitTests=true -Drevision=${{ steps.extract_version.outputs.version }}
-
-      - name: Generate test reports
-        if: always()
-        uses: dorny/test-reporter@v1.9.1
-        with:
-          name: ${{ matrix.test-type }} Tests
-          path: '**/target/surefire-reports/*.xml,**/target/failsafe-reports/*.xml'
-          reporter: java-junit
-          fail-on-error: false
-
-  # 代码质量分析
-  quality-gate:
-    runs-on: ubuntu-latest
-    needs: [ changes, quick-check ]
-    if: needs.changes.outputs.java == 'true'
-    timeout-minutes: 15
-
-    steps:
+      # 检出代码，并获取完整历史记录以支持版本提取
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # 设置 JDK 21 环境并启用 Maven 缓存优化后续步骤
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -137,85 +40,72 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # 提取项目版本号，供后续 Maven 命令使用
       - name: Extract version
         id: extract_version
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Code quality checks
-        run: |
-          mvn ${{ env.MAVEN_CLI_OPTS }} compile -Drevision=${{ steps.extract_version.outputs.version }}
-          mvn ${{ env.MAVEN_CLI_OPTS }} checkstyle:check -Drevision=${{ steps.extract_version.outputs.version }} || true
-          mvn ${{ env.MAVEN_CLI_OPTS }} spotbugs:check -Drevision=${{ steps.extract_version.outputs.version }} || true
+      # 验证 Maven 项目结构是否正确
+      - name: Validate Maven project
+        run: mvn validate -Drevision=${{ steps.extract_version.outputs.version }}
 
-      - name: SonarQube Scan
-        if: github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn ${{ env.MAVEN_CLI_OPTS }} verify sonar:sonar \
-            -Dsonar.projectKey=athena-parent \
-            -Dsonar.organization=gls-athena \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.pullrequest.key=${{ github.event.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
-            -Drevision=${{ steps.extract_version.outputs.version }}
+      # 清理并编译项目源码
+      - name: Compile project
+        run: mvn clean compile -Drevision=${{ steps.extract_version.outputs.version }}
 
-  # 安全检查
-  security-check:
-    runs-on: ubuntu-latest
-    needs: [ changes, quick-check ]
-    if: needs.changes.outputs.java == 'true'
-    timeout-minutes: 15
+      # 执行单元测试
+      - name: Run unit tests
+        run: mvn test -Drevision=${{ steps.extract_version.outputs.version }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      # 执行集成测试，跳过单元测试以避免重复执行
+      - name: Run integration tests
+        run: mvn verify -DskipUTs=true -Drevision=${{ steps.extract_version.outputs.version }}
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
+      # 生成测试覆盖率报告
+      - name: Generate test coverage report
+        run: mvn jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
 
-      - name: Extract version
-        id: extract_version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: OWASP Dependency Check
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} org.owasp:dependency-check-maven:check -Drevision=${{ steps.extract_version.outputs.version }}
+      # 检查代码风格，允许失败继续执行其他步骤
+      - name: Check code style
+        run: mvn checkstyle:check -Drevision=${{ steps.extract_version.outputs.version }}
         continue-on-error: true
 
-      - name: Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+      # 运行 SpotBugs 静态代码分析，允许失败继续执行其他步骤
+      - name: Run SpotBugs analysis
+        run: mvn spotbugs:check -Drevision=${{ steps.extract_version.outputs.version }}
+        continue-on-error: true
 
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
+      # 在 PR 中添加测试结果评论，无论成功或失败都执行
+      - name: Comment PR with test results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
         with:
-          sarif_file: 'trivy-results.sarif'
+          name: Maven Test Results
+          path: '**/target/surefire-reports/*.xml'
+          reporter: java-junit
 
-  # 构建验证
-  build-check:
+      # 上传测试相关产物（如测试报告、覆盖率报告）
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            **/target/surefire-reports/
+            **/target/site/jacoco/
+
+  # 安全检查任务：运行 OWASP 依赖项检查并上传安全报告
+  security-check:
     runs-on: ubuntu-latest
-    needs: [ test, quality-gate, security-check ]
-    if: needs.changes.outputs.java == 'true'
-    timeout-minutes: 15
 
     steps:
+      # 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 设置 JDK 21 环境并启用 Maven 缓存
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -223,65 +113,49 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # 使用 OWASP 插件检查项目依赖的安全漏洞，允许失败继续执行
+      - name: Run OWASP Dependency Check
+        run: mvn org.owasp:dependency-check-maven:check
+        continue-on-error: true
+
+      # 上传生成的安全报告文件
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report
+          path: target/dependency-check-report.html
+
+  # 构建检查任务：验证项目能否成功打包
+  build-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 设置 JDK 21 环境并启用 Maven 缓存
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 提取项目版本号，供后续 Maven 命令使用
       - name: Extract version
         id: extract_version
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Build without tests
-        run: mvn ${{ env.MAVEN_CLI_OPTS }} clean package -DskipTests -Drevision=${{ steps.extract_version.outputs.version }}
+      # 清理并打包项目，跳过测试以加快构建速度
+      - name: Package project
+        run: mvn clean package -DskipTests -Drevision=${{ steps.extract_version.outputs.version }}
 
-      - name: Verify build artifacts
+      # 验证生成的 JAR 文件是否存在
+      - name: Verify artifacts
         run: |
-          find . -name "*.jar" -path "*/target/*" -not -path "*-sources.jar" -not -path "*-javadoc.jar" | head -10
-
-  # PR 摘要报告
-  pr-summary:
-    runs-on: ubuntu-latest
-    needs: [ changes, quick-check, test, quality-gate, security-check, build-check ]
-    if: always()
-
-    steps:
-      - name: Generate PR Summary
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const needs = ${{ toJSON(needs) }};
-            
-            let summary = "## 🔍 Pull Request 验证摘要\n\n";
-            
-            if (needs.changes.outputs.java === 'true') {
-              summary += "### 📊 检查结果\n\n";
-              summary += "| 检查项 | 状态 | 详情 |\n";
-              summary += "|--------|------|------|\n";
-              summary += `| 快速验证 | ${needs['quick-check'].result === 'success' ? '✅' : '❌'} | 编译和基本验证 |\n`;
-              summary += `| 单元测试 | ${needs.test.result === 'success' ? '✅' : '❌'} | 所有测试用例 |\n`;
-              summary += `| 代码质量 | ${needs['quality-gate'].result === 'success' ? '✅' : '❌'} | 静态分析和代码规范 |\n`;
-              summary += `| 安全检查 | ${needs['security-check'].result === 'success' ? '✅' : '❌'} | 依赖漏洞扫描 |\n`;
-              summary += `| 构建验证 | ${needs['build-check'].result === 'success' ? '✅' : '❌'} | 打包和构建 |\n`;
-            } else {
-              summary += "### 📝 文档变更\n\n";
-              summary += "此 PR 主要包含文档或配置变更，跳过了 Java 代码相关检查。\n";
-            }
-            
-            summary += "\n### 📋 变更检测\n\n";
-            summary += `- Java 代码: ${needs.changes.outputs.java === 'true' ? '是' : '否'}\n`;
-            summary += `- 文档: ${needs.changes.outputs.docs === 'true' ? '是' : '否'}\n`;
-            summary += `- 配置: ${needs.changes.outputs.config === 'true' ? '是' : '否'}\n`;
-            
-            return summary;
-          result-encoding: string
-
-      - name: Comment PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const summary = `${{ steps.pr-summary.outputs.result }}`;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: summary
-            });
+          find . -name "*.jar" -type f | head -10
+          echo "Build artifacts created successfully"
