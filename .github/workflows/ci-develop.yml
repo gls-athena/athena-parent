@@ -1,6 +1,10 @@
 # 开发分支持续集成工作流
+# 该工作流用于在 develop 分支发生 push 或 pull request 时触发持续集成流程，
+# 包括测试、安全扫描、代码质量检查、构建和通知等任务。
 name: CI for Develop Branch
 
+# 触发条件配置
+# 定义工作流触发的事件类型及分支
 on:
   push:
     branches: [ develop ]
@@ -8,6 +12,7 @@ on:
     branches: [ develop ]
 
 # 配置工作流权限
+# 设置工作流运行所需的 GitHub 权限，以确保各任务可以正常访问资源
 permissions:
   contents: read
   issues: read
@@ -16,20 +21,25 @@ permissions:
   actions: read
   security-events: write
 
+# 工作流任务定义
 jobs:
   # 测试任务
+  # 执行单元测试、生成测试报告和代码覆盖率报告，并上传到 Codecov
   test:
     runs-on: ubuntu-latest
 
+    # 设置任务所需权限
     permissions:
       contents: read
       checks: write
       pull-requests: write
 
     steps:
+      # 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 配置 JDK 环境
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -37,6 +47,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # 从 pom.xml 中提取项目版本号
       - name: Extract version from pom.xml
         id: extract_version
         run: |
@@ -44,6 +55,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Current version: $VERSION"
 
+      # 运行单元测试
       - name: Run tests
         run: mvn clean test -Drevision=${{ steps.extract_version.outputs.version }}
 
@@ -59,7 +71,7 @@ jobs:
             echo "No test reports found"
           fi
 
-      # 使用插件管理中配置的JaCoCo插件生成覆盖率报告
+      # 生成并展示测试报告
       - name: Generate test report
         uses: dorny/test-reporter@v1.9.1
         if: (success() || failure()) && steps.check_reports.outputs.reports_exist == 'true'
@@ -69,11 +81,11 @@ jobs:
           reporter: java-junit
           fail-on-error: false
 
-      # JaCoCo插件现在已在pom.xml中配置，可以直接调用report目标
+      # 生成代码覆盖率报告
       - name: Code coverage
         run: mvn jacoco:report -Drevision=${{ steps.extract_version.outputs.version }}
 
-      # 使用更新的 Codecov action
+      # 上传覆盖率报告到 Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         if: success()
@@ -84,26 +96,32 @@ jobs:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
+      # 编译项目源码
       - name: Build project
         run: mvn clean compile -Drevision=${{ steps.extract_version.outputs.version }}
 
+      # 验证项目结构
       - name: Validate project structure
         run: mvn validate -Drevision=${{ steps.extract_version.outputs.version }}
 
   # 安全扫描任务
+  # 使用 OWASP Dependency Check 对项目依赖进行安全漏洞扫描
   security-scan:
     runs-on: ubuntu-latest
     needs: test
 
+    # 设置任务所需权限
     permissions:
       contents: read
       security-events: write
       actions: read
 
     steps:
+      # 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 配置 JDK 环境
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -111,6 +129,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # 提取项目版本号
       - name: Extract version from pom.xml
         id: extract_version
         run: |
@@ -118,6 +137,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Current version: $VERSION"
 
+      # 执行依赖安全扫描
       - name: Run OWASP Dependency Check
         run: |
           mvn org.owasp:dependency-check-maven:check \
@@ -126,6 +146,7 @@ jobs:
             -DskipTestScope=false
         continue-on-error: true
 
+      # 上传安全扫描报告
       - name: Upload security scan report
         uses: actions/upload-artifact@v4
         if: always()
@@ -135,20 +156,24 @@ jobs:
           retention-days: 7
 
   # 代码质量检查任务
+  # 使用 SonarQube 分析代码质量（仅当配置了 SONAR_TOKEN 时执行）
   code-quality:
     runs-on: ubuntu-latest
     needs: test
 
+    # 设置任务所需权限
     permissions:
       contents: read
       pull-requests: write
 
     steps:
+      # 检出代码（完整历史）
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # 配置 JDK 环境
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -156,6 +181,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # 提取项目版本号
       - name: Extract version from pom.xml
         id: extract_version
         run: |
@@ -163,6 +189,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Current version: $VERSION"
 
+      # 缓存 SonarQube 插件包
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
@@ -170,7 +197,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      # 只有在配置了 SONAR_TOKEN 时才运行 SonarQube
+      # 执行 SonarQube 扫描
       - name: SonarQube Scan
         if: env.SONAR_TOKEN != ''
         env:
@@ -185,18 +212,22 @@ jobs:
         continue-on-error: true
 
   # 构建任务
+  # 编译并打包项目，将构建产物上传为 GitHub Artifacts
   build:
     runs-on: ubuntu-latest
     needs: [ test, security-scan, code-quality ]
 
+    # 设置任务所需权限
     permissions:
       contents: read
       actions: write
 
     steps:
+      # 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 配置 JDK 环境
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -204,6 +235,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # 提取项目版本号
       - name: Extract version from pom.xml
         id: extract_version
         run: |
@@ -211,9 +243,11 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Current version: $VERSION"
 
+      # 打包项目（跳过测试）
       - name: Package project
         run: mvn clean package -DskipTests -Drevision=${{ steps.extract_version.outputs.version }}
 
+      # 上传构建产物
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -224,21 +258,25 @@ jobs:
           retention-days: 7
 
   # 通知任务
+  # 根据所有前置任务的结果输出成功或失败的通知信息
   notify:
     runs-on: ubuntu-latest
     needs: [ test, security-scan, code-quality, build ]
     if: always()
 
+    # 设置任务所需权限
     permissions:
       contents: read
 
     steps:
+      # 成功通知
       - name: Notify success
         if: ${{ needs.test.result == 'success' && needs.security-scan.result == 'success' && needs.code-quality.result == 'success' && needs.build.result == 'success' }}
         run: |
           echo "✅ All jobs completed successfully!"
           echo "Ready for deployment to development environment."
 
+      # 失败通知
       - name: Notify failure
         if: ${{ needs.test.result == 'failure' || needs.security-scan.result == 'failure' || needs.code-quality.result == 'failure' || needs.build.result == 'failure' }}
         run: |

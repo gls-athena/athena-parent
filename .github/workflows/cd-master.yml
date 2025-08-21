@@ -1,5 +1,13 @@
+# 工作流名称：CD - Master Branch Release
+# 作用：在 master 分支推送或手动触发时，自动执行版本发布流程。
+# 包括版本号计算、构建打包、生成 Release Notes、创建 GitHub Release、部署到 Maven 仓库等操作。
+
 name: CD - Master Branch Release
 
+# 触发条件配置
+# 支持两种触发方式：
+# 1. 当向 master 分支推送代码时自动触发；
+# 2. 手动触发（workflow_dispatch），允许用户选择版本递增类型（patch/minor/major）。
 on:
   push:
     branches: [ master ]
@@ -15,23 +23,31 @@ on:
           - minor
           - major
 
+# 权限配置：授予工作流对仓库内容、包、问题和拉取请求的写权限。
 permissions:
   contents: write
   packages: write
   issues: write
   pull-requests: write
 
+# 定义工作流中的任务（jobs）
 jobs:
+  # 任务名称：release
+  # 功能：执行完整的发布流程，包括版本管理、构建、发布和部署。
   release:
     runs-on: ubuntu-latest
 
     steps:
+      # 步骤1：检出代码
+      # 使用 actions/checkout 检出整个 Git 历史以支持标签比较等操作。
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      # 步骤2：设置 JDK 环境
+      # 配置 Java 21 环境，并启用 Maven 缓存以加速构建。
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -39,11 +55,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # 步骤3：配置 Git 用户信息
+      # 设置 Git 提交所需的全局用户信息。
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      # 步骤4：获取当前版本号
+      # 从 pom.xml 中读取 revision 属性并去除 SNAPSHOT 后缀作为当前版本。
       - name: Get current version
         id: current_version
         run: |
@@ -51,6 +71,8 @@ jobs:
           echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           echo "Current version: $CURRENT_VERSION"
 
+      # 步骤5：计算下一个版本号
+      # 根据用户输入的版本类型（major/minor/patch）计算发布版本与下一个开发版本。
       - name: Calculate next version
         id: next_version
         run: |
@@ -89,6 +111,8 @@ jobs:
           echo "Release version: $RELEASE_VERSION"
           echo "Next development version: $NEXT_SNAPSHOT_VERSION"
 
+      # 步骤6：生成 Release Notes
+      # 通过 Git 日志提取自上次发布以来的提交记录，用于生成 Release Notes。
       - name: Generate release notes from git log
         id: release_notes
         run: |
@@ -117,43 +141,53 @@ jobs:
           # 保存上一个版本信息
           echo "previous_tag=${PREVIOUS_TAG:-'Initial release'}" >> $GITHUB_OUTPUT
 
+      # 步骤7：运行测试
+      # 在发布前运行单元测试以确保代码质量。
       - name: Run tests before release
         run: |
           mvn clean test -Drevision=${{ steps.next_version.outputs.next }}
 
+      # 步骤8：更新 pom.xml 中的 revision 属性为发布版本
       - name: Update revision property for release
         run: |
           # 更新 pom.xml 中的 revision 属性而不是 version
           sed -i "s/<revision>.*<\/revision>/<revision>${{ steps.next_version.outputs.next }}<\/revision>/g" pom.xml
 
+      # 步骤9：构建并打包项目
       - name: Build and package
         run: |
           mvn clean package -DskipTests -Drevision=${{ steps.next_version.outputs.next }}
 
+      # 步骤10：提交发布版本更改
       - name: Commit release version
         run: |
           git add .
           git commit -m "Release version ${{ steps.next_version.outputs.next }}" || echo "No changes to commit"
 
+      # 步骤11：创建发布标签
       - name: Create release tag
         run: |
           git tag -a "v${{ steps.next_version.outputs.next }}" -m "Release version ${{ steps.next_version.outputs.next }}"
 
+      # 步骤12：更新 pom.xml 中的 revision 属性为下一个开发版本
       - name: Update revision property for next development version
         run: |
           # 更新 revision 属性为下一个开发版本
           sed -i "s/<revision>.*<\/revision>/<revision>${{ steps.next_version.outputs.next_snapshot }}<\/revision>/g" pom.xml
 
+      # 步骤13：提交下一个开发版本更改
       - name: Commit next development version
         run: |
           git add .
           git commit -m "Prepare for next development iteration ${{ steps.next_version.outputs.next_snapshot }}" || echo "No changes to commit"
 
+      # 步骤14：推送更改和标签到远程仓库
       - name: Push changes and tags
         run: |
           git push origin master
           git push origin "v${{ steps.next_version.outputs.next }}"
 
+      # 步骤15：将 master 的变更同步回 develop 分支（如果存在）
       - name: Sync changes back to develop branch
         run: |
           # 检查develop分支是否存在
@@ -175,6 +209,8 @@ jobs:
             echo "⚠️ Develop branch does not exist, skipping sync"
           fi
 
+      # 步骤16：创建 GitHub Release
+      # 使用 actions/create-release 创建一个带有 Release Notes 和依赖示例的 GitHub Release。
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
@@ -210,6 +246,8 @@ jobs:
           draft: false
           prerelease: false
 
+      # 步骤17：部署到 Maven 仓库
+      # 如果配置了 Maven 凭据，则将构建产物部署到指定的 Maven 仓库中。
       - name: Deploy to Maven Repository
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
@@ -224,18 +262,22 @@ jobs:
             echo "Maven deployment skipped - credentials not configured"
           fi
 
+  # 任务名称：notify
+  # 功能：在 release 任务完成后发送通知（成功或失败）。
   notify:
     runs-on: ubuntu-latest
     needs: release
     if: always()
 
     steps:
+      # 成功通知
       - name: Notify on success
         if: needs.release.result == 'success'
         run: |
           echo "✅ Release completed successfully!"
           echo "New version: v${{ needs.release.outputs.next_version }}"
 
+      # 失败通知
       - name: Notify on failure
         if: needs.release.result == 'failure'
         run: |
