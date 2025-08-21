@@ -229,7 +229,7 @@ jobs:
           This release includes all Maven modules in the athena-parent project.
           
           ### 💾 Installation
-          \`\`\`xml
+          ```xml
           <dependency>
               <groupId>io.github.gls-athena</groupId>
               <artifactId>athena-parent</artifactId>
@@ -237,7 +237,7 @@ jobs:
               <type>pom</type>
               <scope>import</scope>
           </dependency>
-          \`\`\`
+          ```
           
           ### 📝 Full Changelog
           **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.release_notes.outputs.previous_tag }}...v${{ steps.next_version.outputs.next }}"
