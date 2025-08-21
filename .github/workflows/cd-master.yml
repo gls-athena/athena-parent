@@ -254,54 +254,15 @@ jobs:
           if [ -n "$GPG_PRIVATE_KEY" ]; then
             echo "Setting up GPG for artifact signing..."
             
-            # 创建临时文件存储 GPG 私钥
-            echo "$GPG_PRIVATE_KEY" > /tmp/private.key
-            
-            # 检查私钥格式
-            echo "Checking GPG private key format..."
-            if ! grep -q "BEGIN PGP PRIVATE KEY BLOCK" /tmp/private.key; then
-              echo "❌ Invalid GPG private key format. Key must start with '-----BEGIN PGP PRIVATE KEY BLOCK-----'"
-              echo "Please check your GPG_PRIVATE_KEY secret and ensure it contains the complete private key block."
-              exit 1
-            fi
-            
-            # 显示私钥基本信息（不显示敏感内容）
-            echo "Private key format appears valid, importing..."
-            
             # 导入 GPG 私钥
-            if gpg --batch --import /tmp/private.key 2>/dev/null; then
-              echo "✅ GPG private key imported successfully"
-            else
-              echo "❌ Failed to import GPG private key"
-              echo "Please verify your GPG_PRIVATE_KEY secret contains a valid private key."
-              rm -f /tmp/private.key
-              exit 1
-            fi
-            
-            # 清理临时文件
-            rm -f /tmp/private.key
-            
-            # 获取密钥 ID
-            GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | head -1 | awk '{print $2}' | cut -d'/' -f2)
-            
-            if [ -z "$GPG_KEY_ID" ]; then
-              echo "❌ Could not find imported GPG key ID"
-              exit 1
-            fi
-            
-            echo "Found GPG key ID: $GPG_KEY_ID"
+            echo "$GPG_PRIVATE_KEY" | gpg --batch --import --no-tty
             
             # 配置 GPG 信任
+            GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
             echo "$GPG_KEY_ID:6:" | gpg --import-ownertrust --no-tty
             
             # 测试 GPG 签名功能
-            echo "Testing GPG signing functionality..."
-            if echo "test" | gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback --sign --armor >/dev/null 2>&1; then
-              echo "✅ GPG signing test successful"
-            else
-              echo "❌ GPG signing test failed. Please verify your GPG_PASSPHRASE is correct."
-              exit 1
-            fi
+            echo "test" | gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback --sign --armor
             
             echo "✅ GPG setup completed successfully"
           else
