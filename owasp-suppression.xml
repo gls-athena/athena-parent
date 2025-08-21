@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<suppressions>
+    <!-- 临时抑制的漏洞，需要定期审查 -->
+
+    <!-- 示例：抑制特定CVE -->
+    <!--
+    <suppress>
+        <notes><![CDATA[
+        这是一个已知的误报，Spring Boot内部依赖已修复
+        ]]></notes>
+        <cve>CVE-2021-44228</cve>
+    </suppress>
+    -->
+
+    <!-- 抑制测试依赖的漏洞 -->
+    <suppress>
+        <notes><![CDATA[
+        测试依赖的漏洞不影响生产环境
+        ]]></notes>
+        <filePath regex="true">.*test.*</filePath>
+    </suppress>
+
+    <!-- 抑制开发阶段的依赖漏洞 -->
+    <suppress>
+        <notes><![CDATA[
+        开发和构建工具的漏洞不影响运行时
+        ]]></notes>
+        <gav regex="true">.*:maven-.*:.*</gav>
+    </suppress>
+
+</suppressions>
+

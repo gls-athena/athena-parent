@@ -1,3 +1,4 @@
+# 主分支持续部署工作流
 name: CD - Master Branch Release
 
 on:
@@ -6,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version_type:
-        description: 'Version increment type'
+        description: '版本递增类型'
         required: true
         default: 'patch'
         type: choice
@@ -14,16 +15,175 @@ on:
           - patch
           - minor
           - major
+      skip_tests:
+        description: '跳过测试'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
   packages: write
   issues: write
   pull-requests: write
+  id-token: write
+
+env:
+  MAVEN_OPTS: "-Xmx3072m"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
 
 jobs:
-  release:
+  # 预发布检查
+  pre-release-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      current-version: ${{ steps.version.outputs.current }}
+      new-version: ${{ steps.version.outputs.new }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Get current version
+        id: version
+        run: |
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout | sed 's/-SNAPSHOT//')
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          
+          VERSION_TYPE="${{ github.event.inputs.version_type || 'patch' }}"
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+          
+          case $VERSION_TYPE in
+            major)
+              NEW_VERSION="$((MAJOR + 1)).0.0"
+              ;;
+            minor)
+              NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
+              ;;
+            patch)
+              NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+              ;;
+          esac
+          
+          echo "new=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+          echo "New version: $NEW_VERSION"
+
+      - name: Check if release needed
+        id: check
+        run: |
+          if git tag | grep -q "^v${{ steps.version.outputs.new }}$"; then
+            echo "Version ${{ steps.version.outputs.new }} already exists"
+            echo "should-release=false" >> $GITHUB_OUTPUT
+          else
+            echo "should-release=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run quick tests
+        if: steps.check.outputs.should-release == 'true' && github.event.inputs.skip_tests != 'true'
+        run: |
+          mvn ${{ env.MAVEN_CLI_OPTS }} clean test -Drevision=${{ steps.version.outputs.new }}
+
+  # 完整测试套件
+  comprehensive-test:
+    runs-on: ubuntu-latest
+    needs: pre-release-check
+    if: needs.pre-release-check.outputs.should-release == 'true' && github.event.inputs.skip_tests != 'true'
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        java-version: [ 21 ]
+        test-profile: [ default, integration ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run tests
+        run: |
+          if [ "${{ matrix.test-profile }}" = "integration" ]; then
+            mvn ${{ env.MAVEN_CLI_OPTS }} verify -Drevision=${{ needs.pre-release-check.outputs.new-version }}
+          else
+            mvn ${{ env.MAVEN_CLI_OPTS }} test -Drevision=${{ needs.pre-release-check.outputs.new-version }}
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.java-version }}-${{ matrix.test-profile }}
+          path: '**/target/surefire-reports/*.xml'
+
+  # 安全和质量检查
+  security-quality-check:
+    runs-on: ubuntu-latest
+    needs: pre-release-check
+    if: needs.pre-release-check.outputs.should-release == 'true'
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: OWASP Dependency Check
+        run: |
+          mvn ${{ env.MAVEN_CLI_OPTS }} org.owasp:dependency-check-maven:check \
+            -Drevision=${{ needs.pre-release-check.outputs.new-version }}
+
+      - name: SonarQube Quality Gate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn ${{ env.MAVEN_CLI_OPTS }} verify sonar:sonar \
+            -Dsonar.projectKey=athena-parent \
+            -Dsonar.organization=gls-athena \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.qualitygate.wait=true \
+            -Drevision=${{ needs.pre-release-check.outputs.new-version }}
+
+  # 构建和发布
+  build-and-release:
+    runs-on: ubuntu-latest
+    needs: [ pre-release-check, comprehensive-test, security-quality-check ]
+    if: |
+      always() && 
+      needs.pre-release-check.outputs.should-release == 'true' &&
+      (needs.comprehensive-test.result == 'success' || needs.comprehensive-test.result == 'skipped') &&
+      needs.security-quality-check.result == 'success'
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -44,200 +204,160 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Get current version
-        id: current_version
+      - name: Configure GPG
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=revision -q -DforceStdout | sed 's/-SNAPSHOT//')
-          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "Current version: $CURRENT_VERSION"
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          echo "use-agent" >> ~/.gnupg/gpg.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo RELOADAGENT | gpg-connect-agent
 
-      - name: Calculate next version
-        id: next_version
-        run: |
-          CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
-          VERSION_TYPE="${{ github.event.inputs.version_type || 'patch' }}"
-          
-          # 当前版本就是要发布的版本（去掉SNAPSHOT后缀）
-          RELEASE_VERSION="$CURRENT_VERSION"
-          
-          # 解析版本号用于计算下一个开发版本
-          IFS='.' read -ra VERSION_PARTS <<< "$RELEASE_VERSION"
-          MAJOR=${VERSION_PARTS[0]}
-          MINOR=${VERSION_PARTS[1]}
-          PATCH=${VERSION_PARTS[2]}
-          
-          # 根据类型递增版本来计算下一个开发版本
-          case $VERSION_TYPE in
-            "major")
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-              ;;
-            "minor")
-              MINOR=$((MINOR + 1))
-              PATCH=0
-              ;;
-            "patch")
-              PATCH=$((PATCH + 1))
-              ;;
-          esac
-          
-          NEXT_SNAPSHOT_VERSION="$MAJOR.$MINOR.$PATCH-SNAPSHOT"
-          
-          echo "next=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-          echo "next_snapshot=$NEXT_SNAPSHOT_VERSION" >> $GITHUB_OUTPUT
-          echo "Release version: $RELEASE_VERSION"
-          echo "Next development version: $NEXT_SNAPSHOT_VERSION"
+      - name: Configure Maven settings
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Generate release notes from git log
-        id: release_notes
+      - name: Update version
         run: |
-          # 获取上一个版本的标签
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          
-          if [ -n "$PREVIOUS_TAG" ]; then
-            # 获取从上一个标签到当前HEAD的提交日志
-            COMMITS=$(git log ${PREVIOUS_TAG}..HEAD --oneline --no-merges --format="- %s (%h)" | head -50)
-            echo "Found commits since $PREVIOUS_TAG:"
-            echo "$COMMITS"
-          else
-            # 如果没有找到上一个标签，获取最近的10个提交
-            COMMITS=$(git log HEAD --oneline --no-merges --format="- %s (%h)" | head -10)
-            echo "No previous tags found, showing recent commits:"
-            echo "$COMMITS"
-          fi
-          
-          # 保存到输出变量，处理多行文本
-          {
-            echo 'commits<<EOF'
-            echo "$COMMITS"
-            echo 'EOF'
-          } >> $GITHUB_OUTPUT
-          
-          # 保存上一个版本信息
-          echo "previous_tag=${PREVIOUS_TAG:-'Initial release'}" >> $GITHUB_OUTPUT
-
-      - name: Run tests before release
-        run: |
-          mvn clean test -Drevision=${{ steps.next_version.outputs.next }}
-
-      - name: Update revision property for release
-        run: |
-          # 更新 pom.xml 中的 revision 属性而不是 version
-          sed -i "s/<revision>.*<\/revision>/<revision>${{ steps.next_version.outputs.next }}<\/revision>/g" pom.xml
+          NEW_VERSION="${{ needs.pre-release-check.outputs.new-version }}"
+          mvn versions:set -DnewVersion=$NEW_VERSION
+          mvn versions:commit
 
       - name: Build and package
         run: |
-          mvn clean package -DskipTests -Drevision=${{ steps.next_version.outputs.next }}
+          mvn ${{ env.MAVEN_CLI_OPTS }} clean package -DskipTests \
+            -Drevision=${{ needs.pre-release-check.outputs.new-version }}
 
-      - name: Commit release version
+      - name: Deploy to Maven Central
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          git add .
-          git commit -m "Release version ${{ steps.next_version.outputs.next }}" || echo "No changes to commit"
+          mvn ${{ env.MAVEN_CLI_OPTS }} deploy -P release -DskipTests \
+            -Drevision=${{ needs.pre-release-check.outputs.new-version }}
 
-      - name: Create release tag
+      - name: Create and push tag
         run: |
-          git tag -a "v${{ steps.next_version.outputs.next }}" -m "Release version ${{ steps.next_version.outputs.next }}"
+          NEW_VERSION="${{ needs.pre-release-check.outputs.new-version }}"
+          git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
+          git push origin "v$NEW_VERSION"
 
-      - name: Update revision property for next development version
+      - name: Generate changelog
+        id: changelog
         run: |
-          # 更新 revision 属性为下一个开发版本
-          sed -i "s/<revision>.*<\/revision>/<revision>${{ steps.next_version.outputs.next_snapshot }}<\/revision>/g" pom.xml
-
-      - name: Commit next development version
-        run: |
-          git add .
-          git commit -m "Prepare for next development iteration ${{ steps.next_version.outputs.next_snapshot }}" || echo "No changes to commit"
-
-      - name: Push changes and tags
-        run: |
-          git push origin master
-          git push origin "v${{ steps.next_version.outputs.next }}"
-
-      - name: Sync changes back to develop branch
-        run: |
-          # 检查develop分支是否存在
-          if git show-ref --verify --quiet refs/remotes/origin/develop; then
-            echo "Develop branch exists, syncing changes..."
-          
-            # 切换到develop分支
-            git checkout develop
-            git pull origin develop
-          
-            # 合并master分支的变更到develop
-            git merge master --no-ff -m "Sync release v${{ steps.next_version.outputs.next }} changes back to develop"
-          
-            # 推送develop分支
-            git push origin develop
-          
-            echo "✅ Successfully synced changes to develop branch"
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD)
           else
-            echo "⚠️ Develop branch does not exist, skipping sync"
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --max-count=20)
           fi
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "v${{ steps.next_version.outputs.next }}"
-          release_name: "Release v${{ steps.next_version.outputs.next }}"
+          tag_name: v${{ needs.pre-release-check.outputs.new-version }}
+          release_name: Release v${{ needs.pre-release-check.outputs.new-version }}
           body: |
-            ## Release Notes for v${{ steps.next_version.outputs.next }}
+            ## 🚀 Release v${{ needs.pre-release-check.outputs.new-version }}
             
-            **Release Type:** ${{ github.event.inputs.version_type || 'patch' }} version increment
-            **Previous Version:** ${{ steps.release_notes.outputs.previous_tag }}
+            ### 📋 变更日志
+            ${{ steps.changelog.outputs.CHANGELOG }}
             
-            ### 🚀 What's Changed
-            ${{ steps.release_notes.outputs.commits }}
-            
-            ### 📦 Artifacts
-            This release includes all Maven modules in the athena-parent project.
-            
-            ### 💾 Installation
+            ### 📦 Maven 坐标
             ```xml
             <dependency>
                 <groupId>io.github.gls-athena</groupId>
                 <artifactId>athena-parent</artifactId>
-                <version>${{ steps.next_version.outputs.next }}</version>
+                <version>${{ needs.pre-release-check.outputs.new-version }}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             ```
             
-            ### 📝 Full Changelog
-            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.release_notes.outputs.previous_tag }}...v${{ steps.next_version.outputs.next }}
+            ### 🔗 相关链接
+            - [Maven Central](https://search.maven.org/artifact/io.github.gls-athena/athena-parent/${{ needs.pre-release-check.outputs.new-version }}/pom)
+            - [文档](https://github.com/gls-athena/athena-parent/blob/v${{ needs.pre-release-check.outputs.new-version }}/README.md)
           draft: false
           prerelease: false
 
-      - name: Deploy to Maven Repository
-        env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-        run: |
-          if [ -n "$MAVEN_USERNAME" ] && [ -n "$MAVEN_PASSWORD" ]; then
-            mvn deploy -DskipTests -Drevision=${{ steps.next_version.outputs.next }} \
-              -s .github/settings.xml \
-              -Dmaven.repo.username=$MAVEN_USERNAME \
-              -Dmaven.repo.password=$MAVEN_PASSWORD
-          else
-            echo "Maven deployment skipped - credentials not configured"
-          fi
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts-${{ needs.pre-release-check.outputs.new-version }}
+          path: |
+            **/target/*.jar
+            **/target/*.pom
+          retention-days: 30
 
-  notify:
+  # 后发布任务
+  post-release:
     runs-on: ubuntu-latest
-    needs: release
-    if: always()
+    needs: [ pre-release-check, build-and-release ]
+    if: always() && needs.build-and-release.result == 'success'
 
     steps:
-      - name: Notify on success
-        if: needs.release.result == 'success'
-        run: |
-          echo "✅ Release completed successfully!"
-          echo "New version: v${{ needs.release.outputs.next_version }}"
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Notify on failure
-        if: needs.release.result == 'failure'
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Configure Git
         run: |
-          echo "❌ Release failed!"
-          echo "Please check the logs and fix any issues."
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Prepare next development version
+        run: |
+          CURRENT_VERSION="${{ needs.pre-release-check.outputs.new-version }}"
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+          NEXT_VERSION="$MAJOR.$MINOR.$((PATCH + 1))-SNAPSHOT"
+          
+          mvn versions:set -DnewVersion=$NEXT_VERSION
+          mvn versions:commit
+          
+          git add .
+          git commit -m "chore: prepare next development version $NEXT_VERSION [skip ci]"
+          git push origin master
+
+      - name: Sync to develop branch
+        run: |
+          git checkout develop || git checkout -b develop
+          git merge master --no-edit
+          git push origin develop
+
+      - name: Create workflow summary
+        run: |
+          echo "## 🎉 发布成功!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 发布信息" >> $GITHUB_STEP_SUMMARY
+          echo "- **版本**: v${{ needs.pre-release-check.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **发布时间**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Maven Central**: [查看](https://search.maven.org/artifact/io.github.gls-athena/athena-parent/${{ needs.pre-release-check.outputs.new-version }}/pom)" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitHub Release**: [查看](https://github.com/gls-athena/athena-parent/releases/tag/v${{ needs.pre-release-check.outputs.new-version }})" >> $GITHUB_STEP_SUMMARY
