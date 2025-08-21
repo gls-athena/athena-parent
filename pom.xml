@@ -45,7 +45,7 @@
         <url>https://github.com/gls-athena/athena-parent</url>
     </scm>
     <properties>
-        <revision>0.0.3-SNAPSHOT</revision>
+        <revision>0.0.3</revision>
         <flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
         <central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
