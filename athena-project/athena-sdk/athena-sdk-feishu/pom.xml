@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.sdk.feishu</groupId>
     <artifactId>athena-sdk-feishu</artifactId>
+    <name>Athena SDK Feishu</name>
+    <description>Athena 飞书 SDK</description>
 
     <dependencies>
         <dependency>

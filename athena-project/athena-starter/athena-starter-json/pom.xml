@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.starter.json</groupId>
     <artifactId>athena-starter-json</artifactId>
+    <name>Athena Starter JSON</name>
+    <description>Athena JSON 启动器</description>
 
     <dependencies>
         <dependency>

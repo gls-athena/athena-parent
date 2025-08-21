@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.cloud.boot</groupId>
     <artifactId>athena-cloud-boot</artifactId>
+    <name>Athena Cloud Boot</name>
+    <description>Athena 云原生应用启动器</description>
 
     <dependencies>
         <dependency>

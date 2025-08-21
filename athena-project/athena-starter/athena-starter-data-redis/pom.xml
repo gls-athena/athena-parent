@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.starter.data.redis</groupId>
     <artifactId>athena-starter-data-redis</artifactId>
+    <name>Athena Starter Data Redis</name>
+    <description>Athena 数据访问 Redis 启动器</description>
 
     <dependencies>
         <dependency>

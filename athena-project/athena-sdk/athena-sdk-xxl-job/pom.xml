@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.sdk.xxl.job</groupId>
     <artifactId>athena-sdk-xxl-job</artifactId>
+    <name>Athena SDK XXL Job</name>
+    <description>Athena XXL Job SDK</description>
 
     <dependencies>
         <dependency>

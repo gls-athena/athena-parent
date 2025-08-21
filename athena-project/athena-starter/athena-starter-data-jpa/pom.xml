@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.starter.data.jpa</groupId>
     <artifactId>athena-starter-data-jpa</artifactId>
+    <name>Athena Starter Data JPA</name>
+    <description>Athena 数据访问 JPA 启动器</description>
 
     <dependencies>
         <dependency>

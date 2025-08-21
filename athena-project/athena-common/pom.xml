@@ -12,6 +12,8 @@
     <groupId>io.github.gls-athena.common</groupId>
     <artifactId>athena-common</artifactId>
     <packaging>pom</packaging>
+    <name>Athena Common</name>
+    <description>Athena 通用工具模块集合</description>
     <modules>
         <module>athena-common-core</module>
         <module>athena-common-bean</module>

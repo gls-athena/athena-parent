@@ -11,6 +11,8 @@
 
     <artifactId>athena-bom</artifactId>
     <packaging>pom</packaging>
+    <name>Athena BOM</name>
+    <description>Athena 依赖管理 BOM</description>
 
     <dependencyManagement>
         <dependencies>

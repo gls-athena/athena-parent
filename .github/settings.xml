@@ -6,12 +6,7 @@
 
     <servers>
         <server>
-            <id>ossrh</id>
-            <username>${maven.repo.username}</username>
-            <password>${maven.repo.password}</password>
-        </server>
-        <server>
-            <id>github</id>
+            <id>central</id>
             <username>${maven.repo.username}</username>
             <password>${maven.repo.password}</password>
         </server>

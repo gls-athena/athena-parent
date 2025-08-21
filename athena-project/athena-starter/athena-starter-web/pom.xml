@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.starter.web</groupId>
     <artifactId>athena-starter-web</artifactId>
+    <name>Athena Starter Web</name>
+    <description>Athena Web 启动器</description>
 
     <dependencies>
         <dependency>

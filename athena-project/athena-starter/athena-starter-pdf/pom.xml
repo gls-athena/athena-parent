@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.starter.pdf</groupId>
     <artifactId>athena-starter-pdf</artifactId>
+    <name>Athena Starter PDF</name>
+    <description>Athena PDF 启动器</description>
 
     <dependencies>
         <dependency>

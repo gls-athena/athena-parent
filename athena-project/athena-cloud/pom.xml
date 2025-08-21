@@ -12,6 +12,8 @@
     <groupId>io.github.gls-athena.cloud</groupId>
     <artifactId>athena-cloud</artifactId>
     <packaging>pom</packaging>
+    <name>Athena Cloud</name>
+    <description>Athena 云原生应用模块集合</description>
     <modules>
         <module>athena-cloud-boot</module>
         <module>athena-cloud-core</module>

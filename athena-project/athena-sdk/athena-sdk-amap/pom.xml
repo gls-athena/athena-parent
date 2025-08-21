@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.sdk.amap</groupId>
     <artifactId>athena-sdk-amap</artifactId>
+    <name>Athena SDK Amap</name>
+    <description>Athena 高德地图 SDK</description>
 
     <dependencies>
         <dependency>
