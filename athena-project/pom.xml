@@ -11,6 +11,8 @@
 
     <artifactId>athena-project</artifactId>
     <packaging>pom</packaging>
+    <name>Athena Project</name>
+    <description>Athena 核心项目模块</description>
     <modules>
         <module>athena-cloud</module>
         <module>athena-common</module>

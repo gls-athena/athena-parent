@@ -12,6 +12,8 @@
     <groupId>io.github.gls-athena.starter</groupId>
     <artifactId>athena-starter</artifactId>
     <packaging>pom</packaging>
+    <name>Athena Starter</name>
+    <description>Athena Spring Boot Starter 模块集合</description>
     <modules>
         <module>athena-starter-aliyun-core</module>
         <module>athena-starter-aliyun-oss</module>

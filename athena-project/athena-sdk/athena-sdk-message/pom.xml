@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.sdk.message</groupId>
     <artifactId>athena-sdk-message</artifactId>
+    <name>Athena SDK Message</name>
+    <description>Athena 消息模块</description>
 
     <dependencies>
         <dependency>

@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.cloud.core</groupId>
     <artifactId>athena-cloud-core</artifactId>
+    <name>Athena Cloud Core</name>
+    <description>Athena 云原生核心功能模块</description>
 
     <dependencies>
         <dependency>

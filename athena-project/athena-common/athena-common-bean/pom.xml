@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.common.bean</groupId>
     <artifactId>athena-common-bean</artifactId>
+    <name>Athena Common Bean</name>
+    <description>Athena 通用实体类和数据传输对象</description>
     <dependencies>
         <dependency>
             <groupId>cn.idev.excel</groupId>

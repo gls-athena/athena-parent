@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.starter.aliyun.oss</groupId>
     <artifactId>athena-starter-aliyun-oss</artifactId>
+    <name>Athena Starter Aliyun OSS</name>
+    <description>Athena 阿里云 OSS 启动器</description>
 
     <dependencies>
         <dependency>

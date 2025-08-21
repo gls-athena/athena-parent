@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.starter.jasper</groupId>
     <artifactId>athena-starter-jasper</artifactId>
+    <name>Athena Starter Jasper</name>
+    <description>Athena Jasper 启动器</description>
 
     <dependencies>
         <dependency>

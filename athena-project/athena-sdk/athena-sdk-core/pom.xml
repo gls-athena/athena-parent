@@ -11,5 +11,6 @@
 
     <groupId>io.github.gls-athena.sdk.core</groupId>
     <artifactId>athena-sdk-core</artifactId>
-
+    <name>Athena SDK Core</name>
+    <description>Athena SDK 核心模块</description>
 </project>

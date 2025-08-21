@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.starter.excel</groupId>
     <artifactId>athena-starter-excel</artifactId>
+    <name>Athena Starter Excel</name>
+    <description>Athena Excel 启动器</description>
 
     <dependencies>
         <dependency>

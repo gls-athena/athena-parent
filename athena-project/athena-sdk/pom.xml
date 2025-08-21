@@ -12,6 +12,8 @@
     <groupId>io.github.gls-athena.sdk</groupId>
     <artifactId>athena-sdk</artifactId>
     <packaging>pom</packaging>
+    <name>Athena SDK</name>
+    <description>Athena 第三方服务集成 SDK 模块集合</description>
 
     <modules>
         <module>athena-sdk-amap</module>

@@ -11,6 +11,7 @@
 
     <groupId>io.github.gls-athena.sdk.wechat</groupId>
     <artifactId>athena-sdk-wechat</artifactId>
-
+    <name>Athena SDK WeChat</name>
+    <description>Athena 微信 SDK</description>
 
 </project>

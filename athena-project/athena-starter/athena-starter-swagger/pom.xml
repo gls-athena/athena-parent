@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.starter.swagger</groupId>
     <artifactId>athena-starter-swagger</artifactId>
+    <name>Athena Starter Swagger</name>
+    <description>Athena Swagger 启动器</description>
 
     <dependencies>
         <dependency>

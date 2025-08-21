@@ -11,6 +11,8 @@
 
     <groupId>io.github.gls-athena.sdk.log</groupId>
     <artifactId>athena-sdk-log</artifactId>
+    <name>Athena SDK Log</name>
+    <description>Athena SDK 日志模块</description>
 
     <dependencies>
         <dependency>
