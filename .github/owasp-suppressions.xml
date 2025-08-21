@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!--
+    示例抑制规则 - 根据实际需要进行配置
+    <suppress>
+        <notes><![CDATA[
+        CVE-2021-44228 - Log4j RCE vulnerability
+        This is suppressed as we are using logback, not log4j
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.logging\.log4j/.*$</packageUrl>
+        <cve>CVE-2021-44228</cve>
+    </suppress>
+    -->
+</suppressions>
+

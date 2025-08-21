@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+      next_version:
+        description: 'Next development version (e.g., 1.0.1-SNAPSHOT)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update version to release version
+        run: |
+          mvn versions:set -DnewVersion=${{ github.event.inputs.version }} -B
+          git add -A
+          git commit -m "Release version ${{ github.event.inputs.version }}"
+
+      - name: Create release tag
+        run: |
+          git tag -a "v${{ github.event.inputs.version }}" -m "Release version ${{ github.event.inputs.version }}"
+
+      - name: Merge to master and push
+        run: |
+          git checkout master
+          git merge develop
+          git push origin master
+          git push origin "v${{ github.event.inputs.version }}"
+
+      - name: Update to next development version
+        run: |
+          git checkout develop
+          mvn versions:set -DnewVersion=${{ github.event.inputs.next_version }} -B
+          git add -A
+          git commit -m "Prepare for next development iteration ${{ github.event.inputs.next_version }}"
+          git push origin develop
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: Release ${{ github.event.inputs.version }}
+          body: |
+            ## Changes in this release
+            
+            - Release version ${{ github.event.inputs.version }}
+            
+            For detailed changes, see the commit history.
+          draft: false
+          prerelease: false

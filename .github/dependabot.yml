@@ -1,0 +1,40 @@
+version: 2
+updates:
+  # Maven dependencies
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+    target-branch: "develop"
+    reviewers:
+      - "gls-athena"
+    assignees:
+      - "gls-athena"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    ignore:
+      # Ignore major version updates for Spring Boot (manual review required)
+      - dependency-name: "org.springframework.boot:spring-boot-starter-parent"
+        update-types: [ "version-update:semver-major" ]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+    target-branch: "develop"
+    reviewers:
+      - "gls-athena"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+
