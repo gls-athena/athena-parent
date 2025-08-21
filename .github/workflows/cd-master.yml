@@ -265,12 +265,12 @@ jobs:
           
             # 获取密钥 ID (修复版本)
             GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep -A1 "sec" | grep -E "^\s*[A-F0-9]+" | head -1 | awk '{print $1}' | cut -d'/' -f2)
-            
+          
             # 如果上面的方法失败，尝试另一种方法
             if [ -z "$GPG_KEY_ID" ]; then
               GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep "sec" | head -1 | sed 's/.*\/\([A-F0-9]*\).*/\1/')
             fi
-            
+          
             echo "GPG Key ID: $GPG_KEY_ID"
           
             # 配置 GPG 信任 (只有当获取到有效密钥 ID 时)

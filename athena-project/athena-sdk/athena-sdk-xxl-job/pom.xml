@@ -1,22 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven项目对象模型(POM)配置文件
+    用于定义Athena SDK XXL Job模块的项目配置信息
+    该模块是Athena SDK的一个子模块，提供了对XXL-JOB分布式任务调度框架的集成支持
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM模型版本，固定值4.0.0 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承Athena SDK的通用配置 -->
     <parent>
+        <!-- 父项目组ID -->
         <groupId>io.github.gls-athena.sdk</groupId>
+        <!-- 父项目构件ID -->
         <artifactId>athena-sdk</artifactId>
+        <!-- 父项目版本号，使用属性占位符 -->
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前项目的组ID，标识XXL-JOB模块的命名空间 -->
     <groupId>io.github.gls-athena.sdk.xxl.job</groupId>
+    <!-- 当前项目的构件ID，用于唯一标识该模块 -->
     <artifactId>athena-sdk-xxl-job</artifactId>
+    <!-- 项目显示名称，用于Maven构建时的友好显示 -->
     <name>Athena SDK XXL Job</name>
+    <!-- 项目描述信息，说明该模块的功能和用途 -->
     <description>Athena XXL Job SDK</description>
 
+    <!-- 项目依赖配置 -->
     <dependencies>
+        <!-- XXL-JOB核心依赖，提供分布式任务调度功能 -->
         <dependency>
+            <!-- 依赖组ID -->
             <groupId>com.xuxueli</groupId>
+            <!-- 依赖构件ID -->
             <artifactId>xxl-job-core</artifactId>
         </dependency>
     </dependencies>

@@ -1,23 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven项目对象模型(POM)配置文件
+    用于定义Athena SDK消息模块的项目配置信息
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM模型版本 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置 -->
     <parent>
+        <!-- 父项目组ID -->
         <groupId>io.github.gls-athena.sdk</groupId>
+        <!-- 父项目构件ID -->
         <artifactId>athena-sdk</artifactId>
+        <!-- 父项目版本号 -->
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前项目组ID -->
     <groupId>io.github.gls-athena.sdk.message</groupId>
+    <!-- 当前项目构件ID -->
     <artifactId>athena-sdk-message</artifactId>
+    <!-- 项目名称 -->
     <name>Athena SDK Message</name>
+    <!-- 项目描述 -->
     <description>Athena 消息模块</description>
 
+    <!-- 项目依赖配置 -->
     <dependencies>
+        <!-- Spring Kafka依赖配置 -->
         <dependency>
+            <!-- 依赖组ID -->
             <groupId>org.springframework.kafka</groupId>
+            <!-- 依赖构件ID -->
             <artifactId>spring-kafka</artifactId>
+            <!-- 依赖作用域 -->
             <scope>provided</scope>
         </dependency>
     </dependencies>

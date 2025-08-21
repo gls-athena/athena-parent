@@ -1,25 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven项目对象模型(POM)配置文件
+    用于定义Athena通用核心工具类模块的项目配置
+    包含项目基本信息、依赖关系等Maven构建所需信息
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM模型版本，固定值为4.0.0 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承父项目的配置信息 -->
     <parent>
+        <!-- 父项目组ID -->
         <groupId>io.github.gls-athena.common</groupId>
+        <!-- 父项目构件ID -->
         <artifactId>athena-common</artifactId>
+        <!-- 父项目版本号，使用变量形式 -->
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前项目组ID -->
     <groupId>io.github.gls-athena.common.core</groupId>
+    <!-- 当前项目构件ID -->
     <artifactId>athena-common-core</artifactId>
+    <!-- 项目显示名称 -->
     <name>Athena Common Core</name>
+    <!-- 项目描述信息 -->
     <description>Athena 通用核心工具类</description>
+
+    <!-- 项目依赖配置 -->
     <dependencies>
+        <!-- Athena通用Bean依赖 -->
         <dependency>
+            <!-- 依赖组ID -->
             <groupId>io.github.gls-athena.common.bean</groupId>
+            <!-- 依赖构件ID -->
             <artifactId>athena-common-bean</artifactId>
         </dependency>
+
+        <!-- AspectJ织入依赖，用于AOP编程 -->
         <dependency>
+            <!-- 依赖组ID -->
             <groupId>org.aspectj</groupId>
+            <!-- 依赖构件ID -->
             <artifactId>aspectjweaver</artifactId>
         </dependency>
     </dependencies>
