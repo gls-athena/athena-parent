@@ -1,24 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven 项目对象模型 (POM) 文件，定义了 Athena 项目的结构、依赖和构建配置。
+    此文件作为父级 POM 被子模块继承，统一管理版本号、依赖项和插件配置。
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- 指定当前 POM 使用的模型版本 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目引用，用于继承通用配置 -->
     <parent>
         <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-parent</artifactId>
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前项目的唯一标识符 -->
     <artifactId>athena-project</artifactId>
+    <!-- 打包方式为 pom，表示这是一个聚合项目 -->
     <packaging>pom</packaging>
+    <!-- 项目名称 -->
     <name>Athena Project</name>
+    <!-- 项目描述信息 -->
     <description>Athena 核心项目模块</description>
+
+    <!-- 子模块列表，定义该项目包含的所有子模块 -->
     <modules>
         <module>athena-cloud</module>
         <module>athena-common</module>
         <module>athena-sdk</module>
         <module>athena-starter</module>
     </modules>
+
+    <!-- 定义项目中使用的属性变量，便于统一管理和版本控制 -->
     <properties>
         <java.version>21</java.version>
         <grpc.version>1.72.0</grpc.version>
@@ -55,22 +70,30 @@
         <spring-ai-alibaba.version>1.0.0.2</spring-ai-alibaba.version>
         <commons-io.version>2.19.0</commons-io.version>
     </properties>
+
+    <!-- 直接依赖项，这些依赖将被所有子模块共享 -->
     <dependencies>
+        <!-- Lombok 提供代码简化功能 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <!-- MapStruct 用于对象映射 -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
         </dependency>
+        <!-- Hutool 工具库提供常用工具类 -->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
         </dependency>
     </dependencies>
+
+    <!-- 依赖管理部分，集中定义依赖的版本号，供子模块导入使用 -->
     <dependencyManagement>
         <dependencies>
+            <!-- 导入 Athena BOM，统一管理内部依赖版本 -->
             <dependency>
                 <groupId>io.github.gls-athena</groupId>
                 <artifactId>athena-bom</artifactId>
@@ -78,6 +101,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring Cloud 依赖管理 -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -85,6 +109,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Azure Spring Cloud 依赖管理 -->
             <dependency>
                 <groupId>com.azure.spring</groupId>
                 <artifactId>spring-cloud-azure-dependencies</artifactId>
@@ -92,6 +117,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Google Cloud Platform 依赖管理 -->
             <dependency>
                 <groupId>com.google.cloud</groupId>
                 <artifactId>spring-cloud-gcp-dependencies</artifactId>
@@ -99,6 +125,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring Boot Admin 依赖管理 -->
             <dependency>
                 <groupId>de.codecentric</groupId>
                 <artifactId>spring-boot-admin-dependencies</artifactId>
@@ -106,6 +133,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring Modulith 依赖管理 -->
             <dependency>
                 <groupId>org.springframework.modulith</groupId>
                 <artifactId>spring-modulith-bom</artifactId>
@@ -113,6 +141,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Netflix DGS GraphQL 平台依赖管理 -->
             <dependency>
                 <groupId>com.netflix.graphql.dgs</groupId>
                 <artifactId>graphql-dgs-platform-dependencies</artifactId>
@@ -120,6 +149,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Pivotal Spring Cloud Services 依赖管理 -->
             <dependency>
                 <groupId>io.pivotal.spring.cloud</groupId>
                 <artifactId>spring-cloud-services-dependencies</artifactId>
@@ -127,6 +157,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Sentry 日志追踪平台依赖管理 -->
             <dependency>
                 <groupId>io.sentry</groupId>
                 <artifactId>sentry-bom</artifactId>
@@ -134,6 +165,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring AI 依赖管理 -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
@@ -141,6 +173,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring Shell 依赖管理 -->
             <dependency>
                 <groupId>org.springframework.shell</groupId>
                 <artifactId>spring-shell-dependencies</artifactId>
@@ -148,6 +181,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Timefold Solver 依赖管理 -->
             <dependency>
                 <groupId>ai.timefold.solver</groupId>
                 <artifactId>timefold-solver-bom</artifactId>
@@ -155,6 +189,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Vaadin UI 框架依赖管理 -->
             <dependency>
                 <groupId>com.vaadin</groupId>
                 <artifactId>vaadin-bom</artifactId>
@@ -162,6 +197,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring gRPC 依赖管理 -->
             <dependency>
                 <groupId>org.springframework.grpc</groupId>
                 <artifactId>spring-grpc-dependencies</artifactId>
@@ -170,6 +206,7 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- 各种第三方库的具体版本声明 -->
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
@@ -296,9 +333,12 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- 构建配置部分，定义插件及其默认设置 -->
     <build>
+        <!-- 插件管理，用于统一插件版本和配置 -->
         <pluginManagement>
             <plugins>
+                <!-- Spring Boot Maven 插件，用于打包可执行 JAR -->
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
@@ -318,6 +358,7 @@
                         </excludes>
                     </configuration>
                 </plugin>
+                <!-- Maven 编译插件，配置 Java 版本和注解处理器 -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>

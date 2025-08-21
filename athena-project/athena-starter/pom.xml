@@ -1,19 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven 项目对象模型 (POM) 文件，定义了 Athena Spring Boot Starter 模块集合的项目结构和依赖关系。
+    该 POM 作为父级聚合模块，统一管理多个子 starter 模块。
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- 指定当前 POM 使用的 Maven 模型版本 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 继承自 Athena 项目的父 POM，用于统一版本管理和基础配置 -->
     <parent>
         <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-project</artifactId>
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前项目的 Group ID，标识该项目属于 Athena Starter 模块系列 -->
     <groupId>io.github.gls-athena.starter</groupId>
+    <!-- 当前项目的 Artifact ID，唯一标识该聚合模块 -->
     <artifactId>athena-starter</artifactId>
+    <!-- 打包方式为 pom，表示这是一个聚合项目，不生成实际的构建产物 -->
     <packaging>pom</packaging>
+    <!-- 项目名称，用于显示在文档或 IDE 中 -->
     <name>Athena Starter</name>
+    <!-- 项目描述信息，说明该项目的作用 -->
     <description>Athena Spring Boot Starter 模块集合</description>
+
+    <!-- 子模块列表，列出所有被此聚合模块管理的子项目 -->
     <modules>
         <module>athena-starter-aliyun-core</module>
         <module>athena-starter-aliyun-oss</module>
@@ -32,15 +46,21 @@
         <module>athena-starter-word</module>
     </modules>
 
+    <!-- 项目公共依赖项，这些依赖将被所有子模块继承 -->
     <dependencies>
+        <!-- Spring Boot 基础启动器，提供核心功能支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
+
+        <!-- Spring Boot 配置处理器，用于处理配置元数据 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
         </dependency>
+
+        <!-- Athena 公共核心模块，提供通用工具类和基础组件 -->
         <dependency>
             <groupId>io.github.gls-athena.common.core</groupId>
             <artifactId>athena-common-core</artifactId>

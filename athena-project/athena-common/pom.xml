@@ -1,21 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven项目对象模型(POM)配置文件
+    用于定义Athena通用工具模块集合的Maven项目配置
+    该配置文件继承自athena-project父项目，管理多个通用工具子模块
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM模型版本，固定值4.0.0 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承athena-project项目的配置 -->
     <parent>
+        <!-- 父项目组ID -->
         <groupId>io.github.gls-athena</groupId>
+        <!-- 父项目构件ID -->
         <artifactId>athena-project</artifactId>
+        <!-- 父项目版本号，使用revision属性进行版本管理 -->
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前项目的组ID -->
     <groupId>io.github.gls-athena.common</groupId>
+    <!-- 当前项目的构件ID -->
     <artifactId>athena-common</artifactId>
+    <!-- 项目打包类型为pom，表示这是一个聚合项目 -->
     <packaging>pom</packaging>
+    <!-- 项目显示名称 -->
     <name>Athena Common</name>
+    <!-- 项目描述信息 -->
     <description>Athena 通用工具模块集合</description>
+
+    <!-- 子模块列表，包含所有需要聚合的子项目 -->
     <modules>
+        <!-- 核心工具模块 -->
         <module>athena-common-core</module>
+        <!-- Bean工具模块 -->
         <module>athena-common-bean</module>
     </modules>
 

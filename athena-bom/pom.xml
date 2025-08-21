@@ -1,22 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Maven 项目对象模型（POM）文件，定义了 Athena BOM（Bill of Materials）模块的配置信息。
+    该模块用于统一管理 Athena 项目中所有子模块的依赖版本，避免版本冲突。
+-->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- 指定当前 POM 模型的版本 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目配置，继承 athena-parent 的通用配置 -->
     <parent>
         <groupId>io.github.gls-athena</groupId>
         <artifactId>athena-parent</artifactId>
         <version>${revision}</version>
     </parent>
 
+    <!-- 当前模块的 artifactId，唯一标识该 BOM 模块 -->
     <artifactId>athena-bom</artifactId>
+
+    <!-- 打包方式为 pom，表示这是一个 BOM 模块 -->
     <packaging>pom</packaging>
+
+    <!-- 模块名称，用于显示在构建工具和 IDE 中 -->
     <name>Athena BOM</name>
+
+    <!-- 模块描述信息，说明该模块的作用 -->
     <description>Athena 依赖管理 BOM</description>
 
+    <!-- 依赖管理部分，定义所有子模块的依赖版本，供其他模块引用 -->
     <dependencyManagement>
         <dependencies>
-            <!-- Athena Cloud -->
+            <!-- Athena Cloud 模块依赖 -->
             <dependency>
                 <groupId>io.github.gls-athena.cloud.boot</groupId>
                 <artifactId>athena-cloud-boot</artifactId>
@@ -27,7 +42,8 @@
                 <artifactId>athena-cloud-core</artifactId>
                 <version>${revision}</version>
             </dependency>
-            <!-- Athena Common -->
+
+            <!-- Athena Common 模块依赖 -->
             <dependency>
                 <groupId>io.github.gls-athena.common.bean</groupId>
                 <artifactId>athena-common-bean</artifactId>
@@ -38,7 +54,8 @@
                 <artifactId>athena-common-core</artifactId>
                 <version>${revision}</version>
             </dependency>
-            <!-- Athena SDK -->
+
+            <!-- Athena SDK 模块依赖 -->
             <dependency>
                 <groupId>io.github.gls-athena.sdk.amap</groupId>
                 <artifactId>athena-sdk-amap</artifactId>
@@ -74,7 +91,8 @@
                 <artifactId>athena-sdk-xxl-job</artifactId>
                 <version>${revision}</version>
             </dependency>
-            <!-- Athena Starter -->
+
+            <!-- Athena Starter 模块依赖 -->
             <dependency>
                 <groupId>io.github.gls-athena.starter.aliyun.core</groupId>
                 <artifactId>athena-starter-aliyun-core</artifactId>

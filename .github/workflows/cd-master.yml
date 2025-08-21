@@ -259,17 +259,17 @@ jobs:
         run: |
           if [ -n "$GPG_PRIVATE_KEY" ]; then
             echo "Setting up GPG for artifact signing..."
-            
+          
             # 导入 GPG 私钥
             echo "$GPG_PRIVATE_KEY" | gpg --batch --import --no-tty
-            
+          
             # 配置 GPG 信任
             GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
             echo "$GPG_KEY_ID:6:" | gpg --import-ownertrust --no-tty
-            
+          
             # 测试 GPG 签名功能
             echo "test" | gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback --sign --armor
-            
+          
             echo "✅ GPG setup completed successfully"
           else
             echo "⚠️ GPG_PRIVATE_KEY not found - GPG signing will be skipped"
