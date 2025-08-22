@@ -232,7 +232,7 @@ jobs:
           ```xml
           <dependency>
               <groupId>io.github.gls-athena</groupId>
-              <artifactId>athena-parent</artifactId>
+              <artifactId>athena-bom</artifactId>
               <version>${{ steps.next_version.outputs.next }}</version>
               <type>pom</type>
               <scope>import</scope>

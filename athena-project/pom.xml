@@ -47,7 +47,6 @@
         <spring-cloud-services.version>4.3.0</spring-cloud-services.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <spring-grpc.version>0.10.0</spring-grpc.version>
-        <spring-modulith.version>1.4.1</spring-modulith.version>
         <spring-shell.version>3.4.1</spring-shell.version>
         <timefold-solver.version>1.25.0</timefold-solver.version>
         <vaadin.version>24.8.6</vaadin.version>
@@ -130,14 +129,6 @@
                 <groupId>de.codecentric</groupId>
                 <artifactId>spring-boot-admin-dependencies</artifactId>
                 <version>${spring-boot-admin.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <!-- Spring Modulith 依赖管理 -->
-            <dependency>
-                <groupId>org.springframework.modulith</groupId>
-                <artifactId>spring-modulith-bom</artifactId>
-                <version>${spring-modulith.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
