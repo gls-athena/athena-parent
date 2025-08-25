@@ -1,9 +1,8 @@
-package com.gls.athena.sdk.message.validator;
+package com.gls.athena.sdk.message.support;
 
 import com.gls.athena.sdk.message.domain.MessageDto;
 import com.gls.athena.sdk.message.domain.MessageType;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -13,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author george
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@UtilityClass
 public class MessageValidator {
 
     /**
@@ -22,7 +21,7 @@ public class MessageValidator {
      * @param messageDto 消息对象
      * @return 验证结果
      */
-    public static boolean validate(MessageDto messageDto) {
+    public boolean validate(MessageDto messageDto) {
         if (messageDto == null) {
             log.warn("消息对象为空");
             return false;
@@ -47,7 +46,7 @@ public class MessageValidator {
      * @param messageDto 消息对象
      * @return 验证结果
      */
-    private static boolean validateByType(MessageDto messageDto) {
+    private boolean validateByType(MessageDto messageDto) {
         MessageType type = messageDto.getType();
 
         return switch (type) {
@@ -68,7 +67,7 @@ public class MessageValidator {
      * @param messageDto 消息对象
      * @return 验证结果
      */
-    private static boolean validateSms(MessageDto messageDto) {
+    private boolean validateSms(MessageDto messageDto) {
         String receiver = messageDto.getReceiver();
         if (!receiver.matches("^1[3-9]\\d{9}$")) {
             log.warn("短信接收者手机号格式不正确: {}", receiver);
@@ -89,7 +88,7 @@ public class MessageValidator {
      * @param messageDto 消息对象
      * @return 验证结果
      */
-    private static boolean validateEmail(MessageDto messageDto) {
+    private boolean validateEmail(MessageDto messageDto) {
         String receiver = messageDto.getReceiver();
         if (!receiver.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
             log.warn("邮件接收者邮箱格式不正确: {}", receiver);
@@ -110,7 +109,7 @@ public class MessageValidator {
      * @param messageDto 消息对象
      * @return 验证结果
      */
-    private static boolean validateSiteMessage(MessageDto messageDto) {
+    private boolean validateSiteMessage(MessageDto messageDto) {
         if (messageDto.getTitle() == null || messageDto.getTitle().trim().isEmpty()) {
             log.warn("站内信标题为空");
             return false;
@@ -130,7 +129,7 @@ public class MessageValidator {
      * @param messageDto 消息对象
      * @return 验证结果
      */
-    private static boolean validateInstantMessage(MessageDto messageDto) {
+    private boolean validateInstantMessage(MessageDto messageDto) {
         if (messageDto.getContent() == null || messageDto.getContent().trim().isEmpty()) {
             log.warn("即时消息内容为空");
             return false;

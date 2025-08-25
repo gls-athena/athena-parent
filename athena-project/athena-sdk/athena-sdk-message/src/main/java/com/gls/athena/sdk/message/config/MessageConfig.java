@@ -1,10 +1,9 @@
 package com.gls.athena.sdk.message.config;
 
+import com.gls.athena.sdk.message.kafka.KafkaMessageEventListener;
 import com.gls.athena.sdk.message.support.IMessageEventListener;
-import com.gls.athena.sdk.message.support.KafkaMessageEventListener;
-import com.gls.athena.sdk.message.support.KafkaMessageSender;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -19,34 +18,17 @@ import org.springframework.kafka.core.KafkaTemplate;
 public class MessageConfig {
 
     /**
-     * Kafka消息配置
-     * 职责：专门负责Kafka相关的Bean配置
+     * 创建Kafka消息事件监听器Bean
+     *
+     * @param messageProperties 消息配置属性
+     * @param kafkaTemplate     Kafka模板对象
+     * @return IMessageEventListener Kafka消息事件监听器实例
      */
-    @AutoConfiguration
+    @Bean
     @ConditionalOnClass(KafkaTemplate.class)
-    public static class MessageKafkaConfig {
-
-        /**
-         * Kafka消息发送器
-         *
-         * @param messageProperties 消息配置
-         * @param kafkaTemplate     kafka模板
-         * @return Kafka消息发送器
-         */
-        @Bean
-        public KafkaMessageSender kafkaMessageSender(MessageProperties messageProperties, KafkaTemplate<String, Object> kafkaTemplate) {
-            return new KafkaMessageSender(messageProperties, kafkaTemplate);
-        }
-
-        /**
-         * 消息事件监听器
-         *
-         * @param kafkaMessageSender Kafka消息发送器
-         * @return 消息事件监听器
-         */
-        @Bean
-        public IMessageEventListener messageEventListener(KafkaMessageSender kafkaMessageSender) {
-            return new KafkaMessageEventListener(kafkaMessageSender);
-        }
+    @ConditionalOnProperty(prefix = "athena.message.kafka", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public IMessageEventListener messageEventListener(MessageProperties messageProperties, KafkaTemplate<String, Object> kafkaTemplate) {
+        return new KafkaMessageEventListener(messageProperties, kafkaTemplate);
     }
+
 }

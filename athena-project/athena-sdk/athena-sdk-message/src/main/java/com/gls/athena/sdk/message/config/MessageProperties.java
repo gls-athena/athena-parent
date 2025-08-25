@@ -24,7 +24,8 @@ public class MessageProperties extends BaseProperties {
      * kafka配置
      */
     @Data
-    public static class Kafka {
+    @EqualsAndHashCode(callSuper = true)
+    public static class Kafka extends BaseProperties {
         /**
          * 主题
          */

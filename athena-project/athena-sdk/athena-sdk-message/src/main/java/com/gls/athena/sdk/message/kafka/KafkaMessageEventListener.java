@@ -1,30 +1,22 @@
-package com.gls.athena.sdk.message.support;
+package com.gls.athena.sdk.message.kafka;
 
 import com.gls.athena.sdk.message.config.MessageProperties;
 import com.gls.athena.sdk.message.domain.MessageDto;
-import lombok.RequiredArgsConstructor;
+import com.gls.athena.sdk.message.support.IMessageEventListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 
 /**
- * Kafka消息发送器
- * 职责：专门负责通过Kafka发送消息
+ * Kafka消息事件监听器
+ * 职责：专门负责监听消息事件并委托给发送器处理
  *
  * @author george
  */
 @Slf4j
-@RequiredArgsConstructor
-public class KafkaMessageSender {
+public record KafkaMessageEventListener(MessageProperties messageProperties, KafkaTemplate<String, Object> kafkaTemplate) implements IMessageEventListener {
 
-    private final MessageProperties messageProperties;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
-
-    /**
-     * 发送消息到Kafka
-     *
-     * @param messageDto 消息对象
-     */
-    public void send(MessageDto messageDto) {
+    @Override
+    public void onMessageEvent(MessageDto messageDto) {
         if (messageDto == null) {
             log.warn("消息对象为空，无法发送到Kafka");
             return;

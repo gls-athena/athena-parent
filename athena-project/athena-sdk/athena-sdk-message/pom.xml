@@ -32,11 +32,8 @@
     <dependencies>
         <!-- Spring Kafka依赖配置 -->
         <dependency>
-            <!-- 依赖组ID -->
             <groupId>org.springframework.kafka</groupId>
-            <!-- 依赖构件ID -->
             <artifactId>spring-kafka</artifactId>
-            <!-- 依赖作用域 -->
             <scope>provided</scope>
         </dependency>
     </dependencies>
