@@ -1,9 +1,8 @@
-package com.gls.athena.sdk.message.builder;
+package com.gls.athena.sdk.message.support;
 
 import com.gls.athena.sdk.message.domain.MessageDto;
 import com.gls.athena.sdk.message.domain.MessageType;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 
 import java.util.Map;
 
@@ -13,7 +12,7 @@ import java.util.Map;
  *
  * @author george
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@UtilityClass
 public class MessageBuilder {
 
     /**
@@ -24,7 +23,7 @@ public class MessageBuilder {
      * @param params       参数
      * @return 消息对象
      */
-    public static MessageDto buildSms(String mobile, String templateCode, Map<String, Object> params) {
+    public MessageDto buildSms(String mobile, String templateCode, Map<String, Object> params) {
         return new MessageDto()
                 .setType(MessageType.SMS)
                 .setReceiver(mobile)
@@ -42,7 +41,7 @@ public class MessageBuilder {
      * @param params       参数
      * @return 消息对象
      */
-    public static MessageDto buildEmail(String email, String title, String content, String templateCode, Map<String, Object> params) {
+    public MessageDto buildEmail(String email, String title, String content, String templateCode, Map<String, Object> params) {
         return new MessageDto()
                 .setType(MessageType.EMAIL)
                 .setReceiver(email)
@@ -60,7 +59,7 @@ public class MessageBuilder {
      * @param content 消息内容
      * @return 消息对象
      */
-    public static MessageDto buildSiteMessage(String userId, String title, String content) {
+    public MessageDto buildSiteMessage(String userId, String title, String content) {
         return new MessageDto()
                 .setType(MessageType.SITE_MESSAGE)
                 .setReceiver(userId)
@@ -76,7 +75,7 @@ public class MessageBuilder {
      * @param params       参数
      * @return 消息对象
      */
-    public static MessageDto buildWechatMessage(String openId, String templateCode, Map<String, Object> params) {
+    public MessageDto buildWechatMessage(String openId, String templateCode, Map<String, Object> params) {
         return new MessageDto()
                 .setType(MessageType.WECHAT)
                 .setReceiver(openId)
@@ -91,7 +90,7 @@ public class MessageBuilder {
      * @param content 消息内容
      * @return 消息对象
      */
-    public static MessageDto buildDingTalkMessage(String userId, String content) {
+    public MessageDto buildDingTalkMessage(String userId, String content) {
         return new MessageDto()
                 .setType(MessageType.DING_TALK)
                 .setReceiver(userId)
@@ -105,7 +104,7 @@ public class MessageBuilder {
      * @param content 消息内容
      * @return 消息对象
      */
-    public static MessageDto buildFeishuMessage(String userId, String content) {
+    public MessageDto buildFeishuMessage(String userId, String content) {
         return new MessageDto()
                 .setType(MessageType.FEISHU)
                 .setReceiver(userId)
@@ -119,7 +118,7 @@ public class MessageBuilder {
      * @param content 消息内容
      * @return 消息对象
      */
-    public static MessageDto buildWechatWorkMessage(String userId, String content) {
+    public MessageDto buildWechatWorkMessage(String userId, String content) {
         return new MessageDto()
                 .setType(MessageType.WECHAT_WORK)
                 .setReceiver(userId)

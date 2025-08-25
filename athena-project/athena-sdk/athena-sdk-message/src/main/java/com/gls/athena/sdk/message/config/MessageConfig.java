@@ -1,10 +1,7 @@
 package com.gls.athena.sdk.message.config;
 
+import com.gls.athena.sdk.message.kafka.KafkaMessageEventListener;
 import com.gls.athena.sdk.message.support.IMessageEventListener;
-import com.gls.athena.sdk.message.support.KafkaMessageEventListener;
-import com.gls.athena.sdk.message.support.KafkaMessageSender;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -19,34 +16,15 @@ import org.springframework.kafka.core.KafkaTemplate;
 public class MessageConfig {
 
     /**
-     * Kafka消息配置
-     * 职责：专门负责Kafka相关的Bean配置
+     * 创建消息事件监听器Bean
+     *
+     * @param messageProperties 消息配置属性，包含Kafka相关的配置信息
+     * @param kafkaTemplate     Kafka消息模板，用于发送和接收Kafka消息
+     * @return 返回配置好的Kafka消息事件监听器实例
      */
-    @AutoConfiguration
-    @ConditionalOnClass(KafkaTemplate.class)
-    public static class MessageKafkaConfig {
-
-        /**
-         * Kafka消息发送器
-         *
-         * @param messageProperties 消息配置
-         * @param kafkaTemplate     kafka模板
-         * @return Kafka消息发送器
-         */
-        @Bean
-        public KafkaMessageSender kafkaMessageSender(MessageProperties messageProperties, KafkaTemplate<String, Object> kafkaTemplate) {
-            return new KafkaMessageSender(messageProperties, kafkaTemplate);
-        }
-
-        /**
-         * 消息事件监听器
-         *
-         * @param kafkaMessageSender Kafka消息发送器
-         * @return 消息事件监听器
-         */
-        @Bean
-        public IMessageEventListener messageEventListener(KafkaMessageSender kafkaMessageSender) {
-            return new KafkaMessageEventListener(kafkaMessageSender);
-        }
+    @Bean
+    public IMessageEventListener messageEventListener(MessageProperties messageProperties, KafkaTemplate<String, Object> kafkaTemplate) {
+        return new KafkaMessageEventListener(messageProperties, kafkaTemplate);
     }
+
 }

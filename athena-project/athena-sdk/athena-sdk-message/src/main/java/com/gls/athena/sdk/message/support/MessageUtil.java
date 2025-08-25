@@ -1,6 +1,5 @@
 package com.gls.athena.sdk.message.support;
 
-import com.gls.athena.sdk.message.builder.MessageBuilder;
 import com.gls.athena.sdk.message.domain.MessageDto;
 import lombok.experimental.UtilityClass;
 
