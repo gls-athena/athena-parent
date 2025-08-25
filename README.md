@@ -110,6 +110,7 @@ athena-parent/
 在你的项目根目录 `pom.xml` 中引入 Athena BOM：
 
 ```xml
+
 <dependencyManagement>
     <dependencies>
         <!-- Athena BOM 依赖管理 -->
@@ -120,7 +121,7 @@ athena-parent/
             <type>pom</type>
             <scope>import</scope>
         </dependency>
-        
+
         <!-- Spring Cloud 依赖管理 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -138,13 +139,14 @@ athena-parent/
 #### 1. Web 应用快速启动
 
 ```xml
+
 <dependencies>
     <!-- Web 应用启动器 -->
     <dependency>
         <groupId>io.github.gls-athena.starter.web</groupId>
         <artifactId>athena-starter-web</artifactId>
     </dependency>
-    
+
     <!-- 通用核心组件 -->
     <dependency>
         <groupId>io.github.gls-athena.common.core</groupId>
@@ -156,13 +158,14 @@ athena-parent/
 #### 2. 云原生应用
 
 ```xml
+
 <dependencies>
     <!-- 云原生启动器 -->
     <dependency>
         <groupId>io.github.gls-athena.cloud.boot</groupId>
         <artifactId>athena-cloud-boot</artifactId>
     </dependency>
-    
+
     <!-- 服务发现 -->
     <dependency>
         <groupId>org.springframework.cloud</groupId>
@@ -174,6 +177,7 @@ athena-parent/
 #### 3. gRPC 服务
 
 ```xml
+
 <dependencies>
     <!-- gRPC 启动器 -->
     <dependency>
@@ -190,6 +194,7 @@ athena-parent/
 #### 微信服务集成
 
 ```xml
+
 <dependency>
     <groupId>io.github.gls-athena.sdk.wechat</groupId>
     <artifactId>athena-sdk-wechat</artifactId>
@@ -212,6 +217,7 @@ athena:
 #### 高德地图集成
 
 ```xml
+
 <dependency>
     <groupId>io.github.gls-athena.sdk.amap</groupId>
     <artifactId>athena-sdk-amap</artifactId>
@@ -229,6 +235,7 @@ athena:
 #### 飞书集成
 
 ```xml
+
 <dependency>
     <groupId>io.github.gls-athena.sdk.feishu</groupId>
     <artifactId>athena-sdk-feishu</artifactId>
@@ -240,6 +247,7 @@ athena:
 #### Redis 配置
 
 ```xml
+
 <dependency>
     <groupId>io.github.gls-athena.starter.data.redis</groupId>
     <artifactId>athena-starter-data-redis</artifactId>
@@ -263,6 +271,7 @@ athena:
 #### 数据库配置
 
 ```xml
+
 <dependency>
     <groupId>io.github.gls-athena.starter.data.mybatis</groupId>
     <artifactId>athena-starter-data-mybatis</artifactId>
@@ -272,6 +281,7 @@ athena:
 ### GraphQL 配置
 
 ```xml
+
 <dependency>
     <groupId>io.github.gls-athena.starter.graphql</groupId>
     <artifactId>athena-starter-graphql</artifactId>
@@ -279,15 +289,16 @@ athena:
 ```
 
 ```java
+
 @DgsComponent
 public class BookDataFetcher {
-    
+
     @DgsQuery
     public List<Book> books(@InputArgument String titleFilter) {
         // 查询逻辑
         return bookService.findByTitle(titleFilter);
     }
-    
+
     @DgsMutation
     public Book addBook(@InputArgument BookInput book) {
         // 添加书籍逻辑
@@ -299,6 +310,7 @@ public class BookDataFetcher {
 ### 消息队列集成
 
 ```xml
+
 <dependency>
     <groupId>io.github.gls-athena.starter.mq</groupId>
     <artifactId>athena-starter-mq</artifactId>
@@ -306,9 +318,10 @@ public class BookDataFetcher {
 ```
 
 ```java
+
 @Component
 public class OrderEventListener {
-    
+
     @EventListener
     public void handleOrderCreated(OrderCreatedEvent event) {
         // 处理订单创建事件
@@ -322,11 +335,12 @@ public class OrderEventListener {
 ### 自定义 Starter
 
 ```java
+
 @Configuration
 @ConditionalOnProperty(prefix = "athena.custom", name = "enabled", havingValue = "true")
 @EnableConfigurationProperties(CustomProperties.class)
 public class CustomAutoConfiguration {
-    
+
     @Bean
     @ConditionalOnMissingBean
     public CustomService customService(CustomProperties properties) {
@@ -381,15 +395,16 @@ message GetUserResponse {
 ```
 
 ```java
+
 @GrpcService
 public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
-    
+
     @Override
     public void getUser(GetUserRequest request, StreamObserver<GetUserResponse> responseObserver) {
         User user = userService.findById(request.getUserId());
         GetUserResponse response = GetUserResponse.newBuilder()
-            .setUser(user)
-            .build();
+                .setUser(user)
+                .build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
@@ -422,7 +437,7 @@ your-project/
 # 环境变量配置
 athena:
   profile: ${ATHENA_PROFILE:dev}
-  
+
 # 功能开关
 features:
   graphql: ${ENABLE_GRAPHQL:true}
@@ -508,13 +523,13 @@ spec:
         app: athena-app
     spec:
       containers:
-      - name: athena-app
-        image: your-registry/athena-app:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: SPRING_PROFILES_ACTIVE
-          value: "k8s"
+        - name: athena-app
+          image: your-registry/athena-app:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
 ```
 
 ## 🤝 贡献指南
