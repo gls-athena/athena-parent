@@ -37,8 +37,6 @@ public class JasperConfig {
     /**
      * 在Bean初始化完成后执行的方法
      * 该方法将JasperResponseHandler添加到返回值处理器列表中
-     *
-     * @return 无返回值
      */
     @PostConstruct
     public void init() {
