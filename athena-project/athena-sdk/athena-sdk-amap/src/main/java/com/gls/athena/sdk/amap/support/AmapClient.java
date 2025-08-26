@@ -52,6 +52,7 @@ public class AmapClient {
      * 天气查询服务 - 获取天气信息
      */
     private final WeatherFeign weather;
+
     /**
      * 地点服务 - 提供地点搜索、周边搜索等功能
      */
