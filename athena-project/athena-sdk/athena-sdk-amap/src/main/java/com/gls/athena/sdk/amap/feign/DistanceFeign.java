@@ -1,5 +1,6 @@
 package com.gls.athena.sdk.amap.feign;
 
+import com.gls.athena.sdk.amap.config.AmapFeignConfig;
 import com.gls.athena.sdk.amap.domain.v3.DistanceV3Request;
 import com.gls.athena.sdk.amap.domain.v3.DistanceV3Response;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "athena-sdk-amap", contextId = "distance", path = "/distance")
+@FeignClient(name = "athena-sdk-amap", contextId = "distance", path = "/distance", configuration = AmapFeignConfig.class)
 public interface DistanceFeign {
 
     /**

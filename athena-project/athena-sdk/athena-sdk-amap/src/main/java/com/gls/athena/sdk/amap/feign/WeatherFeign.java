@@ -1,5 +1,6 @@
 package com.gls.athena.sdk.amap.feign;
 
+import com.gls.athena.sdk.amap.config.AmapFeignConfig;
 import com.gls.athena.sdk.amap.domain.v3.WeatherV3Request;
 import com.gls.athena.sdk.amap.domain.v3.WeatherV3Response;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "athena-sdk-amap", contextId = "weather", path = "/weather")
+@FeignClient(name = "athena-sdk-amap", contextId = "weather", path = "/weather", configuration = AmapFeignConfig.class)
 public interface WeatherFeign {
     /**
      * 天气查询
