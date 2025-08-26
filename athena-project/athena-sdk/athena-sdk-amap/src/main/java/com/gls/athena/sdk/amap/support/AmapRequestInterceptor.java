@@ -148,16 +148,18 @@ public record AmapRequestInterceptor(AmapProperties properties) implements Reque
      * @param template Feign请求模板，包含请求的查询参数等信息
      */
     private void setSig(RequestTemplate template) {
-        // 检查privateKey是否存在且不为空
-        Optional.ofNullable(properties.getPrivateKey())
-                .filter(StrUtil::isNotBlank)
-                // 根据查询参数和privateKey生成签名
-                .map(privateKey -> getSig(template.queries(), privateKey))
-                // 如果签名生成成功，将其添加到请求的查询参数中
-                .ifPresent(sig -> {
-                    log.debug("AmapRequestInterceptor sig: {}", sig);
-                    template.query("sig", sig);
-                });
+        // 获取私钥配置
+        String privateKey = properties.getPrivateKey();
+        // 只有当私钥不为空时才进行签名处理
+        if (StrUtil.isNotBlank(privateKey)) {
+            // 生成签名
+            String sig = getSig(template.queries(), privateKey);
+            // 将生成的签名添加到查询参数中
+            if (sig != null) {
+                log.debug("AmapRequestInterceptor sig: {}", sig);
+                template.query("sig", sig);
+            }
+        }
     }
 
     /**
