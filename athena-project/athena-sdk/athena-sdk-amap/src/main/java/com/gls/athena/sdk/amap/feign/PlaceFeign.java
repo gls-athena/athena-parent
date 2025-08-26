@@ -1,5 +1,6 @@
 package com.gls.athena.sdk.amap.feign;
 
+import com.gls.athena.sdk.amap.config.AmapFeignConfig;
 import com.gls.athena.sdk.amap.domain.v3.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "athena-sdk-amap", contextId = "place", path = "/place")
+@FeignClient(name = "athena-sdk-amap", contextId = "place", path = "/place", configuration = AmapFeignConfig.class)
 public interface PlaceFeign {
 
     /**

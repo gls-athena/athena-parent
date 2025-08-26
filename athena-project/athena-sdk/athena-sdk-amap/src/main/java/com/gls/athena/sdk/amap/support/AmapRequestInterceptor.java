@@ -5,7 +5,6 @@ import cn.hutool.crypto.SecureUtil;
 import com.gls.athena.sdk.amap.config.AmapProperties;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -21,21 +20,16 @@ import java.util.stream.Collectors;
  * 高德地图API请求拦截器
  * 用于处理请求参数的预处理，包括添加密钥、数字签名等安全认证信息
  *
+ * @param properties 高德地图API配置属性
+ *                   包含key、privateKey、host等配置信息
  * @author george
  */
 @Slf4j
-@RequiredArgsConstructor
-public class AmapRequestInterceptor implements RequestInterceptor {
+public record AmapRequestInterceptor(AmapProperties properties) implements RequestInterceptor {
     /**
      * 默认API版本
      */
     private static final String DEFAULT_VERSION = "v3";
-
-    /**
-     * 高德地图API配置属性
-     * 包含key、privateKey、host等配置信息
-     */
-    private final AmapProperties properties;
 
     /**
      * 拦截并处理请求
@@ -154,16 +148,18 @@ public class AmapRequestInterceptor implements RequestInterceptor {
      * @param template Feign请求模板，包含请求的查询参数等信息
      */
     private void setSig(RequestTemplate template) {
-        // 检查privateKey是否存在且不为空
-        Optional.ofNullable(properties.getPrivateKey())
-                .filter(StrUtil::isNotBlank)
-                // 根据查询参数和privateKey生成签名
-                .map(privateKey -> getSig(template.queries(), privateKey))
-                // 如果签名生成成功，将其添加到请求的查询参数中
-                .ifPresent(sig -> {
-                    log.debug("AmapRequestInterceptor sig: {}", sig);
-                    template.query("sig", sig);
-                });
+        // 获取私钥配置
+        String privateKey = properties.getPrivateKey();
+        // 只有当私钥不为空时才进行签名处理
+        if (StrUtil.isNotBlank(privateKey)) {
+            // 生成签名
+            String sig = getSig(template.queries(), privateKey);
+            // 将生成的签名添加到查询参数中
+            if (sig != null) {
+                log.debug("AmapRequestInterceptor sig: {}", sig);
+                template.query("sig", sig);
+            }
+        }
     }
 
     /**

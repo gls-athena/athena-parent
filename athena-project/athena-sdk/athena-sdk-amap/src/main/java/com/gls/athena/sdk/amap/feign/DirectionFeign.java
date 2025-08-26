@@ -1,5 +1,6 @@
 package com.gls.athena.sdk.amap.feign;
 
+import com.gls.athena.sdk.amap.config.AmapFeignConfig;
 import com.gls.athena.sdk.amap.domain.v3.*;
 import com.gls.athena.sdk.amap.domain.v4.BicyclingV4Request;
 import com.gls.athena.sdk.amap.domain.v4.BicyclingV4Response;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author george
  */
-@FeignClient(name = "athena-sdk-amap", contextId = "direction", path = "/direction")
+@FeignClient(name = "athena-sdk-amap", contextId = "direction", path = "/direction", configuration = AmapFeignConfig.class)
 public interface DirectionFeign {
 
     /**

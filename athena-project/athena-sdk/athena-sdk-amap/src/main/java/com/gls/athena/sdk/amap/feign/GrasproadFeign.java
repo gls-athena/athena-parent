@@ -1,5 +1,6 @@
 package com.gls.athena.sdk.amap.feign;
 
+import com.gls.athena.sdk.amap.config.AmapFeignConfig;
 import com.gls.athena.sdk.amap.domain.v4.DrivingV4Request;
 import com.gls.athena.sdk.amap.domain.v4.DrivingV4Response;
 import com.gls.athena.sdk.amap.support.AmapVersion;
@@ -16,7 +17,7 @@ import java.util.List;
  * @author george
  * @since 1.0.0
  */
-@FeignClient(name = "athena-sdk-amap", contextId = "grasproad", path = "/grasproad")
+@FeignClient(name = "athena-sdk-amap", contextId = "grasproad", path = "/grasproad", configuration = AmapFeignConfig.class)
 public interface GrasproadFeign {
 
     /**

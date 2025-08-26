@@ -1,6 +1,5 @@
 package com.gls.athena.sdk.amap;
 
-import com.gls.athena.sdk.amap.config.AmapFeignConfig;
 import com.gls.athena.sdk.amap.config.AmapProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -15,6 +14,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan
 @EnableConfigurationProperties(AmapProperties.class)
-@EnableFeignClients(basePackages = "com.gls.athena.sdk.amap.feign", defaultConfiguration = AmapFeignConfig.class)
+@EnableFeignClients
 public class AmapAutoConfig {
 }
