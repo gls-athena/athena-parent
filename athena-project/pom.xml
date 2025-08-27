@@ -68,6 +68,8 @@
         <spring-cloud-alibaba.version>2023.0.3.3</spring-cloud-alibaba.version>
         <spring-ai-alibaba.version>1.0.0.2</spring-ai-alibaba.version>
         <commons-io.version>2.19.0</commons-io.version>
+        <jasperreports.version>7.0.3</jasperreports.version>
+        <oapi-sdk.version>2.0.0</oapi-sdk.version>
     </properties>
 
     <!-- 直接依赖项，这些依赖将被所有子模块共享 -->
@@ -320,6 +322,16 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sf.jasperreports</groupId>
+                <artifactId>jasperreports</artifactId>
+                <version>${jasperreports.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.larksuite.oapi</groupId>
+                <artifactId>oapi-sdk</artifactId>
+                <version>${oapi-sdk.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
