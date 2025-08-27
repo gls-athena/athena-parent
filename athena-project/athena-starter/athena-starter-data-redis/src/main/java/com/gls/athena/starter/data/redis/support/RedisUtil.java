@@ -301,7 +301,6 @@ public class RedisUtil {
      *
      * @param cacheName 缓存名称
      * @param key       缓存键
-     * @return 删除是否成功
      */
     public void deleteCacheValue(String cacheName, String key) {
         getRedisTemplate().delete(getCacheKey(cacheName, key));
@@ -343,7 +342,7 @@ public class RedisUtil {
                     // 分批删除，每批100个键
                     if (batch.size() >= 100) {
                         Long deleted = getRedisTemplate().delete(batch);
-                        deletedCount.addAndGet(deleted != null ? deleted : 0);
+                        deletedCount.addAndGet(deleted);
                         batch.clear();
                     }
                 }
@@ -351,7 +350,7 @@ public class RedisUtil {
                 // 删除剩余的键
                 if (!batch.isEmpty()) {
                     Long deleted = getRedisTemplate().delete(batch);
-                    deletedCount.addAndGet(deleted != null ? deleted : 0);
+                    deletedCount.addAndGet(deleted);
                 }
             } catch (Exception e) {
                 log.error("Failed to delete cache by pattern: {}", pattern, e);
@@ -396,7 +395,6 @@ public class RedisUtil {
      * @param leaseTime 锁的租期时间（自动释放时间）
      * @param timeUnit  时间单位
      * @return true 表示在指定时间内获取到锁，false 表示超时未获取到锁
-     * @throws InterruptedException 如果等待过程中线程被中断
      */
     public boolean getLock(String lockName, String key, long waitTime, long leaseTime, TimeUnit timeUnit) {
         try {
