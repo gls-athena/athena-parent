@@ -34,7 +34,7 @@
         <!-- FastExcel核心库，用于Excel处理 -->
         <dependency>
             <groupId>cn.idev.excel</groupId>
-            <artifactId>fastexcel-core</artifactId>
+            <artifactId>fastexcel</artifactId>
         </dependency>
 
         <!-- Swagger注解库，用于API文档生成 -->

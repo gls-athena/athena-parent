@@ -1,11 +1,11 @@
 package com.gls.athena.starter.pdf.util;
 
 import cn.hutool.core.util.StrUtil;
-import com.lowagie.text.pdf.BaseFont;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.openpdf.pdf.ITextFontResolver;
 import org.openpdf.pdf.ITextRenderer;
+import org.openpdf.text.pdf.BaseFont;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 

@@ -13,7 +13,8 @@ import org.springframework.kafka.core.KafkaTemplate;
  * @author george
  */
 @Slf4j
-public record KafkaMessageEventListener(MessageProperties messageProperties, KafkaTemplate<String, Object> kafkaTemplate) implements IMessageEventListener {
+public record KafkaMessageEventListener(MessageProperties messageProperties,
+                                        KafkaTemplate<String, Object> kafkaTemplate) implements IMessageEventListener {
 
     @Override
     public void onMessageEvent(MessageDto messageDto) {
