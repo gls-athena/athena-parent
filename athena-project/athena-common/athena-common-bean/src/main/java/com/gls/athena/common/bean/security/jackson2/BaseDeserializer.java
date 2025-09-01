@@ -17,7 +17,7 @@ import java.util.Optional;
  * <p>
  * 该抽象类实现了通用字段的自动解析，包括：
  * <ul>
- *   <li>基础字段：id、tenantId、version、deleted</li>
+ *   <li>基础字段：id、tenantId、version、isDelete</li>
  *   <li>审计字段：createUserId、createUserName、createTime、updateUserId、updateUserName、updateTime</li>
  * </ul>
  *
@@ -45,7 +45,7 @@ public abstract class BaseDeserializer<T extends BaseVo> extends JsonDeserialize
         Optional.ofNullable(node.get("id")).map(JsonNode::asLong).ifPresent(baseVo::setId);
         Optional.ofNullable(node.get("tenantId")).map(JsonNode::asLong).ifPresent(baseVo::setTenantId);
         Optional.ofNullable(node.get("version")).map(JsonNode::asInt).ifPresent(baseVo::setVersion);
-        Optional.ofNullable(node.get("deleted")).map(JsonNode::asBoolean).ifPresent(baseVo::setDeleted);
+        Optional.ofNullable(node.get("isDelete")).map(JsonNode::asBoolean).ifPresent(baseVo::setIsDelete);
 
         // 解析创建相关审计字段
         Optional.ofNullable(node.get("createUserId")).map(JsonNode::asLong).ifPresent(baseVo::setCreateUserId);

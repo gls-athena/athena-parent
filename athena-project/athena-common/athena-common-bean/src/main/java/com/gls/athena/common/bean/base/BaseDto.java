@@ -51,7 +51,7 @@ public abstract class BaseDto implements Serializable, IDomain {
      * 逻辑删除标记
      */
     @Schema(title = "删除标记", description = "逻辑删除标记", example = "false")
-    private Boolean deleted;
+    private Boolean isDelete;
 
     /**
      * 创建时间

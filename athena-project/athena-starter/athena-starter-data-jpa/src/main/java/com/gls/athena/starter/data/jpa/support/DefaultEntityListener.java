@@ -50,7 +50,7 @@ public class DefaultEntityListener {
 
         // 设置审计字段
         entity.setTenantId(tenantId);
-        entity.setDeleted(false);
+        entity.setIsDelete(false);
         entity.setCreateUserId(userId);
         entity.setCreateUserName(userRealName);
         entity.setCreateTime(now);

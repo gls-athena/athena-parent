@@ -34,7 +34,7 @@ public class BaseEntityHandler implements MetaObjectHandler {
         Date now = new Date();
 
         // 严格插入填充
-        this.strictInsertFill(metaObject, "deleted", Boolean.class, false);
+        this.strictInsertFill(metaObject, "isDelete", Boolean.class, false);
         this.strictInsertFill(metaObject, "createUserId", Long.class, userId);
         this.strictInsertFill(metaObject, "createUserName", String.class, userName);
         this.strictInsertFill(metaObject, "createTime", Date.class, now);

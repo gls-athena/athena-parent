@@ -62,7 +62,7 @@ public abstract class BaseVo implements IDomain {
      */
     @ExcelProperty(value = "删除标记")
     @Schema(title = "删除标记", description = "逻辑删除标记（true:已删除，false:正常）", example = "false")
-    private Boolean deleted;
+    private Boolean isDelete;
 
     /**
      * 创建人ID
