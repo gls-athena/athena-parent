@@ -55,7 +55,7 @@ public abstract class BaseEntity implements IDomain {
      * 删除标记(false:正常;true:已删除)
      */
     @Comment("删除标记(false:正常;true:已删除)")
-    private Boolean deleted;
+    private Boolean isDelete;
 
     /**
      * 创建人ID

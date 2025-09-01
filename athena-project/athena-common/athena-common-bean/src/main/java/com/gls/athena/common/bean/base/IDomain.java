@@ -59,14 +59,14 @@ public interface IDomain {
      *
      * @return true: 已删除; false: 正常
      */
-    Boolean getDeleted();
+    Boolean getIsDelete();
 
     /**
      * 设置逻辑删除标记
      *
-     * @param deleted true: 标记为已删除; false: 标记为正常
+     * @param isDelete true: 标记为已删除; false: 标记为正常
      */
-    void setDeleted(Boolean deleted);
+    void setIsDelete(Boolean isDelete);
 
     /**
      * 获取创建用户ID
