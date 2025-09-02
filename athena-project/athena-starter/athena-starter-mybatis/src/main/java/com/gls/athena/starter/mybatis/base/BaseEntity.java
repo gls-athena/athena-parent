@@ -17,7 +17,7 @@ public abstract class BaseEntity implements IDomain {
     public static final String COL_ID = "id";
     public static final String COL_TENANT_ID = "tenant_id";
     public static final String COL_VERSION = "version";
-    public static final String COL_IS_DELETED = "is_delete";
+    public static final String COL_IS_DELETE = "is_delete";
     public static final String COL_CREATE_USER_ID = "create_user_id";
     public static final String COL_CREATE_USER_NAME = "create_user_name";
     public static final String COL_CREATE_TIME = "create_time";
