@@ -327,8 +327,9 @@ public class RedisUtil {
         validateParameters(cacheName, "cacheName");
 
         String pattern = getCacheKey(cacheName, "*");
-        AtomicLong deletedCount = new AtomicLong(0);
+        AtomicLong deleteCount = new AtomicLong(0);
 
+        // 使用Redis的SCAN命令分批扫描匹配的键并删除
         getRedisTemplate().execute((RedisCallback<Void>) connection -> {
             try (Cursor<byte[]> cursor = connection.keyCommands().scan(ScanOptions.scanOptions()
                     .match(pattern)
@@ -342,7 +343,7 @@ public class RedisUtil {
                     // 分批删除，每批100个键
                     if (batch.size() >= 100) {
                         Long deleted = getRedisTemplate().delete(batch);
-                        deletedCount.addAndGet(deleted);
+                        deleteCount.addAndGet(deleted);
                         batch.clear();
                     }
                 }
@@ -350,7 +351,7 @@ public class RedisUtil {
                 // 删除剩余的键
                 if (!batch.isEmpty()) {
                     Long deleted = getRedisTemplate().delete(batch);
-                    deletedCount.addAndGet(deleted);
+                    deleteCount.addAndGet(deleted);
                 }
             } catch (Exception e) {
                 log.error("Failed to delete cache by pattern: {}", pattern, e);
@@ -358,7 +359,7 @@ public class RedisUtil {
             return null;
         });
 
-        return deletedCount.get();
+        return deleteCount.get();
     }
 
     // ========== 分布式锁相关方法 ==========
