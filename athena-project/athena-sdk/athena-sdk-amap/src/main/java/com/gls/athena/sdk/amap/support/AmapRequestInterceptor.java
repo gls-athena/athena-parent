@@ -5,6 +5,7 @@ import cn.hutool.crypto.SecureUtil;
 import com.gls.athena.sdk.amap.config.AmapProperties;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -20,16 +21,17 @@ import java.util.stream.Collectors;
  * 高德地图API请求拦截器
  * 用于处理请求参数的预处理，包括添加密钥、数字签名等安全认证信息
  *
- * @param properties 高德地图API配置属性
- *                   包含key、privateKey、host等配置信息
  * @author george
  */
 @Slf4j
-public record AmapRequestInterceptor(AmapProperties properties) implements RequestInterceptor {
+@RequiredArgsConstructor
+public class AmapRequestInterceptor implements RequestInterceptor {
+
     /**
      * 默认API版本
      */
     private static final String DEFAULT_VERSION = "v3";
+    private final AmapProperties properties;
 
     /**
      * 拦截并处理请求

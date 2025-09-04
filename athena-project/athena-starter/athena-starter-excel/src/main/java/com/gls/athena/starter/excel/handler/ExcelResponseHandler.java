@@ -3,6 +3,7 @@ package com.gls.athena.starter.excel.handler;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
 import com.gls.athena.starter.web.util.WebUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.NonNull;
@@ -17,11 +18,13 @@ import java.util.Optional;
 /**
  * Excel响应处理器，用于处理带有@ExcelResponse注解的方法返回值
  *
- * @param generatorManager Excel生成管理器，用于生成Excel文件
  * @author george
  */
 @Slf4j
-public record ExcelResponseHandler(ExcelGeneratorManager generatorManager) implements HandlerMethodReturnValueHandler {
+@RequiredArgsConstructor
+public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
+
+    private final ExcelGeneratorManager generatorManager;
 
     /**
      * 判断处理器是否支持处理该返回类型

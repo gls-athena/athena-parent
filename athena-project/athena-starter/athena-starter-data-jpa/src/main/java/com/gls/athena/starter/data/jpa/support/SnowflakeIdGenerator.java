@@ -1,6 +1,7 @@
 package com.gls.athena.starter.data.jpa.support;
 
 import cn.hutool.core.util.IdUtil;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
@@ -10,12 +11,14 @@ import org.hibernate.id.IdentifierGenerator;
  * 基于Snowflake算法的分布式唯一ID生成器，用于Hibernate实体的主键生成。
  * 支持通过workerId和datacenterId配置来确保分布式环境下的ID唯一性。
  *
- * @param snowflakeId Snowflake配置信息
  * @author george
  * @see IdentifierGenerator
  * @see SnowflakeId
  */
-public record SnowflakeIdGenerator(SnowflakeId snowflakeId) implements IdentifierGenerator {
+@RequiredArgsConstructor
+public class SnowflakeIdGenerator implements IdentifierGenerator {
+
+    private final SnowflakeId snowflakeId;
 
     /**
      * 生成唯一标识符
