@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.extra.servlet.JakartaServletUtil;
 import cn.hutool.json.JSONUtil;
+import com.gls.athena.common.bean.result.Result;
 import com.gls.athena.starter.web.enums.FileEnums;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -253,7 +254,36 @@ public class WebUtil {
         return file;
     }
 
+    /**
+     * 获取当前HTTP请求的会话对象
+     *
+     * @return Optional包装的HttpSession对象，如果请求不存在则返回空的Optional
+     */
     public Optional<HttpSession> getSession() {
+        // 从请求中获取会话对象，如果请求存在则返回对应的会话，否则返回空的Optional
         return getRequest().map(HttpServletRequest::getSession);
     }
+
+    /**
+     * 将Result对象转换为JSON格式并写入HTTP响应
+     *
+     * @param webRequest 包含HTTP响应对象的NativeWebRequest
+     * @param result     需要转换为JSON并返回的Result对象
+     */
+    public void writeJson(NativeWebRequest webRequest, Result<?> result) {
+        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+        if (response == null) {
+            throw new IllegalArgumentException("HttpServletResponse获取失败");
+        }
+        // 设置响应内容类型为JSON格式
+        response.setContentType("application/json;charset=UTF-8");
+        try (OutputStream outputStream = response.getOutputStream()) {
+            // 将Result对象转换为JSON字符串并写入输出流
+            outputStream.write(JSONUtil.toJsonStr(result).getBytes(StandardCharsets.UTF_8));
+            outputStream.flush();
+        } catch (IOException e) {
+            throw new RuntimeException("写入JSON响应失败", e);
+        }
+    }
+
 }
