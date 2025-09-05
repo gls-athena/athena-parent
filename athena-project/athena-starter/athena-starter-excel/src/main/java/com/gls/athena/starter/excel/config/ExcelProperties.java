@@ -17,4 +17,102 @@ public class ExcelProperties extends BaseProperties {
      * 模板路径
      */
     private String templatePath = "classpath:/templates/excel";
+
+    /**
+     * 异步导出文件存储目录
+     */
+    private String asyncExportDir = System.getProperty("java.io.tmpdir") + "/excel-exports";
+
+    /**
+     * 异步导出任务超时时间（分钟）
+     */
+    private Integer asyncTimeoutMinutes = 30;
+
+    /**
+     * 异步导出任务清理间隔（分钟）
+     */
+    private Integer taskCleanupIntervalMinutes = 60;
+
+    /**
+     * 异步导出文件保留天数
+     */
+    private Integer fileRetentionDays = 7;
+
+    /**
+     * 异步线程池配置
+     */
+    private AsyncThreadPool asyncThreadPool = new AsyncThreadPool();
+
+    /**
+     * 文件存储配置
+     */
+    private FileStorage fileStorage = new FileStorage();
+
+    /**
+     * 任务存储配置
+     */
+    private TaskStorage taskStorage = new TaskStorage();
+
+    @Data
+    public static class AsyncThreadPool {
+        /**
+         * 核心线程数
+         */
+        private Integer corePoolSize = 2;
+
+        /**
+         * 最大线程数
+         */
+        private Integer maxPoolSize = 10;
+
+        /**
+         * 队列容量
+         */
+        private Integer queueCapacity = 100;
+
+        /**
+         * 线程空闲时间（秒）
+         */
+        private Integer keepAliveSeconds = 60;
+
+        /**
+         * 线程名前缀
+         */
+        private String threadNamePrefix = "excel-async-";
+    }
+
+    @Data
+    public static class FileStorage {
+        /**
+         * 存储类型: local, oss, s3
+         */
+        private String type = "local";
+
+        /**
+         * OSS配置
+         */
+        private OssConfig oss = new OssConfig();
+
+        @Data
+        public static class OssConfig {
+            private String endpoint;
+            private String accessKeyId;
+            private String accessKeySecret;
+            private String bucketName;
+            private String objectPrefix = "excel-exports/";
+        }
+    }
+
+    @Data
+    public static class TaskStorage {
+        /**
+         * 存储类型: memory, database
+         */
+        private String type = "memory";
+
+        /**
+         * 数据库表名
+         */
+        private String tableName = "excel_async_task";
+    }
 }
