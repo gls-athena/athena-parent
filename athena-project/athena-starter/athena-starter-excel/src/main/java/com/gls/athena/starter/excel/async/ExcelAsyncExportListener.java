@@ -17,6 +17,8 @@ import java.io.OutputStream;
 
 /**
  * Excel异步导出事件监听器
+ * <p>
+ * 监听并处理Excel异步导出请求，负责任务状态管理、文件生成和进度更新。
  *
  * @author george
  */
@@ -35,8 +37,14 @@ public class ExcelAsyncExportListener {
 
     /**
      * 处理异步Excel导出请求
+     * <p>
+     * 接收一个异步导出请求，创建任务记录，并执行Excel文件的生成流程。包括：
+     * - 更新任务状态为处理中
+     * - 分阶段更新任务进度
+     * - 生成Excel文件到指定输出流
+     * - 验证文件是否生成成功并更新最终状态
      *
-     * @param request 异步导出请求，包含任务ID、数据、Excel响应配置等信息
+     * @param request 异步导出请求对象，包含任务ID、数据源、Excel响应配置等信息
      */
     @Async("excelAsyncExecutor")
     @EventListener
@@ -49,7 +57,7 @@ public class ExcelAsyncExportListener {
         excelTaskService.updateTaskStatus(taskId, TaskStatus.PROCESSING);
 
         try {
-            // 更新进度
+            // 更新进度至20%
             excelTaskService.updateTaskProgress(taskId, 20);
 
             // 获取文件输出流

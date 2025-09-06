@@ -28,8 +28,8 @@ import java.util.concurrent.Executor;
 /**
  * Excel自动配置类
  * <p>
- * 用于配置Excel相关的请求处理器和响应处理器
- * 自动注册到Spring MVC的处理链中
+ * 用于配置Excel相关的请求处理器和响应处理器，自动注册到Spring MVC的处理链中。
+ * 同时提供默认的服务实现、线程池配置以及初始化处理链扩展逻辑。
  * </p>
  *
  * @author george
@@ -46,12 +46,25 @@ public class ExcelConfig {
     @Resource
     private ExcelGeneratorManager excelGeneratorManager;
 
+    /**
+     * 提供默认的Excel任务服务实现（内存方式）
+     * 当容器中不存在ExcelTaskService类型的Bean时，创建并注册MemoryExcelTaskServiceImpl实例。
+     *
+     * @return ExcelTaskService 实例
+     */
     @Bean
     @ConditionalOnMissingBean(ExcelTaskService.class)
     public ExcelTaskService excelTaskService() {
         return new MemoryExcelTaskServiceImpl();
     }
 
+    /**
+     * 提供默认的Excel文件服务实现（本地存储方式）
+     * 当容器中不存在ExcelFileService类型的Bean时，根据配置属性创建LocalExcelFileServiceImpl实例。
+     *
+     * @param excelProperties Excel配置属性对象
+     * @return ExcelFileService 实例
+     */
     @Bean
     @ConditionalOnMissingBean(ExcelFileService.class)
     public ExcelFileService excelFileService(ExcelProperties excelProperties) {
@@ -61,8 +74,8 @@ public class ExcelConfig {
     /**
      * 配置Excel异步导出专用线程池
      *
-     * @param excelProperties Excel配置属性
-     * @return ��程池执行器
+     * @param excelProperties Excel配置属性，包含线程池相关参数
+     * @return Executor 线程池执行器
      */
     @Bean("excelAsyncExecutor")
     public Executor excelAsyncExecutor(ExcelProperties excelProperties) {

@@ -7,6 +7,10 @@ import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
+ * Excel配置属性类，用于读取和管理Excel相关的配置信息。
+ * 该类通过@ConfigurationProperties注解自动绑定application.yml中前缀为
+ * IConstants.BASE_PROPERTIES_PREFIX + ".excel"的配置项。
+ *
  * @author george
  */
 @Data
@@ -43,6 +47,9 @@ public class ExcelProperties extends BaseProperties {
      */
     private AsyncThreadPool asyncThreadPool = new AsyncThreadPool();
 
+    /**
+     * 异步线程池配置内部类，用于配置Excel异步处理任务的线程池参数
+     */
     @Data
     public static class AsyncThreadPool {
         /**

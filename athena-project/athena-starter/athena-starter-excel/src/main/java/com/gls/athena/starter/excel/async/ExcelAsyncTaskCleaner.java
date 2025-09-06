@@ -33,6 +33,11 @@ public class ExcelAsyncTaskCleaner {
     /**
      * 定时清理过期任务和文件
      * 每小时执行一次
+     * <p>
+     * 该方法会：
+     * 1. 查找并处理超时未完成的任务，将其状态更新为失败；
+     * 2. 查找并删除已过保留期的任务记录及其关联的文件。
+     * </p>
      */
     @Scheduled(fixedRateString = "#{${athena.excel.taskCleanupIntervalMinutes:60} * 60 * 1000}")
     public void cleanupExpiredTasks() {
@@ -41,7 +46,7 @@ public class ExcelAsyncTaskCleaner {
         int timeoutMinutes = excelProperties.getAsyncTimeoutMinutes();
         int retentionDays = excelProperties.getFileRetentionDays();
 
-        // 处理超时任务
+        // 处理超时任务：将超时未完成的任务标记为失败
         List<ExcelAsyncTask> expiredTasks = excelTaskService.getExpiredTasks(timeoutMinutes);
         if (!expiredTasks.isEmpty()) {
             List<String> expiredTaskIds = expiredTasks.stream()
@@ -50,21 +55,21 @@ public class ExcelAsyncTaskCleaner {
 
             excelTaskService.batchUpdateTaskStatus(expiredTaskIds, TaskStatus.FAILED);
 
-            // 更新错误信息
+            // 更新每个任务的错误信息
             expiredTasks.forEach(task ->
                     excelTaskService.failTask(task.getTaskId(), "任务处理超时"));
 
             log.warn("处理超时任务数量: {}", expiredTasks.size());
         }
 
-        // 清理过期任务和文件
+        // 清理过期任务和文件：删除超过保留天数的任务及对应文件
         List<ExcelAsyncTask> tasksToCleanup = excelTaskService.getTasksToCleanup(retentionDays);
 
         int cleanedTaskCount = 0;
         int cleanedFileCount = 0;
 
         for (ExcelAsyncTask task : tasksToCleanup) {
-            // 删除文件
+            // 删除任务对应的文件（如果存在）
             if (task.getFilePath() != null) {
                 boolean deleted = excelFileService.deleteFile(task.getFilePath());
                 if (deleted) {
@@ -75,7 +80,7 @@ public class ExcelAsyncTaskCleaner {
                 }
             }
 
-            // 删除任务
+            // 删除任务记录
             excelTaskService.removeTask(task.getTaskId());
             cleanedTaskCount++;
             log.info("清理过期任务: taskId={}, createTime={}",
