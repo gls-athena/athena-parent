@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
 public class ExcelAsyncTaskCleaner {
 
     @Resource
-    private ExcelTaskService taskService;
+    private ExcelTaskService excelTaskService;
     @Resource
-    private ExcelFileService fileService;
+    private ExcelFileService excelFileService;
     @Resource
     private ExcelProperties excelProperties;
 
@@ -42,23 +42,23 @@ public class ExcelAsyncTaskCleaner {
         int retentionDays = excelProperties.getFileRetentionDays();
 
         // 处理超时任务
-        List<ExcelAsyncTask> expiredTasks = taskService.getExpiredTasks(timeoutMinutes);
+        List<ExcelAsyncTask> expiredTasks = excelTaskService.getExpiredTasks(timeoutMinutes);
         if (!expiredTasks.isEmpty()) {
             List<String> expiredTaskIds = expiredTasks.stream()
                     .map(ExcelAsyncTask::getTaskId)
                     .collect(Collectors.toList());
 
-            taskService.batchUpdateTaskStatus(expiredTaskIds, TaskStatus.FAILED);
+            excelTaskService.batchUpdateTaskStatus(expiredTaskIds, TaskStatus.FAILED);
 
             // 更新错误信息
             expiredTasks.forEach(task ->
-                    taskService.failTask(task.getTaskId(), "任务处理超时"));
+                    excelTaskService.failTask(task.getTaskId(), "任务处理超时"));
 
             log.warn("处理超时任务数量: {}", expiredTasks.size());
         }
 
         // 清理过期任务和文件
-        List<ExcelAsyncTask> tasksToCleanup = taskService.getTasksToCleanup(retentionDays);
+        List<ExcelAsyncTask> tasksToCleanup = excelTaskService.getTasksToCleanup(retentionDays);
 
         int cleanedTaskCount = 0;
         int cleanedFileCount = 0;
@@ -66,7 +66,7 @@ public class ExcelAsyncTaskCleaner {
         for (ExcelAsyncTask task : tasksToCleanup) {
             // 删除文件
             if (task.getFilePath() != null) {
-                boolean deleted = fileService.deleteFile(task.getFilePath());
+                boolean deleted = excelFileService.deleteFile(task.getFilePath());
                 if (deleted) {
                     cleanedFileCount++;
                     log.info("清理过期文件: {}", task.getFilePath());
@@ -76,7 +76,7 @@ public class ExcelAsyncTaskCleaner {
             }
 
             // 删除任务
-            taskService.removeTask(task.getTaskId());
+            excelTaskService.removeTask(task.getTaskId());
             cleanedTaskCount++;
             log.info("清理过期任务: taskId={}, createTime={}",
                     task.getTaskId(), task.getCreateTime());

@@ -25,13 +25,13 @@ import java.io.OutputStream;
 public class ExcelAsyncExportListener {
 
     @Resource
-    private ExcelGeneratorManager generatorManager;
+    private ExcelGeneratorManager excelGeneratorManager;
 
     @Resource
-    private ExcelTaskService taskService;
+    private ExcelTaskService excelTaskService;
 
     @Resource
-    private ExcelFileService fileService;
+    private ExcelFileService excelFileService;
 
     /**
      * 处理异步Excel导出请求
@@ -45,36 +45,36 @@ public class ExcelAsyncExportListener {
         String filename = request.getExcelResponse().filename();
 
         // 创建任务并更新状态为处理中
-        ExcelAsyncTask task = taskService.createTask(taskId, filename, "Excel异步导出");
-        taskService.updateTaskStatus(taskId, TaskStatus.PROCESSING);
+        ExcelAsyncTask task = excelTaskService.createTask(taskId, filename, "Excel异步导出");
+        excelTaskService.updateTaskStatus(taskId, TaskStatus.PROCESSING);
 
         try {
             // 更新进度
-            taskService.updateTaskProgress(taskId, 20);
+            excelTaskService.updateTaskProgress(taskId, 20);
 
             // 获取文件输出流
-            FileOutputWrapper outputWrapper = fileService.getFileOutputStream(filename);
+            FileOutputWrapper outputWrapper = excelFileService.getFileOutputStream(filename);
             String filePath = outputWrapper.getFilePath();
 
-            taskService.updateTaskProgress(taskId, 50);
+            excelTaskService.updateTaskProgress(taskId, 50);
 
             // 生成Excel文件
             try (OutputStream outputStream = outputWrapper.getOutputStream()) {
-                generatorManager.generate(request.getData(), request.getExcelResponse(), outputStream);
-                taskService.updateTaskProgress(taskId, 90);
+                excelGeneratorManager.generate(request.getData(), request.getExcelResponse(), outputStream);
+                excelTaskService.updateTaskProgress(taskId, 90);
             }
 
             // 验证文件是否生成成功
-            if (fileService.fileExists(filePath) && fileService.getFileSize(filePath) > 0) {
-                taskService.completeTask(taskId, filePath);
+            if (excelFileService.fileExists(filePath) && excelFileService.getFileSize(filePath) > 0) {
+                excelTaskService.completeTask(taskId, filePath);
                 log.info("异步Excel导出完成: taskId={}, filePath={}", taskId, filePath);
             } else {
-                taskService.failTask(taskId, "文件生成失败或文件为空");
+                excelTaskService.failTask(taskId, "文件生成失败或文件为空");
             }
 
         } catch (Exception e) {
             log.error("异步Excel导出失败: taskId={}", taskId, e);
-            taskService.failTask(taskId, e.getMessage());
+            excelTaskService.failTask(taskId, e.getMessage());
         }
     }
 }

@@ -29,9 +29,9 @@ import java.util.Map;
 public class ExcelAsyncController {
 
     @Resource
-    private ExcelTaskService taskService;
+    private ExcelTaskService excelTaskService;
     @Resource
-    private ExcelFileService fileService;
+    private ExcelFileService excelFileService;
 
     /**
      * 查询任务状态
@@ -41,7 +41,7 @@ public class ExcelAsyncController {
      */
     @GetMapping("/task/{taskId}")
     public Result<ExcelAsyncTask> getTaskStatus(@PathVariable String taskId) {
-        ExcelAsyncTask task = taskService.getTask(taskId);
+        ExcelAsyncTask task = excelTaskService.getTask(taskId);
         if (task == null) {
             return Result.error("任务不存在");
         }
@@ -55,7 +55,7 @@ public class ExcelAsyncController {
      */
     @GetMapping("/tasks")
     public Result<Map<String, ExcelAsyncTask>> getAllTasks() {
-        return Result.success(taskService.getAllTasks());
+        return Result.success(excelTaskService.getAllTasks());
     }
 
     /**
@@ -67,7 +67,7 @@ public class ExcelAsyncController {
     @GetMapping("/download/{taskId}")
     public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String taskId) {
         // 获取任务信息
-        ExcelAsyncTask task = taskService.getTask(taskId);
+        ExcelAsyncTask task = excelTaskService.getTask(taskId);
 
         if (task == null) {
             return ResponseEntity.notFound().build();
@@ -84,17 +84,17 @@ public class ExcelAsyncController {
         }
 
         // 检查文件是否存在
-        if (!fileService.fileExists(filePath)) {
+        if (!excelFileService.fileExists(filePath)) {
             log.warn("文件不存在: {}", filePath);
             return ResponseEntity.notFound().build();
         }
 
         try {
             // 构造文件下载响应
-            InputStream inputStream = fileService.getFileInputStream(filePath);
+            InputStream inputStream = excelFileService.getFileInputStream(filePath);
             InputStreamResource resource = new InputStreamResource(inputStream);
             String encodedFilename = URLEncoder.encode(task.getFilename(), StandardCharsets.UTF_8);
-            long fileSize = fileService.getFileSize(filePath);
+            long fileSize = excelFileService.getFileSize(filePath);
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -118,7 +118,7 @@ public class ExcelAsyncController {
     @PostMapping("/cancel/{taskId}")
     public Result<String> cancelTask(@PathVariable String taskId) {
         // 获取任务信息
-        ExcelAsyncTask task = taskService.getTask(taskId);
+        ExcelAsyncTask task = excelTaskService.getTask(taskId);
         if (task == null) {
             return Result.error("任务不存在");
         }
@@ -131,7 +131,7 @@ public class ExcelAsyncController {
         }
 
         // 更新任务状态为已取消
-        taskService.updateTaskStatus(taskId, TaskStatus.CANCELLED);
+        excelTaskService.updateTaskStatus(taskId, TaskStatus.CANCELLED);
         return Result.success("任务已取消");
     }
 
@@ -143,20 +143,20 @@ public class ExcelAsyncController {
      */
     @DeleteMapping("/task/{taskId}")
     public Result<String> deleteTask(@PathVariable String taskId) {
-        ExcelAsyncTask task = taskService.getTask(taskId);
+        ExcelAsyncTask task = excelTaskService.getTask(taskId);
         if (task == null) {
             return Result.error("任务不存在");
         }
 
         // 删除文件（如果存在）
         if (task.getFilePath() != null) {
-            boolean deleted = fileService.deleteFile(task.getFilePath());
+            boolean deleted = excelFileService.deleteFile(task.getFilePath());
             if (!deleted) {
                 log.warn("删除文件失败: {}", task.getFilePath());
             }
         }
 
-        taskService.removeTask(taskId);
+        excelTaskService.removeTask(taskId);
         return Result.success("任务已删除");
     }
 
