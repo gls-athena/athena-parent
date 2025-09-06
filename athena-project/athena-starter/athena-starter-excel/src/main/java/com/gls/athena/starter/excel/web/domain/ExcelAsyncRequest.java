@@ -1,4 +1,4 @@
-package com.gls.athena.starter.excel.support;
+package com.gls.athena.starter.excel.web.domain;
 
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import lombok.Data;

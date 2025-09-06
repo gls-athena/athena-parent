@@ -1,6 +1,7 @@
-package com.gls.athena.starter.excel.service;
+package com.gls.athena.starter.excel.web.service;
 
-import com.gls.athena.starter.excel.support.ExcelAsyncTask;
+import com.gls.athena.starter.excel.web.domain.ExcelAsyncTask;
+import com.gls.athena.starter.excel.web.domain.TaskStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public interface ExcelTaskService {
      * @param taskId 任务ID
      * @param status 新状态
      */
-    void updateTaskStatus(String taskId, ExcelAsyncTask.TaskStatus status);
+    void updateTaskStatus(String taskId, TaskStatus status);
 
     /**
      * 更新任务进度
@@ -83,7 +84,7 @@ public interface ExcelTaskService {
      * @param status 任务状态
      * @return 任务列表
      */
-    List<ExcelAsyncTask> getTasksByStatus(ExcelAsyncTask.TaskStatus status);
+    List<ExcelAsyncTask> getTasksByStatus(TaskStatus status);
 
     /**
      * 获取过期任务列表
@@ -107,7 +108,7 @@ public interface ExcelTaskService {
      * @param taskIds 任务ID列表
      * @param status  新状态
      */
-    void batchUpdateTaskStatus(List<String> taskIds, ExcelAsyncTask.TaskStatus status);
+    void batchUpdateTaskStatus(List<String> taskIds, TaskStatus status);
 
     /**
      * 批量删除任务

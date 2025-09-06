@@ -1,7 +1,7 @@
 package com.gls.athena.starter.excel.listener;
 
 import cn.idev.excel.read.listener.ReadListener;
-import com.gls.athena.starter.excel.support.ExcelErrorMessage;
+import com.gls.athena.starter.excel.web.domain.ExcelErrorMessage;
 
 import java.util.List;
 

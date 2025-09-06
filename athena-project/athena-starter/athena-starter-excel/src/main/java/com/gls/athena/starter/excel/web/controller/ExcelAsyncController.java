@@ -1,13 +1,13 @@
-package com.gls.athena.starter.excel.controller;
+package com.gls.athena.starter.excel.web.controller;
 
 import com.gls.athena.common.bean.result.Result;
-import com.gls.athena.starter.excel.service.ExcelFileService;
-import com.gls.athena.starter.excel.service.ExcelTaskService;
-import com.gls.athena.starter.excel.support.ExcelAsyncTask;
-import lombok.RequiredArgsConstructor;
+import com.gls.athena.starter.excel.web.domain.ExcelAsyncTask;
+import com.gls.athena.starter.excel.web.domain.TaskStatus;
+import com.gls.athena.starter.excel.web.service.ExcelFileService;
+import com.gls.athena.starter.excel.web.service.ExcelTaskService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +26,12 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/excel/async")
-@RequiredArgsConstructor
 public class ExcelAsyncController {
 
-    private final ExcelTaskService taskService;
-    private final ExcelFileService fileService;
+    @Resource
+    private ExcelTaskService taskService;
+    @Resource
+    private ExcelFileService fileService;
 
     /**
      * 查询任务状态
@@ -64,14 +65,16 @@ public class ExcelAsyncController {
      * @return 文件下载响应
      */
     @GetMapping("/download/{taskId}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String taskId) {
+    public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String taskId) {
+        // 获取任务信息
         ExcelAsyncTask task = taskService.getTask(taskId);
 
         if (task == null) {
             return ResponseEntity.notFound().build();
         }
 
-        if (task.getStatus() != ExcelAsyncTask.TaskStatus.COMPLETED) {
+        // 检查任务状态是否为已完成
+        if (task.getStatus() != TaskStatus.COMPLETED) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -80,14 +83,16 @@ public class ExcelAsyncController {
             return ResponseEntity.notFound().build();
         }
 
+        // 检查文件是否存在
         if (!fileService.fileExists(filePath)) {
             log.warn("文件不存在: {}", filePath);
             return ResponseEntity.notFound().build();
         }
 
         try {
+            // 构造文件下载响应
             InputStream inputStream = fileService.getFileInputStream(filePath);
-            Resource resource = new InputStreamResource(inputStream);
+            InputStreamResource resource = new InputStreamResource(inputStream);
             String encodedFilename = URLEncoder.encode(task.getFilename(), StandardCharsets.UTF_8);
             long fileSize = fileService.getFileSize(filePath);
 
@@ -112,18 +117,21 @@ public class ExcelAsyncController {
      */
     @PostMapping("/cancel/{taskId}")
     public Result<String> cancelTask(@PathVariable String taskId) {
+        // 获取任务信息
         ExcelAsyncTask task = taskService.getTask(taskId);
         if (task == null) {
             return Result.error("任务不存在");
         }
 
-        if (task.getStatus() == ExcelAsyncTask.TaskStatus.COMPLETED ||
-                task.getStatus() == ExcelAsyncTask.TaskStatus.FAILED ||
-                task.getStatus() == ExcelAsyncTask.TaskStatus.CANCELLED) {
+        // 检查任务状态，只有未完成的任务才能取消
+        if (task.getStatus() == TaskStatus.COMPLETED ||
+                task.getStatus() == TaskStatus.FAILED ||
+                task.getStatus() == TaskStatus.CANCELLED) {
             return Result.error("任务已完成，无法取消");
         }
 
-        taskService.updateTaskStatus(taskId, ExcelAsyncTask.TaskStatus.CANCELLED);
+        // 更新任务状态为已取消
+        taskService.updateTaskStatus(taskId, TaskStatus.CANCELLED);
         return Result.success("任务已取消");
     }
 
@@ -151,4 +159,5 @@ public class ExcelAsyncController {
         taskService.removeTask(taskId);
         return Result.success("任务已删除");
     }
+
 }

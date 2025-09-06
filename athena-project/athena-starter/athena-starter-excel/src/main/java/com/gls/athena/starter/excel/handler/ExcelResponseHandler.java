@@ -5,7 +5,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.gls.athena.common.bean.result.Result;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
-import com.gls.athena.starter.excel.support.ExcelAsyncRequest;
+import com.gls.athena.starter.excel.web.domain.ExcelAsyncRequest;
 import com.gls.athena.starter.web.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

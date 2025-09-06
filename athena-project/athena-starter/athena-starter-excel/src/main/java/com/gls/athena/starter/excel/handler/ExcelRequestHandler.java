@@ -5,7 +5,7 @@ import cn.idev.excel.FastExcel;
 import com.gls.athena.starter.excel.annotation.ExcelRequest;
 import com.gls.athena.starter.excel.exception.ExcelParseException;
 import com.gls.athena.starter.excel.listener.IReadListener;
-import com.gls.athena.starter.excel.support.ExcelErrorMessage;
+import com.gls.athena.starter.excel.web.domain.ExcelErrorMessage;
 import com.gls.athena.starter.web.util.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

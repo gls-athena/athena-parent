@@ -1,11 +1,13 @@
-package com.gls.athena.starter.excel.listener;
+package com.gls.athena.starter.excel.async;
 
 import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
-import com.gls.athena.starter.excel.service.ExcelFileService;
-import com.gls.athena.starter.excel.service.ExcelTaskService;
-import com.gls.athena.starter.excel.support.ExcelAsyncRequest;
-import com.gls.athena.starter.excel.support.ExcelAsyncTask;
-import lombok.RequiredArgsConstructor;
+import com.gls.athena.starter.excel.web.domain.ExcelAsyncRequest;
+import com.gls.athena.starter.excel.web.domain.ExcelAsyncTask;
+import com.gls.athena.starter.excel.web.domain.FileOutputWrapper;
+import com.gls.athena.starter.excel.web.domain.TaskStatus;
+import com.gls.athena.starter.excel.web.service.ExcelFileService;
+import com.gls.athena.starter.excel.web.service.ExcelTaskService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -20,12 +22,16 @@ import java.io.OutputStream;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ExcelAsyncExportListener {
 
-    private final ExcelGeneratorManager generatorManager;
-    private final ExcelTaskService taskService;
-    private final ExcelFileService fileService;
+    @Resource
+    private ExcelGeneratorManager generatorManager;
+
+    @Resource
+    private ExcelTaskService taskService;
+
+    @Resource
+    private ExcelFileService fileService;
 
     /**
      * 处理异步Excel导出请求
@@ -40,20 +46,20 @@ public class ExcelAsyncExportListener {
 
         // 创建任务并更新状态为处理中
         ExcelAsyncTask task = taskService.createTask(taskId, filename, "Excel异步导出");
-        taskService.updateTaskStatus(taskId, ExcelAsyncTask.TaskStatus.PROCESSING);
+        taskService.updateTaskStatus(taskId, TaskStatus.PROCESSING);
 
         try {
             // 更新进度
             taskService.updateTaskProgress(taskId, 20);
 
             // 获取文件输出流
-            ExcelFileService.FileOutputWrapper outputWrapper = fileService.getFileOutputStream(filename);
-            String filePath = outputWrapper.filePath();
+            FileOutputWrapper outputWrapper = fileService.getFileOutputStream(filename);
+            String filePath = outputWrapper.getFilePath();
 
             taskService.updateTaskProgress(taskId, 50);
 
             // 生成Excel文件
-            try (OutputStream outputStream = outputWrapper.outputStream()) {
+            try (OutputStream outputStream = outputWrapper.getOutputStream()) {
                 generatorManager.generate(request.getData(), request.getExcelResponse(), outputStream);
                 taskService.updateTaskProgress(taskId, 90);
             }

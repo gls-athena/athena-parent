@@ -1,7 +1,8 @@
-package com.gls.athena.starter.excel.service.impl;
+package com.gls.athena.starter.excel.web.service.impl;
 
-import com.gls.athena.starter.excel.service.ExcelTaskService;
-import com.gls.athena.starter.excel.support.ExcelAsyncTask;
+import com.gls.athena.starter.excel.web.domain.ExcelAsyncTask;
+import com.gls.athena.starter.excel.web.domain.TaskStatus;
+import com.gls.athena.starter.excel.web.service.ExcelTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class MemoryExcelTaskServiceImpl implements ExcelTaskService {
                 .setTaskId(taskId)
                 .setFilename(filename)
                 .setDescription(description)
-                .setStatus(ExcelAsyncTask.TaskStatus.WAITING)
+                .setStatus(TaskStatus.WAITING)
                 .setCreateTime(LocalDateTime.now())
                 .setProgress(0);
 
@@ -71,16 +72,16 @@ public class MemoryExcelTaskServiceImpl implements ExcelTaskService {
      * @param status 新的任务状态
      */
     @Override
-    public void updateTaskStatus(String taskId, ExcelAsyncTask.TaskStatus status) {
+    public void updateTaskStatus(String taskId, TaskStatus status) {
         ExcelAsyncTask task = taskMap.get(taskId);
         if (task != null) {
             task.setStatus(status);
             // 根据任务状态设置相应的时间戳
-            if (status == ExcelAsyncTask.TaskStatus.PROCESSING) {
+            if (status == TaskStatus.PROCESSING) {
                 task.setStartTime(LocalDateTime.now());
-            } else if (status == ExcelAsyncTask.TaskStatus.COMPLETED ||
-                    status == ExcelAsyncTask.TaskStatus.FAILED ||
-                    status == ExcelAsyncTask.TaskStatus.CANCELLED) {
+            } else if (status == TaskStatus.COMPLETED ||
+                    status == TaskStatus.FAILED ||
+                    status == TaskStatus.CANCELLED) {
                 task.setFinishTime(LocalDateTime.now());
             }
             log.info("更新任务状态: {} -> {}", taskId, status.getDescription());
@@ -116,7 +117,7 @@ public class MemoryExcelTaskServiceImpl implements ExcelTaskService {
         ExcelAsyncTask task = taskMap.get(taskId);
         if (task != null) {
             // 更新任务状态为已完成，并设置相关属性
-            task.setStatus(ExcelAsyncTask.TaskStatus.COMPLETED)
+            task.setStatus(TaskStatus.COMPLETED)
                     .setFilePath(filePath)
                     .setProgress(100)
                     .setFinishTime(LocalDateTime.now());
@@ -135,7 +136,7 @@ public class MemoryExcelTaskServiceImpl implements ExcelTaskService {
         // 获取任务对象并更新任务状态为失败
         ExcelAsyncTask task = taskMap.get(taskId);
         if (task != null) {
-            task.setStatus(ExcelAsyncTask.TaskStatus.FAILED)
+            task.setStatus(TaskStatus.FAILED)
                     .setErrorMessage(errorMessage)
                     .setFinishTime(LocalDateTime.now());
             log.error("任务失败: {}, 错误信息: {}", taskId, errorMessage);
@@ -173,7 +174,7 @@ public class MemoryExcelTaskServiceImpl implements ExcelTaskService {
      * @return 返回符合指定状态的Excel异步任务列表
      */
     @Override
-    public List<ExcelAsyncTask> getTasksByStatus(ExcelAsyncTask.TaskStatus status) {
+    public List<ExcelAsyncTask> getTasksByStatus(TaskStatus status) {
         // 从任务映射中筛选出指定状态的任务并返回列表
         return taskMap.values().stream()
                 .filter(task -> task.getStatus() == status)
@@ -193,7 +194,7 @@ public class MemoryExcelTaskServiceImpl implements ExcelTaskService {
 
         // 筛选状态为PROCESSING且开始时间早于超时阈值的任务
         return taskMap.values().stream()
-                .filter(task -> task.getStatus() == ExcelAsyncTask.TaskStatus.PROCESSING)
+                .filter(task -> task.getStatus() == TaskStatus.PROCESSING)
                 .filter(task -> task.getStartTime() != null && task.getStartTime().isBefore(timeoutThreshold))
                 .collect(Collectors.toList());
     }
@@ -222,7 +223,7 @@ public class MemoryExcelTaskServiceImpl implements ExcelTaskService {
      * @param status  目标任务状态，将把指定任务更新为此状态
      */
     @Override
-    public void batchUpdateTaskStatus(List<String> taskIds, ExcelAsyncTask.TaskStatus status) {
+    public void batchUpdateTaskStatus(List<String> taskIds, TaskStatus status) {
         // 遍历任务ID列表，逐个更新任务状态
         taskIds.forEach(taskId -> updateTaskStatus(taskId, status));
     }

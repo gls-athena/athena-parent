@@ -1,7 +1,8 @@
-package com.gls.athena.starter.excel.service;
+package com.gls.athena.starter.excel.web.service;
+
+import com.gls.athena.starter.excel.web.domain.FileOutputWrapper;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * Excel文件管理服务接口
@@ -82,9 +83,4 @@ public interface ExcelFileService {
      */
     String getDownloadUrl(String filePath, long expireSeconds);
 
-    /**
-     * 文件输出流包装类
-     */
-    record FileOutputWrapper(OutputStream outputStream, String filePath) {
-    }
 }

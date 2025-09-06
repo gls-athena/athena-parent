@@ -1,9 +1,11 @@
-package com.gls.athena.starter.excel.support;
+package com.gls.athena.starter.excel.async;
 
 import com.gls.athena.starter.excel.config.ExcelProperties;
-import com.gls.athena.starter.excel.service.ExcelFileService;
-import com.gls.athena.starter.excel.service.ExcelTaskService;
-import lombok.RequiredArgsConstructor;
+import com.gls.athena.starter.excel.web.domain.ExcelAsyncTask;
+import com.gls.athena.starter.excel.web.domain.TaskStatus;
+import com.gls.athena.starter.excel.web.service.ExcelFileService;
+import com.gls.athena.starter.excel.web.service.ExcelTaskService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,12 +21,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ExcelAsyncTaskCleaner {
 
-    private final ExcelTaskService taskService;
-    private final ExcelFileService fileService;
-    private final ExcelProperties excelProperties;
+    @Resource
+    private ExcelTaskService taskService;
+    @Resource
+    private ExcelFileService fileService;
+    @Resource
+    private ExcelProperties excelProperties;
 
     /**
      * 定时清理过期任务和文件
@@ -44,7 +48,7 @@ public class ExcelAsyncTaskCleaner {
                     .map(ExcelAsyncTask::getTaskId)
                     .collect(Collectors.toList());
 
-            taskService.batchUpdateTaskStatus(expiredTaskIds, ExcelAsyncTask.TaskStatus.FAILED);
+            taskService.batchUpdateTaskStatus(expiredTaskIds, TaskStatus.FAILED);
 
             // 更新错误信息
             expiredTasks.forEach(task ->
