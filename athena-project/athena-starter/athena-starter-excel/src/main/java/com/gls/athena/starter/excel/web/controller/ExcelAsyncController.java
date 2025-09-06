@@ -5,6 +5,8 @@ import com.gls.athena.starter.excel.web.domain.ExcelAsyncTask;
 import com.gls.athena.starter.excel.web.domain.TaskStatus;
 import com.gls.athena.starter.excel.web.service.ExcelFileService;
 import com.gls.athena.starter.excel.web.service.ExcelTaskService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
@@ -26,6 +28,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/excel/async")
+@Tag(name = "excel-async", description = "Excel异步导出任务管理")
 public class ExcelAsyncController {
 
     @Resource
@@ -40,6 +43,7 @@ public class ExcelAsyncController {
      * @return 任务状态信息
      */
     @GetMapping("/task/{taskId}")
+    @Operation(summary = "查询任务状态", description = "查询任务状态")
     public Result<ExcelAsyncTask> getTaskStatus(@PathVariable String taskId) {
         ExcelAsyncTask task = excelTaskService.getTask(taskId);
         if (task == null) {
@@ -54,6 +58,7 @@ public class ExcelAsyncController {
      * @return 任务列表
      */
     @GetMapping("/tasks")
+    @Operation(summary = "获取所有任务列表", description = "获取所有任务列表")
     public Result<Map<String, ExcelAsyncTask>> getAllTasks() {
         return Result.success(excelTaskService.getAllTasks());
     }
@@ -65,6 +70,7 @@ public class ExcelAsyncController {
      * @return 文件下载响应
      */
     @GetMapping("/download/{taskId}")
+    @Operation(summary = "下载导出的文件", description = "下载导出的文件")
     public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String taskId) {
         // 获取任务信息
         ExcelAsyncTask task = excelTaskService.getTask(taskId);
@@ -116,6 +122,7 @@ public class ExcelAsyncController {
      * @return 操作结果
      */
     @PostMapping("/cancel/{taskId}")
+    @Operation(summary = "取消任务", description = "取消任务")
     public Result<String> cancelTask(@PathVariable String taskId) {
         // 获取任务信息
         ExcelAsyncTask task = excelTaskService.getTask(taskId);
@@ -142,6 +149,7 @@ public class ExcelAsyncController {
      * @return 操作结果
      */
     @DeleteMapping("/task/{taskId}")
+    @Operation(summary = "删除任务", description = "删除任务")
     public Result<String> deleteTask(@PathVariable String taskId) {
         ExcelAsyncTask task = excelTaskService.getTask(taskId);
         if (task == null) {
