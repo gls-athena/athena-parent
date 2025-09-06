@@ -1,7 +1,6 @@
 package com.gls.athena.starter.excel.web.service.impl;
 
 import com.aliyun.oss.OSS;
-import com.aliyun.oss.model.GeneratePresignedUrlRequest;
 import com.gls.athena.starter.aliyun.oss.config.AliyunOssProperties;
 import com.gls.athena.starter.aliyun.oss.service.OssClientService;
 import com.gls.athena.starter.aliyun.oss.service.OssMetadataService;
@@ -17,7 +16,6 @@ import org.springframework.util.StringUtils;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -40,8 +38,6 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
     private OssMetadataService ossMetadataService;
     @Resource
     private AliyunOssProperties ossProperties;
-    @Resource
-    private OSS ossClient;
 
     /**
      * 通过输入流保存文件到OSS
@@ -149,9 +145,13 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
                 return false;
             }
 
-            ossClient.deleteObject(bucketName, filePath);
-            log.info("文件删除成功: bucket={}, filePath={}", bucketName, filePath);
-            return true;
+            boolean deleted = ossClientService.deleteObject(bucketName, filePath);
+            if (deleted) {
+                log.info("文件删除成功: bucket={}, filePath={}", bucketName, filePath);
+            } else {
+                log.error("文件删除失败: bucket={}, filePath={}", bucketName, filePath);
+            }
+            return deleted;
         } catch (Exception e) {
             log.error("文件删除失败: bucket={}, filePath={}, error={}", bucketName, filePath, e.getMessage(), e);
             return false;
@@ -223,16 +223,17 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
             // 计算过期时间
             Date expiration = new Date(System.currentTimeMillis() + expireSeconds * 1000);
 
-            // 生成预签名URL请求
-            GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, filePath);
-            request.setExpiration(expiration);
+            // 通过OssClientService生成预签名URL
+            String downloadUrl = ossClientService.generatePresignedUrl(bucketName, filePath, expiration);
 
-            // 生成预签名URL
-            URL url = ossClient.generatePresignedUrl(request);
-            String downloadUrl = url.toString();
+            if (downloadUrl != null) {
+                log.debug("生成下载URL成功: bucket={}, filePath={}, expireSeconds={}, url={}",
+                        bucketName, filePath, expireSeconds, downloadUrl);
+            } else {
+                log.error("生成下载URL失败: bucket={}, filePath={}, expireSeconds={}",
+                        bucketName, filePath, expireSeconds);
+            }
 
-            log.debug("生成下载URL成功: bucket={}, filePath={}, expireSeconds={}, url={}",
-                    bucketName, filePath, expireSeconds, downloadUrl);
             return downloadUrl;
         } catch (Exception e) {
             log.error("生成下载URL失败: bucket={}, filePath={}, expireSeconds={}, error={}",
@@ -253,7 +254,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
         String pathPrefix = ossProperties.getPathPrefix();
 
         // 生成时间路径
-        String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         // 生成唯一文件名
         String uuid = UUID.randomUUID().toString().replace("-", "");
