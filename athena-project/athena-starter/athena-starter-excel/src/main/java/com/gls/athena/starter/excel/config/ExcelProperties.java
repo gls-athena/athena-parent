@@ -43,16 +43,6 @@ public class ExcelProperties extends BaseProperties {
      */
     private AsyncThreadPool asyncThreadPool = new AsyncThreadPool();
 
-    /**
-     * 文件存储配置
-     */
-    private FileStorage fileStorage = new FileStorage();
-
-    /**
-     * 任务存储配置
-     */
-    private TaskStorage taskStorage = new TaskStorage();
-
     @Data
     public static class AsyncThreadPool {
         /**
@@ -81,38 +71,4 @@ public class ExcelProperties extends BaseProperties {
         private String threadNamePrefix = "excel-async-";
     }
 
-    @Data
-    public static class FileStorage {
-        /**
-         * 存储类型: local, oss, s3
-         */
-        private String type = "local";
-
-        /**
-         * OSS配置
-         */
-        private OssConfig oss = new OssConfig();
-
-        @Data
-        public static class OssConfig {
-            private String endpoint;
-            private String accessKeyId;
-            private String accessKeySecret;
-            private String bucketName;
-            private String objectPrefix = "excel-exports/";
-        }
-    }
-
-    @Data
-    public static class TaskStorage {
-        /**
-         * 存储类型: memory, database
-         */
-        private String type = "memory";
-
-        /**
-         * 数据库表名
-         */
-        private String tableName = "excel_async_task";
-    }
 }

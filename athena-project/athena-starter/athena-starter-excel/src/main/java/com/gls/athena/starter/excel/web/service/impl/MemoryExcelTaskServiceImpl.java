@@ -4,8 +4,6 @@ import com.gls.athena.starter.excel.web.domain.ExcelAsyncTask;
 import com.gls.athena.starter.excel.web.domain.TaskStatus;
 import com.gls.athena.starter.excel.web.service.ExcelTaskService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,8 +18,6 @@ import java.util.stream.Collectors;
  * @author george
  */
 @Slf4j
-@Service
-@ConditionalOnProperty(name = "athena.excel.task-storage.type", havingValue = "memory", matchIfMissing = true)
 public class MemoryExcelTaskServiceImpl implements ExcelTaskService {
 
     /**

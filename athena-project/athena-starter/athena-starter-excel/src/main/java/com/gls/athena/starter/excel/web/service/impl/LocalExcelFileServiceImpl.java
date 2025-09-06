@@ -3,10 +3,8 @@ package com.gls.athena.starter.excel.web.service.impl;
 import com.gls.athena.starter.excel.config.ExcelProperties;
 import com.gls.athena.starter.excel.web.domain.FileOutputWrapper;
 import com.gls.athena.starter.excel.web.service.ExcelFileService;
-import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -21,12 +19,10 @@ import java.time.format.DateTimeFormatter;
  * @author george
  */
 @Slf4j
-@Service
-@ConditionalOnProperty(name = "athena.excel.file-storage.type", havingValue = "local", matchIfMissing = true)
+@RequiredArgsConstructor
 public class LocalExcelFileServiceImpl implements ExcelFileService {
 
-    @Resource
-    private ExcelProperties excelProperties;
+    private final ExcelProperties excelProperties;
 
     /**
      * 保存文件到指定路径
