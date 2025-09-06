@@ -36,13 +36,13 @@ public class ExcelAsyncExportListener {
     /**
      * 处理异步Excel导出请求
      *
-     * @param request 异步导出请求
+     * @param request 异步导出请求，包含任务ID、数据、Excel响应配置等信息
      */
     @Async("excelAsyncExecutor")
     @EventListener
     public void handleAsyncExport(ExcelAsyncRequest request) {
         String taskId = request.getTaskId();
-        String filename = request.getExcelResponse().filename();
+        String filename = request.getExcelResponse().filename() + request.getExcelResponse().excelType().getValue();
 
         // 创建任务并更新状态为处理中
         ExcelAsyncTask task = excelTaskService.createTask(taskId, filename, "Excel异步导出");
@@ -77,4 +77,5 @@ public class ExcelAsyncExportListener {
             excelTaskService.failTask(taskId, e.getMessage());
         }
     }
+
 }
