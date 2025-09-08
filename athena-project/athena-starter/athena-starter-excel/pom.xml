@@ -25,6 +25,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>io.github.gls-athena.starter.data.redis</groupId>
+            <artifactId>athena-starter-data-redis</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>cn.idev.excel</groupId>
             <artifactId>fastexcel</artifactId>
         </dependency>

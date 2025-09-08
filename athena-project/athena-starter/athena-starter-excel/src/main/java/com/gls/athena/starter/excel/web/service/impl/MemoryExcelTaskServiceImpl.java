@@ -212,27 +212,4 @@ public class MemoryExcelTaskServiceImpl implements ExcelTaskService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 批量更新任务状态
-     *
-     * @param taskIds 任务ID列表，用于标识需要更新状态的任务
-     * @param status  目标任务状态，将把指定任务更新为此状态
-     */
-    @Override
-    public void batchUpdateTaskStatus(List<String> taskIds, TaskStatus status) {
-        // 遍历任务ID列表，逐个更新任务状态
-        taskIds.forEach(taskId -> updateTaskStatus(taskId, status));
-    }
-
-    /**
-     * 批量移除任务
-     *
-     * @param taskIds 需要移除的任务ID列表，不能为空
-     */
-    @Override
-    public void batchRemoveTasks(List<String> taskIds) {
-        // 遍历任务ID列表，逐个移除任务
-        taskIds.forEach(this::removeTask);
-    }
-
 }

@@ -108,12 +108,16 @@ public interface ExcelTaskService {
      * @param taskIds 任务ID列表
      * @param status  新状态
      */
-    void batchUpdateTaskStatus(List<String> taskIds, TaskStatus status);
+    default void batchUpdateTaskStatus(List<String> taskIds, TaskStatus status) {
+        taskIds.forEach(taskId -> updateTaskStatus(taskId, status));
+    }
 
     /**
      * 批量删除任务
      *
      * @param taskIds 任务ID列表
      */
-    void batchRemoveTasks(List<String> taskIds);
+    default void batchRemoveTasks(List<String> taskIds) {
+        taskIds.forEach(this::removeTask);
+    }
 }

@@ -693,9 +693,39 @@ public class RedisUtil {
      * @throws IllegalArgumentException 当cacheName或rowId为null时抛出异常
      */
     public void setCacheTableRow(String tableName, String rowId, Object row) {
-
         // 使用Redis的Hash数据结构存储缓存表行数据
         getRedisTemplate().opsForHash().put(getCacheKey(tableName), rowId, row);
+    }
+
+    /**
+     * 获取指定表名的缓存表数据
+     *
+     * @param tableName 表名，用于构建Redis缓存键
+     * @param clazz     返回值中泛型类型T的Class对象，用于类型转换
+     * @return 返回键为字符串、值为指定类型T的Map，包含该表的所有缓存数据
+     */
+    public <T> Map<String, T> getCacheTable(String tableName, Class<T> clazz) {
+        // 使用Redis的Hash数据结构存储缓存表行数据
+        Map<Object, Object> rows = getRedisTemplate().opsForHash().entries(getCacheKey(tableName));
+        Map<String, T> result = new HashMap<>();
+        for (Map.Entry<Object, Object> entry : rows.entrySet()) {
+            result.put(entry.getKey().toString(), convertValue(entry.getValue(), clazz));
+        }
+        return result;
+    }
+
+    /**
+     * 从缓存中获取指定表的所有行数据
+     *
+     * @param tableName 表名，用于构建缓存键
+     * @param clazz     返回值的类型Class对象
+     * @param <T>       泛型类型参数，表示返回值的具体类型
+     * @return 转换后的表数据对象
+     */
+    public <T> List<T> getCacheTableValues(String tableName, Class<T> clazz) {
+        // 使用Redis的Hash数据结构存储缓存表行数据
+        Map<Object, Object> rows = getRedisTemplate().opsForHash().entries(getCacheKey(tableName));
+        return rows.values().stream().map(row -> convertValue(row, clazz)).collect(Collectors.toList());
     }
 
     /**
