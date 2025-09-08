@@ -92,4 +92,10 @@ public @interface ExcelResponse {
      * 默认值为ExcelGenerator.class，表示使用默认的Excel生成器
      */
     Class<? extends ExcelGenerator> generator() default ExcelGenerator.class;
+
+    /**
+     * 是否异步生成Excel文件
+     * 默认值为false，表示同步生成
+     */
+    boolean async() default false;
 }

@@ -2,6 +2,7 @@ package com.gls.athena.starter.aliyun.oss.service;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
+import com.aliyun.oss.model.GeneratePresignedUrlRequest;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.net.URL;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -26,7 +29,6 @@ import java.util.Objects;
  * @Autowired
  * private OssClientService ossClientService;
  * boolean exists = ossClientService.doesBucketExist("my-bucket");
- * </pre>
  *
  * @author george
  */
@@ -156,4 +158,56 @@ public class OssClientService {
         }
     }
 
+    /**
+     * 删除OSS存储桶中的对象
+     *
+     * @param bucketName 存储桶名称
+     * @param filePath   对象文件路径
+     * @return 删除成功返回true，删除失败返回false
+     */
+    public boolean deleteObject(String bucketName, String filePath) {
+        try {
+            // 执行删除操作
+            ossClient.deleteObject(bucketName, filePath);
+            log.debug("成功删除对象: bucket={}, filePath={}", bucketName, filePath);
+            return true;
+        } catch (Exception e) {
+            // 记录删除失败的日志信息
+            log.error("删除对象失败: bucket={}, filePath={}", bucketName, filePath, e);
+            return false;
+        }
+    }
+
+    /**
+     * 生成预签名URL
+     *
+     * @param bucketName 存储桶名称
+     * @param filePath   文件路径
+     * @param expiration 过期时间
+     * @return 预签名URL字符串，生成失败时返回null
+     */
+    public String generatePresignedUrl(String bucketName, String filePath, Date expiration) {
+        try {
+            // 调用OSSClient生成预签名URL
+            GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, filePath);
+            request.setExpiration(expiration);
+            URL url = ossClient.generatePresignedUrl(request);
+
+            if (url != null) {
+                log.debug("成功生成预签名URL: bucket={}, filePath={}, expiration={}, url={}",
+                        bucketName, filePath, expiration, url);
+                return url.toString();
+            } else {
+                log.error("生成预签名URL失败，返回null: bucket={}, filePath={}, expiration={}",
+                        bucketName, filePath, expiration);
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("生成预签名URL失败: bucket={}, filePath={}, expiration={}, error={}",
+                    bucketName, filePath, expiration, e.getMessage(), e);
+            return null;
+        }
+    }
+
 }
+

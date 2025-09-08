@@ -3,6 +3,7 @@ package com.gls.athena.sdk.message.kafka;
 import com.gls.athena.sdk.message.config.MessageProperties;
 import com.gls.athena.sdk.message.domain.MessageDto;
 import com.gls.athena.sdk.message.support.IMessageEventListener;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -13,8 +14,12 @@ import org.springframework.kafka.core.KafkaTemplate;
  * @author george
  */
 @Slf4j
-public record KafkaMessageEventListener(MessageProperties messageProperties,
-                                        KafkaTemplate<String, Object> kafkaTemplate) implements IMessageEventListener {
+@RequiredArgsConstructor
+public class KafkaMessageEventListener implements IMessageEventListener {
+
+    private final MessageProperties messageProperties;
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     public void onMessageEvent(MessageDto messageDto) {

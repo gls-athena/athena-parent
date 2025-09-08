@@ -7,6 +7,10 @@ import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
+ * Excel配置属性类，用于读取和管理Excel相关的配置信息。
+ * 该类通过@ConfigurationProperties注解自动绑定application.yml中前缀为
+ * IConstants.BASE_PROPERTIES_PREFIX + ".excel"的配置项。
+ *
  * @author george
  */
 @Data
@@ -17,4 +21,61 @@ public class ExcelProperties extends BaseProperties {
      * 模板路径
      */
     private String templatePath = "classpath:/templates/excel";
+
+    /**
+     * 异步导出文件存储目录
+     */
+    private String asyncExportDir = System.getProperty("java.io.tmpdir") + "/excel-exports";
+
+    /**
+     * 异步导出任务超时时间（分钟）
+     */
+    private Integer asyncTimeoutMinutes = 30;
+
+    /**
+     * 异步导出任务清理间隔（分钟）
+     */
+    private Integer taskCleanupIntervalMinutes = 60;
+
+    /**
+     * 异步导出文件保留天数
+     */
+    private Integer fileRetentionDays = 7;
+
+    /**
+     * 异步线程池配置
+     */
+    private AsyncThreadPool asyncThreadPool = new AsyncThreadPool();
+
+    /**
+     * 异步线程池配置内部类，用于配置Excel异步处理任务的线程池参数
+     */
+    @Data
+    public static class AsyncThreadPool {
+        /**
+         * 核心线程数
+         */
+        private Integer corePoolSize = 2;
+
+        /**
+         * 最大线程数
+         */
+        private Integer maxPoolSize = 10;
+
+        /**
+         * 队列容量
+         */
+        private Integer queueCapacity = 100;
+
+        /**
+         * 线程空闲时间（秒）
+         */
+        private Integer keepAliveSeconds = 60;
+
+        /**
+         * 线程名前缀
+         */
+        private String threadNamePrefix = "excel-async-";
+    }
+
 }
