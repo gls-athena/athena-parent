@@ -6,6 +6,7 @@ import com.gls.athena.starter.excel.web.domain.TaskStatus;
 import com.gls.athena.starter.excel.web.service.ExcelTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @ConditionalOnClass(RedisUtil.class)
+@ConditionalOnProperty(prefix = "athena.excel.task", name = "type", havingValue = "redis", matchIfMissing = true)
 public class RedisExcelTaskServiceImpl implements ExcelTaskService {
 
     private static final String KEY_PREFIX = "excel-task";
