@@ -6,6 +6,7 @@ import com.gls.athena.starter.excel.web.domain.TaskStatus;
 import com.gls.athena.starter.excel.web.service.ExcelTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,11 +18,12 @@ import java.util.stream.Collectors;
  * 基于Redis实现的Excel异步任务服务类。
  * 提供任务的创建、查询、更新状态、进度、完成、失败、删除等操作。
  *
- * @author lizy19
+ * @author george
  */
 @Slf4j
 @Service
 @ConditionalOnClass(RedisUtil.class)
+@ConditionalOnProperty(prefix = "athena.excel.task", name = "type", havingValue = "redis", matchIfMissing = true)
 public class RedisExcelTaskServiceImpl implements ExcelTaskService {
 
     private static final String KEY_PREFIX = "excel-task";
@@ -70,6 +72,14 @@ public class RedisExcelTaskServiceImpl implements ExcelTaskService {
         ExcelAsyncTask task = getTask(taskId);
         if (task != null) {
             task.setStatus(status);
+            // 根据任务状态设置相应的时间戳
+            if (status == TaskStatus.PROCESSING) {
+                task.setStartTime(LocalDateTime.now());
+            } else if (status == TaskStatus.COMPLETED ||
+                    status == TaskStatus.FAILED ||
+                    status == TaskStatus.CANCELLED) {
+                task.setFinishTime(LocalDateTime.now());
+            }
             RedisUtil.setCacheTableRow(KEY_PREFIX, taskId, task);
         }
     }
@@ -100,9 +110,11 @@ public class RedisExcelTaskServiceImpl implements ExcelTaskService {
     public void completeTask(String taskId, String filePath) {
         ExcelAsyncTask task = getTask(taskId);
         if (task != null) {
-            task.setStatus(TaskStatus.COMPLETED);
-            task.setFilePath(filePath);
-            task.setProgress(100);
+            // 更新任务状态为已完成，并设置相关属性
+            task.setStatus(TaskStatus.COMPLETED)
+                    .setFilePath(filePath)
+                    .setProgress(100)
+                    .setFinishTime(LocalDateTime.now());
             RedisUtil.setCacheTableRow(KEY_PREFIX, taskId, task);
         }
 
@@ -118,8 +130,9 @@ public class RedisExcelTaskServiceImpl implements ExcelTaskService {
     public void failTask(String taskId, String errorMessage) {
         ExcelAsyncTask task = getTask(taskId);
         if (task != null) {
-            task.setStatus(TaskStatus.FAILED);
-            task.setErrorMessage(errorMessage);
+            task.setStatus(TaskStatus.FAILED)
+                    .setErrorMessage(errorMessage)
+                    .setFinishTime(LocalDateTime.now());
             RedisUtil.setCacheTableRow(KEY_PREFIX, taskId, task);
         }
 

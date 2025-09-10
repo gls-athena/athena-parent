@@ -1,5 +1,6 @@
 package com.gls.athena.starter.excel.web.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import com.aliyun.oss.OSS;
 import com.gls.athena.starter.aliyun.oss.config.AliyunOssProperties;
 import com.gls.athena.starter.aliyun.oss.service.OssClientService;
@@ -10,6 +11,7 @@ import com.gls.athena.starter.excel.web.service.ExcelFileService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,7 +21,6 @@ import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * 阿里云OSS的Excel文件管理服务实现
@@ -29,6 +30,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @ConditionalOnClass({OSS.class, OssClientService.class})
+@ConditionalOnProperty(prefix = "athena.excel.file", name = "type", havingValue = "oss", matchIfMissing = true)
 public class OssExcelFileServiceImpl implements ExcelFileService {
     @Resource
     private OssClientService ossClientService;
@@ -244,7 +246,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
 
     /**
      * 生成文件路径
-     * 路径格式: pathPrefix/excel/yyyy/MM/dd/uuid_filename
+     * 路径格式: [pathPrefix/]excel/yyyy-MM-dd/uuid_filename
      *
      * @param filename 原始文件名
      * @return 生成的文件路径
@@ -257,7 +259,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
         String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         // 生成唯一文件名
-        String uuid = UUID.randomUUID().toString().replace("-", "");
+        String uuid = IdUtil.fastSimpleUUID();
         String uniqueFilename = uuid + "_" + filename;
 
         // 组合完整路径

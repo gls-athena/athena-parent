@@ -2,13 +2,13 @@ package com.gls.athena.starter.excel.async;
 
 import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
 import com.gls.athena.starter.excel.web.domain.ExcelAsyncRequest;
-import com.gls.athena.starter.excel.web.domain.ExcelAsyncTask;
 import com.gls.athena.starter.excel.web.domain.FileOutputWrapper;
 import com.gls.athena.starter.excel.web.domain.TaskStatus;
 import com.gls.athena.starter.excel.web.service.ExcelFileService;
 import com.gls.athena.starter.excel.web.service.ExcelTaskService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -50,26 +50,30 @@ public class ExcelAsyncExportListener {
     @EventListener
     public void handleAsyncExport(ExcelAsyncRequest request) {
         String taskId = request.getTaskId();
+        ProceedingJoinPoint joinPoint = request.getJoinPoint();
         String filename = request.getExcelResponse().filename() + request.getExcelResponse().excelType().getValue();
 
         // 创建任务并更新状态为处理中
-        ExcelAsyncTask task = excelTaskService.createTask(taskId, filename, "Excel异步导出");
+        excelTaskService.createTask(taskId, filename, "Excel异步导出");
         excelTaskService.updateTaskStatus(taskId, TaskStatus.PROCESSING);
 
         try {
             // 更新进度至20%
             excelTaskService.updateTaskProgress(taskId, 20);
 
+            // 执行被拦截的方法获取数据
+            Object data = joinPoint.proceed();
+            excelTaskService.updateTaskProgress(taskId, 40);
+
             // 获取文件输出流
             FileOutputWrapper outputWrapper = excelFileService.getFileOutputStream(filename);
             String filePath = outputWrapper.getFilePath();
-
-            excelTaskService.updateTaskProgress(taskId, 50);
+            excelTaskService.updateTaskProgress(taskId, 60);
 
             // 生成Excel文件
             try (OutputStream outputStream = outputWrapper.getOutputStream()) {
-                excelGeneratorManager.generate(request.getData(), request.getExcelResponse(), outputStream);
-                excelTaskService.updateTaskProgress(taskId, 90);
+                excelGeneratorManager.generate(data, request.getExcelResponse(), outputStream);
+                excelTaskService.updateTaskProgress(taskId, 80);
             }
 
             // 验证文件是否生成成功
@@ -79,8 +83,7 @@ public class ExcelAsyncExportListener {
             } else {
                 excelTaskService.failTask(taskId, "文件生成失败或文件为空");
             }
-
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("异步Excel导出失败: taskId={}", taskId, e);
             excelTaskService.failTask(taskId, e.getMessage());
         }
