@@ -10,6 +10,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
  * <p>
  * 用于封装Excel导出的异步处理请求信息，包含任务ID、Excel响应注解信息以及切点信息
  * </p>
+ *
+ * @author george
  */
 @Data
 @Accessors(chain = true)

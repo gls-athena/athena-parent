@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * 基于Redis实现的Excel异步任务服务类。
  * 提供任务的创建、查询、更新状态、进度、完成、失败、删除等操作。
  *
- * @author lizy19
+ * @author george
  */
 @Slf4j
 @Service
