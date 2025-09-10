@@ -267,14 +267,11 @@ public class WebUtil {
     /**
      * 将Result对象转换为JSON格式并写入HTTP响应
      *
-     * @param webRequest 包含HTTP响应对象的NativeWebRequest
-     * @param result     需要转换为JSON并返回的Result对象
+     * @param result 需要转换为JSON并返回的Result对象
      */
-    public void writeJson(NativeWebRequest webRequest, Result<?> result) {
-        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
-        if (response == null) {
-            throw new IllegalArgumentException("HttpServletResponse获取失败");
-        }
+    public void writeJson(Result<?> result) {
+        HttpServletResponse response = getResponse()
+                .orElseThrow(() -> new IllegalArgumentException("HttpServletResponse获取失败"));
         // 设置响应内容类型为JSON格式
         response.setContentType("application/json;charset=UTF-8");
         try (OutputStream outputStream = response.getOutputStream()) {
