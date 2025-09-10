@@ -146,17 +146,10 @@ public class ExcelRequestHandler implements HandlerMethodArgumentResolver {
      */
     private void handleErrors(IReadListener<?> readListener, WebDataBinderFactory binderFactory,
                               NativeWebRequest webRequest, ModelAndViewContainer mavContainer) throws Exception {
-        List<ExcelErrorMessage> errors = readListener.getErrors();
-        if (CollUtil.isEmpty(errors)) {
-            return;
-        }
+        // 创建WebDataBinder对象，用于绑定验证错误信息
+        WebDataBinder binder = binderFactory.createBinder(webRequest, readListener.getErrors(), "excel");
 
-        // 记录错误日志，如果错误过多则只显示前10个
-        log.warn("Excel解析发现{}个错误{}", errors.size(),
-                errors.size() > 10 ? "，仅显示前10个: " + errors.subList(0, 10) : ": " + errors);
-
-        // 创建数据绑定器，将错误信息添加到BindingResult中
-        WebDataBinder binder = binderFactory.createBinder(webRequest, errors, "excel");
+        // 将绑定结果存储到模型视图容器中，以便在视图层展示
         mavContainer.getModel().put(BindingResult.MODEL_KEY_PREFIX + "excel", binder.getBindingResult());
     }
 
