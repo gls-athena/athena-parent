@@ -10,11 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
-
-import java.lang.reflect.Method;
 
 /**
  * Excel异步处理切面
@@ -33,13 +29,10 @@ public class ExcelAsyncAspect {
     /**
      * 环绕通知：拦截标注了@ExcelResponse的方法
      */
-    @Around("@annotation(com.gls.athena.starter.excel.annotation.ExcelResponse)")
-    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
+    @Around("@annotation(excelResponse)")
+    public Object around(ProceedingJoinPoint joinPoint, ExcelResponse excelResponse) throws Throwable {
 
         // 获取@ExcelResponse注解
-        ExcelResponse excelResponse = AnnotationUtils.findAnnotation(method, ExcelResponse.class);
         if (excelResponse == null || !excelResponse.async()) {
             return joinPoint.proceed();
         }
@@ -54,7 +47,7 @@ public class ExcelAsyncAspect {
 
         SpringUtil.publishEvent(excelAsyncRequest);
 
-        log.info("异步Excel导出任务已提交，任务ID: {}, 方法: {}", taskId, method.getName());
+        log.info("异步Excel导出任务已提交，任务ID: {}, 方法: {}", taskId, joinPoint.getSignature().getName());
 
         // 立即响应客户端任务ID
         Result<String> result = Result.success("任务已提交，请稍后查看", taskId);
