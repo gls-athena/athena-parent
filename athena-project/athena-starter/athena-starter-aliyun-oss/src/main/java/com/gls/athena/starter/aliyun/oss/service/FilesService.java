@@ -10,7 +10,7 @@ import java.io.OutputStream;
  *
  * @author george
  */
-public interface FileService {
+public interface FilesService {
 
     /**
      * 保存文件到指定路径

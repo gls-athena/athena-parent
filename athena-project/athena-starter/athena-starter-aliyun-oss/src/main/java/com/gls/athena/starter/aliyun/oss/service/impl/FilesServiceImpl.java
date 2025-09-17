@@ -2,7 +2,7 @@ package com.gls.athena.starter.aliyun.oss.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.gls.athena.starter.aliyun.oss.config.AliyunOssProperties;
-import com.gls.athena.starter.aliyun.oss.service.FileService;
+import com.gls.athena.starter.aliyun.oss.service.FilesService;
 import com.gls.athena.starter.aliyun.oss.service.OssService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ import java.util.Date;
  * @author george
  */
 @Service
-public class FileServiceImpl implements FileService {
+public class FilesServiceImpl implements FilesService {
 
     @Resource
     private AliyunOssProperties ossProperties;
