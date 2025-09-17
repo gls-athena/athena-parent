@@ -23,7 +23,6 @@ public class AmapRetryer implements Retryer {
     private final long period;
     private final long maxPeriod;
     private int attempt;
-    private long sleptForMillis;
 
     /**
      * 默认构造函数，使用默认的重试参数初始化重试器
@@ -60,7 +59,7 @@ public class AmapRetryer implements Retryer {
     }
 
     /**
-     * 根据异常决定是否继续重试或抛出异常
+     * 根据异常决定是继续重试或抛出异常
      * <p>
      * 如果已达到最大尝试次数，则记录错误日志并抛出原始异常；
      * 否则根据异常中指定的重试时间或计算出的指数退避时间进行等待后继续重试。
@@ -100,7 +99,6 @@ public class AmapRetryer implements Retryer {
             Thread.currentThread().interrupt();
             throw e;
         }
-        sleptForMillis += interval;
     }
 
     /**
