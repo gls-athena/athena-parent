@@ -18,10 +18,21 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class AmapRetryer implements Retryer {
-
+    /**
+     * 最大尝试次数
+     */
     private final int maxAttempts;
+    /**
+     * 初始重试间隔
+     */
     private final long period;
+    /**
+     * 最大重试间隔
+     */
     private final long maxPeriod;
+    /**
+     * 当前尝试次数
+     */
     private int attempt;
 
     /**
@@ -96,6 +107,7 @@ public class AmapRetryer implements Retryer {
         try {
             Thread.sleep(interval);
         } catch (InterruptedException ignored) {
+            // 如果线程被中断，则抛出原始异常
             Thread.currentThread().interrupt();
             throw e;
         }
