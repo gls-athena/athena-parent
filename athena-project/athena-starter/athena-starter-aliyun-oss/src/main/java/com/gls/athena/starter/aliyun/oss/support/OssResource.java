@@ -1,8 +1,6 @@
 package com.gls.athena.starter.aliyun.oss.support;
 
-import com.gls.athena.starter.aliyun.oss.service.OssClientService;
-import com.gls.athena.starter.aliyun.oss.service.OssMetadataService;
-import com.gls.athena.starter.aliyun.oss.service.OssStreamService;
+import com.gls.athena.starter.aliyun.oss.service.OssService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -37,19 +35,9 @@ public class OssResource implements WritableResource {
     private final OssUriParser uriParser;
 
     /**
-     * OSS 客户端服务，负责基本的 OSS 操作
+     * OSS
      */
-    private final OssClientService ossClientService;
-
-    /**
-     * OSS 流服务，负责输入输出流操作
-     */
-    private final OssStreamService ossStreamService;
-
-    /**
-     * OSS 元数据服务，负责元数据操作
-     */
-    private final OssMetadataService ossMetadataService;
+    private final OssService ossService;
 
     /**
      * 获取OSS对象的输出流，用于写入数据。
@@ -71,7 +59,7 @@ public class OssResource implements WritableResource {
         }
 
         // 获取并返回OSS对象的输出流
-        return ossStreamService.getOutputStream(uriParser.getBucketName(), uriParser.getObjectKey());
+        return ossService.getOutputStream(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -94,7 +82,7 @@ public class OssResource implements WritableResource {
         }
 
         // 调用OSS流服务获取指定存储空间和对象的输入流
-        return ossStreamService.getInputStream(uriParser.getBucketName(), uriParser.getObjectKey());
+        return ossService.getInputStream(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -106,8 +94,8 @@ public class OssResource implements WritableResource {
     public boolean exists() {
         // 根据URI解析结果判断是存储空间还是对象，分别调用对应的检查方法
         return uriParser.isBucket()
-                ? ossClientService.doesBucketExist(uriParser.getBucketName())
-                : ossClientService.doesObjectExist(uriParser.getBucketName(), uriParser.getObjectKey());
+                ? ossService.doesBucketExist(uriParser.getBucketName())
+                : ossService.doesObjectExist(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -159,7 +147,7 @@ public class OssResource implements WritableResource {
             return 0;
         }
         // 获取并返回OSS对象的内容长度
-        return ossMetadataService.getContentLength(uriParser.getBucketName(), uriParser.getObjectKey());
+        return ossService.getContentLength(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -175,7 +163,7 @@ public class OssResource implements WritableResource {
             return 0;
         }
         // 获取并返回对象的最后修改时间
-        return ossMetadataService.getLastModified(uriParser.getBucketName(), uriParser.getObjectKey());
+        return ossService.getLastModified(uriParser.getBucketName(), uriParser.getObjectKey());
     }
 
     /**
@@ -191,7 +179,7 @@ public class OssResource implements WritableResource {
         // 构建新的完整路径
         String newLocation = buildRelativePath(relativePath);
         OssUriParser newUriParser = new OssUriParser(newLocation);
-        return new OssResource(newUriParser, ossClientService, ossStreamService, ossMetadataService);
+        return new OssResource(newUriParser, ossService);
     }
 
     /**

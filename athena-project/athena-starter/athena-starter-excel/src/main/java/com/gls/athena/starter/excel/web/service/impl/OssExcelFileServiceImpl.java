@@ -3,9 +3,7 @@ package com.gls.athena.starter.excel.web.service.impl;
 import cn.hutool.core.util.IdUtil;
 import com.aliyun.oss.OSS;
 import com.gls.athena.starter.aliyun.oss.config.AliyunOssProperties;
-import com.gls.athena.starter.aliyun.oss.service.OssClientService;
-import com.gls.athena.starter.aliyun.oss.service.OssMetadataService;
-import com.gls.athena.starter.aliyun.oss.service.OssStreamService;
+import com.gls.athena.starter.aliyun.oss.service.OssService;
 import com.gls.athena.starter.excel.web.domain.FileOutputWrapper;
 import com.gls.athena.starter.excel.web.service.ExcelFileService;
 import jakarta.annotation.Resource;
@@ -29,15 +27,11 @@ import java.util.Date;
  */
 @Slf4j
 @Service
-@ConditionalOnClass({OSS.class, OssClientService.class})
+@ConditionalOnClass({OSS.class, OssService.class})
 @ConditionalOnProperty(prefix = "athena.excel.file", name = "type", havingValue = "oss", matchIfMissing = true)
 public class OssExcelFileServiceImpl implements ExcelFileService {
     @Resource
-    private OssClientService ossClientService;
-    @Resource
-    private OssStreamService ossStreamService;
-    @Resource
-    private OssMetadataService ossMetadataService;
+    private OssService ossService;
     @Resource
     private AliyunOssProperties ossProperties;
 
@@ -55,7 +49,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
         String bucketName = ossProperties.getBucketName();
 
         try {
-            ossClientService.putObject(bucketName, filePath, inputStream);
+            ossService.putObject(bucketName, filePath, inputStream);
             log.info("文件上传成功: bucket={}, filePath={}", bucketName, filePath);
             return filePath;
         } catch (Exception e) {
@@ -91,11 +85,11 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
         String bucketName = ossProperties.getBucketName();
 
         try {
-            if (!ossClientService.doesObjectExist(bucketName, filePath)) {
+            if (!ossService.doesObjectExist(bucketName, filePath)) {
                 throw new Exception("文件不存在: " + filePath);
             }
 
-            InputStream inputStream = ossStreamService.getInputStream(bucketName, filePath);
+            InputStream inputStream = ossService.getInputStream(bucketName, filePath);
             log.debug("获取文件输入流成功: bucket={}, filePath={}", bucketName, filePath);
             return inputStream;
         } catch (Exception e) {
@@ -117,7 +111,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
         String bucketName = ossProperties.getBucketName();
 
         try {
-            OutputStream outputStream = ossStreamService.getOutputStream(bucketName, filePath);
+            OutputStream outputStream = ossService.getOutputStream(bucketName, filePath);
 
             FileOutputWrapper wrapper = new FileOutputWrapper()
                     .setOutputStream(outputStream)
@@ -142,12 +136,12 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
         String bucketName = ossProperties.getBucketName();
 
         try {
-            if (!ossClientService.doesObjectExist(bucketName, filePath)) {
+            if (!ossService.doesObjectExist(bucketName, filePath)) {
                 log.warn("要删除的文件不存在: bucket={}, filePath={}", bucketName, filePath);
                 return false;
             }
 
-            boolean deleted = ossClientService.deleteObject(bucketName, filePath);
+            boolean deleted = ossService.deleteObject(bucketName, filePath);
             if (deleted) {
                 log.info("文件删除成功: bucket={}, filePath={}", bucketName, filePath);
             } else {
@@ -171,7 +165,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
         String bucketName = ossProperties.getBucketName();
 
         try {
-            boolean exists = ossClientService.doesObjectExist(bucketName, filePath);
+            boolean exists = ossService.doesObjectExist(bucketName, filePath);
             log.debug("检查文件存在性: bucket={}, filePath={}, exists={}", bucketName, filePath, exists);
             return exists;
         } catch (Exception e) {
@@ -191,12 +185,12 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
         String bucketName = ossProperties.getBucketName();
 
         try {
-            if (!ossClientService.doesObjectExist(bucketName, filePath)) {
+            if (!ossService.doesObjectExist(bucketName, filePath)) {
                 log.warn("文件不存在，无法获取大小: bucket={}, filePath={}", bucketName, filePath);
                 return 0;
             }
 
-            long size = ossMetadataService.getContentLength(bucketName, filePath);
+            long size = ossService.getContentLength(bucketName, filePath);
             log.debug("获取文件大小成功: bucket={}, filePath={}, size={}", bucketName, filePath, size);
             return size;
         } catch (Exception e) {
@@ -217,7 +211,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
         String bucketName = ossProperties.getBucketName();
 
         try {
-            if (!ossClientService.doesObjectExist(bucketName, filePath)) {
+            if (!ossService.doesObjectExist(bucketName, filePath)) {
                 log.warn("文件不存在，无法生成下载URL: bucket={}, filePath={}", bucketName, filePath);
                 return null;
             }
@@ -226,7 +220,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
             Date expiration = new Date(System.currentTimeMillis() + expireSeconds * 1000);
 
             // 通过OssClientService生成预签名URL
-            String downloadUrl = ossClientService.generatePresignedUrl(bucketName, filePath, expiration);
+            String downloadUrl = ossService.generatePresignedUrl(bucketName, filePath, expiration);
 
             if (downloadUrl != null) {
                 log.debug("生成下载URL成功: bucket={}, filePath={}, expireSeconds={}, url={}",

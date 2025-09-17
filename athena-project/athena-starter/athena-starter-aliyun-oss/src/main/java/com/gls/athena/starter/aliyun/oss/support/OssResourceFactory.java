@@ -1,9 +1,7 @@
 package com.gls.athena.starter.aliyun.oss.support;
 
-import com.gls.athena.starter.aliyun.oss.service.OssClientService;
-import com.gls.athena.starter.aliyun.oss.service.OssMetadataService;
-import com.gls.athena.starter.aliyun.oss.service.OssStreamService;
-import lombok.RequiredArgsConstructor;
+import com.gls.athena.starter.aliyun.oss.service.OssService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,12 +16,10 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class OssResourceFactory {
 
-    private final OssClientService ossClientService;
-    private final OssStreamService ossStreamService;
-    private final OssMetadataService ossMetadataService;
+    @Resource
+    private OssService ossService;
 
     /**
      * 创建 OSS 资源对象。
@@ -45,7 +41,7 @@ public class OssResourceFactory {
         // 解析 OSS URI 并创建资源对象
         try {
             OssUriParser uriParser = new OssUriParser(location);
-            return new OssResource(uriParser, ossClientService, ossStreamService, ossMetadataService);
+            return new OssResource(uriParser, ossService);
         } catch (Exception e) {
             log.warn("Failed to parse OSS URI: {}", location, e);
             throw new IllegalArgumentException("Invalid OSS location: " + location, e);
