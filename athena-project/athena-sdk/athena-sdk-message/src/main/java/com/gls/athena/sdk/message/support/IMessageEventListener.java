@@ -1,5 +1,6 @@
 package com.gls.athena.sdk.message.support;
 
+import com.gls.athena.common.core.constant.IConstants;
 import com.gls.athena.sdk.message.domain.MessageDto;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -16,7 +17,7 @@ public interface IMessageEventListener {
      *
      * @param messageDto 消息事件
      */
-    @Async
+    @Async(IConstants.DEFAULT_THREAD_POOL_NAME)
     @EventListener(MessageDto.class)
     void onMessageEvent(MessageDto messageDto);
 }

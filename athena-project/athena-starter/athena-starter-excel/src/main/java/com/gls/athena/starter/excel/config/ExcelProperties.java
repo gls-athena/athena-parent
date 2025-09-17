@@ -42,40 +42,4 @@ public class ExcelProperties extends BaseProperties {
      */
     private Integer fileRetentionDays = 7;
 
-    /**
-     * 异步线程池配置
-     */
-    private AsyncThreadPool asyncThreadPool = new AsyncThreadPool();
-
-    /**
-     * 异步线程池配置内部类，用于配置Excel异步处理任务的线程池参数
-     */
-    @Data
-    public static class AsyncThreadPool {
-        /**
-         * 核心线程数
-         */
-        private Integer corePoolSize = 2;
-
-        /**
-         * 最大线程数
-         */
-        private Integer maxPoolSize = 10;
-
-        /**
-         * 队列容量
-         */
-        private Integer queueCapacity = 100;
-
-        /**
-         * 线程空闲时间（秒）
-         */
-        private Integer keepAliveSeconds = 60;
-
-        /**
-         * 线程名前缀
-         */
-        private String threadNamePrefix = "excel-async-";
-    }
-
 }

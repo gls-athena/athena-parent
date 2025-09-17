@@ -4,7 +4,6 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.gls.athena.sdk.log.domain.MethodLogDto;
 import com.gls.athena.sdk.log.service.IMethodLogPublisher;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,7 +23,6 @@ public class MethodLogPublisherImpl implements IMethodLogPublisher {
      * @param methodLogDto 方法日志数据传输对象，包含方法执行的相关信息
      */
     @Override
-    @Async("logTaskExecutor")
     public void publishLog(MethodLogDto methodLogDto) {
         try {
             log.debug("方法执行完毕，发布日志事件：{}", methodLogDto.getMethodName());

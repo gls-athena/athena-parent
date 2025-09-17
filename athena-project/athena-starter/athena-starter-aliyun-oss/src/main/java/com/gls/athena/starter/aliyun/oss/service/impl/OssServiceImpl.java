@@ -2,6 +2,7 @@ package com.gls.athena.starter.aliyun.oss.service.impl;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
+import com.gls.athena.common.core.constant.IConstants;
 import com.gls.athena.starter.aliyun.oss.service.OssService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 /**
@@ -23,8 +24,8 @@ import java.util.function.Supplier;
 public class OssServiceImpl implements OssService {
     @Resource
     private OSS ossClient;
-    @Resource
-    private ExecutorService executorService;
+    @Resource(name = IConstants.DEFAULT_THREAD_POOL_NAME)
+    private Executor executor;
 
     /**
      * 获取指定存储桶和文件路径的输出流，用于上传文件
@@ -56,7 +57,7 @@ public class OssServiceImpl implements OssService {
                     log.warn("关闭管道输出流时发生异常", closeException);
                 }
             }
-        }, executorService);
+        }, executor);
 
         return pipedOutputStream;
     }

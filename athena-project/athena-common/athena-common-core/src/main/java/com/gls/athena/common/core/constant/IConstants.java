@@ -22,6 +22,11 @@ public interface IConstants {
     Integer CPU_NUM = Runtime.getRuntime().availableProcessors();
 
     /**
+     * 默认线程池名称，用于标识默认线程池的名称。
+     */
+    String DEFAULT_THREAD_POOL_NAME = "athena-async-executor";
+
+    /**
      * 默认数据源名称，用于标识主数据源。
      */
     String DEFAULT_DATASOURCE_NAME = "master";
