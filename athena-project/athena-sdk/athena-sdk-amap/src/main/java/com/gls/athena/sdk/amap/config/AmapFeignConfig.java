@@ -1,11 +1,11 @@
 package com.gls.athena.sdk.amap.config;
 
-import com.gls.athena.sdk.amap.support.AmapJsonDecoder;
-import com.gls.athena.sdk.amap.support.AmapRequestInterceptor;
-import com.gls.athena.sdk.amap.support.JsonQueryMapEncoder;
+import com.gls.athena.sdk.amap.support.*;
 import feign.QueryMapEncoder;
 import feign.RequestInterceptor;
+import feign.Retryer;
 import feign.codec.Decoder;
+import feign.codec.ErrorDecoder;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -49,6 +49,30 @@ public class AmapFeignConfig {
     @Bean
     public QueryMapEncoder queryMapEncoder() {
         return new JsonQueryMapEncoder();
+    }
+
+    /**
+     * 创建高德地图API错误解码器Bean
+     * 用于解析高德地图API返回的错误响应，并转换为具体的异常类型
+     *
+     * @return ErrorDecoder 返回一个AmapErrorDecoder实例，用于错误响应的解码
+     */
+    @Bean
+    public ErrorDecoder errorDecoder() {
+        return new AmapErrorDecoder();
+    }
+
+    /**
+     * 创建高德地图API重试器Bean
+     * 用于处理临时性错误的重试逻辑，采用指数退避策略
+     * 支持通过配置文件自定义重试参数
+     *
+     * @param amapProperties 高德地图配置属性，包含重试相关配置
+     * @return Retryer 返回一个AmapRetryer实例，用于重试失败的请求
+     */
+    @Bean
+    public Retryer retryer(AmapProperties amapProperties) {
+        return new AmapRetryer(amapProperties.getRetry());
     }
 
 }

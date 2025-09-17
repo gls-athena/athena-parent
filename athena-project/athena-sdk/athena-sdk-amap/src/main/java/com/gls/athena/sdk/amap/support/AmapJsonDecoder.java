@@ -1,6 +1,8 @@
 package com.gls.athena.sdk.amap.support;
 
 import cn.hutool.core.io.IoUtil;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
 import feign.codec.Decoder;
@@ -10,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 /**
  * 高德地图API响应JSON解码器
@@ -18,16 +21,30 @@ import java.nio.charset.StandardCharsets;
  * 1. 将空数组([])转换为null值
  * 2. 使用Jackson进行JSON反序列化
  * 3. 支持自定义类型转换
+ * 4. 优化ObjectMapper配置以提高性能
  *
  * @author george
  */
 @Slf4j
 public class AmapJsonDecoder implements Decoder {
     /**
+     * 空数组匹配的正则表达式，预编译以提高性能
+     */
+    private static final Pattern EMPTY_ARRAY_PATTERN = Pattern.compile("\\[\\s*\\]");
+    /**
      * Jackson对象映射器
      * 用于将JSON字符串转换为Java对象
+     * 配置为线程安全且高性能模式
      */
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public AmapJsonDecoder() {
+        this.objectMapper = new ObjectMapper();
+        // 配置ObjectMapper以提高性能和容错性
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+        this.objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+    }
 
     /**
      * 解码高德地图API的HTTP响应
@@ -48,7 +65,7 @@ public class AmapJsonDecoder implements Decoder {
         log.debug("AmapJsonDecoder body: {}", body);
 
         // 处理高德地图API返回的特殊空数组格式，将其替换为null
-        String modifiedBody = body.replaceAll("\\[\\s*\\]", "null");
+        String modifiedBody = EMPTY_ARRAY_PATTERN.matcher(body).replaceAll("null");
         log.debug("AmapJsonDecoder modifiedBody: {}", modifiedBody);
 
         // 使用Jackson库将处理后的JSON字符串反序列化为目标类型对象
