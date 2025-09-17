@@ -17,6 +17,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class MethodLogPublisherImpl implements IMethodLogPublisher {
 
+    /**
+     * 异步发布方法日志事件
+     * 通过Spring事件机制将方法执行日志发布出去，使用独立的线程池执行以避免影响主业务流程
+     *
+     * @param methodLogDto 方法日志数据传输对象，包含方法执行的相关信息
+     */
     @Override
     @Async("logTaskExecutor")
     public void publishLog(MethodLogDto methodLogDto) {
@@ -30,3 +36,4 @@ public class MethodLogPublisherImpl implements IMethodLogPublisher {
         }
     }
 }
+

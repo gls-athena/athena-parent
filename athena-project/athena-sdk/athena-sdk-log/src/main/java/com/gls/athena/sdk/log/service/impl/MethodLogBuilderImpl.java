@@ -31,6 +31,13 @@ public class MethodLogBuilderImpl implements IMethodLogBuilder {
     @Resource
     private IPerformanceMonitorService performanceMonitorService;
 
+    /**
+     * 创建方法日志对象，初始化基本的日志信息
+     *
+     * @param point     切点信息，用于获取类名、方法名等元数据
+     * @param methodLog 方法日志注解信息，包含code、name、description等配置
+     * @return 初始化完成的MethodLogDto对象
+     */
     @Override
     public MethodLogDto createMethodLog(ProceedingJoinPoint point, MethodLog methodLog) {
         MethodLogDto logDto = new MethodLogDto();
@@ -53,6 +60,12 @@ public class MethodLogBuilderImpl implements IMethodLogBuilder {
         return logDto;
     }
 
+    /**
+     * 填充方法执行成功的结果信息
+     *
+     * @param logDto 方法日志对象
+     * @param result 方法执行结果
+     */
     @Override
     public void fillSuccessResult(MethodLogDto logDto, Object result) {
         logDto.setResult(result)
@@ -63,6 +76,12 @@ public class MethodLogBuilderImpl implements IMethodLogBuilder {
         performanceMonitorService.recordPerformanceMetrics(logDto);
     }
 
+    /**
+     * 填充方法执行失败的异常信息
+     *
+     * @param logDto    方法日志对象
+     * @param throwable 抛出的异常对象
+     */
     @Override
     public void fillErrorResult(MethodLogDto logDto, Throwable throwable) {
         log.error("方法执行异常：{}", throwable.getMessage(), throwable);
