@@ -1,4 +1,4 @@
-package com.gls.athena.starter.aliyun.oss.service;
+package com.gls.athena.starter.aliyun.oss.manager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +10,7 @@ import java.io.OutputStream;
  *
  * @author george
  */
-public interface FilesService {
+public interface FileManager {
 
     /**
      * 保存文件到指定路径

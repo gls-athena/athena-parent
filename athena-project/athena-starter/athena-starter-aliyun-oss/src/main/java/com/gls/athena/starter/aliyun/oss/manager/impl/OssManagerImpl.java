@@ -1,12 +1,12 @@
-package com.gls.athena.starter.aliyun.oss.service.impl;
+package com.gls.athena.starter.aliyun.oss.manager.impl;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
-import com.gls.athena.starter.aliyun.oss.service.OssService;
+import com.gls.athena.starter.aliyun.oss.manager.OssManager;
 import com.gls.athena.starter.async.config.AsyncConstants;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.util.Date;
@@ -20,8 +20,8 @@ import java.util.function.Supplier;
  * @author george
  */
 @Slf4j
-@Service
-public class OssServiceImpl implements OssService {
+@Component
+public class OssManagerImpl implements OssManager {
     @Resource
     private OSS ossClient;
     @Resource(name = AsyncConstants.DEFAULT_THREAD_POOL_NAME)

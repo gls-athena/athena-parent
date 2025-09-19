@@ -1,8 +1,7 @@
 package com.gls.athena.starter.excel.web.service.impl;
 
 import com.aliyun.oss.OSS;
-import com.gls.athena.starter.aliyun.oss.service.FilesService;
-import com.gls.athena.starter.aliyun.oss.service.OssService;
+import com.gls.athena.starter.aliyun.oss.manager.FileManager;
 import com.gls.athena.starter.excel.web.domain.FileOutputWrapper;
 import com.gls.athena.starter.excel.web.service.ExcelFileService;
 import jakarta.annotation.Resource;
@@ -22,11 +21,11 @@ import java.io.OutputStream;
  */
 @Slf4j
 @Service
-@ConditionalOnClass({OSS.class, OssService.class})
+@ConditionalOnClass({OSS.class})
 @ConditionalOnProperty(prefix = "athena.excel.file", name = "type", havingValue = "oss", matchIfMissing = true)
 public class OssExcelFileServiceImpl implements ExcelFileService {
     @Resource
-    private FilesService filesService;
+    private FileManager fileManager;
 
     /**
      * 将输入流保存为指定名称的文件
@@ -38,8 +37,8 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
      */
     @Override
     public String saveFile(String filename, InputStream inputStream) throws Exception {
-        String path = filesService.generateFilePath("excel", filename);
-        filesService.saveFile(path, inputStream);
+        String path = fileManager.generateFilePath("excel", filename);
+        fileManager.saveFile(path, inputStream);
         return path;
     }
 
@@ -66,7 +65,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
      */
     @Override
     public InputStream getFileInputStream(String filePath) throws Exception {
-        return filesService.getFileInputStream(filePath);
+        return fileManager.getFileInputStream(filePath);
     }
 
     /**
@@ -78,8 +77,8 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
      */
     @Override
     public FileOutputWrapper getFileOutputStream(String filename) throws Exception {
-        String path = filesService.generateFilePath("excel", filename);
-        OutputStream outputStream = filesService.getFileOutputStream(path);
+        String path = fileManager.generateFilePath("excel", filename);
+        OutputStream outputStream = fileManager.getFileOutputStream(path);
         return new FileOutputWrapper()
                 .setOutputStream(outputStream)
                 .setFilePath(path);
@@ -94,7 +93,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
     @Override
     public boolean deleteFile(String filePath) {
         try {
-            filesService.deleteFile(filePath);
+            fileManager.deleteFile(filePath);
             return true;
         } catch (Exception e) {
             log.error("删除文件失败", e);
@@ -110,7 +109,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
      */
     @Override
     public boolean fileExists(String filePath) {
-        return filesService.exists(filePath);
+        return fileManager.exists(filePath);
     }
 
     /**
@@ -121,7 +120,7 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
      */
     @Override
     public long getFileSize(String filePath) {
-        return filesService.getFileSize(filePath);
+        return fileManager.getFileSize(filePath);
     }
 
     /**
@@ -133,6 +132,6 @@ public class OssExcelFileServiceImpl implements ExcelFileService {
      */
     @Override
     public String getDownloadUrl(String filePath, long expireSeconds) {
-        return filesService.generateFileUrl(filePath, expireSeconds);
+        return fileManager.generateFileUrl(filePath, expireSeconds);
     }
 }

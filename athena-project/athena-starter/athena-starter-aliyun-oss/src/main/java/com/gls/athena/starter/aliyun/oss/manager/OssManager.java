@@ -1,4 +1,4 @@
-package com.gls.athena.starter.aliyun.oss.service;
+package com.gls.athena.starter.aliyun.oss.manager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,12 +6,12 @@ import java.io.OutputStream;
 import java.util.Date;
 
 /**
- * OssService接口定义了阿里云对象存储服务的基本操作
+ * OssManager接口定义了阿里云对象存储服务的基本操作
  * 提供了对OSS存储桶和对象的常用操作方法
  *
  * @author george
  */
-public interface OssService {
+public interface OssManager {
 
     /**
      * 获取指定存储桶和文件路径的输出流

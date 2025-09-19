@@ -1,11 +1,11 @@
-package com.gls.athena.starter.aliyun.oss.service.impl;
+package com.gls.athena.starter.aliyun.oss.manager.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.gls.athena.starter.aliyun.oss.config.AliyunOssProperties;
-import com.gls.athena.starter.aliyun.oss.service.FilesService;
-import com.gls.athena.starter.aliyun.oss.service.OssService;
+import com.gls.athena.starter.aliyun.oss.manager.FileManager;
+import com.gls.athena.starter.aliyun.oss.manager.OssManager;
 import jakarta.annotation.Resource;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,13 +19,13 @@ import java.util.Date;
  *
  * @author george
  */
-@Service
-public class FilesServiceImpl implements FilesService {
+@Component
+public class FileManagerImpl implements FileManager {
 
     @Resource
     private AliyunOssProperties ossProperties;
     @Resource
-    private OssService ossService;
+    private OssManager ossManager;
 
     /**
      * 保存文件到OSS存储服务
@@ -36,7 +36,7 @@ public class FilesServiceImpl implements FilesService {
     @Override
     public void saveFile(String path, InputStream inputStream) {
         // 将文件流上传到OSS指定的存储桶和路径
-        ossService.putObject(ossProperties.getBucketName(), path, inputStream);
+        ossManager.putObject(ossProperties.getBucketName(), path, inputStream);
     }
 
     /**
@@ -46,7 +46,7 @@ public class FilesServiceImpl implements FilesService {
      */
     @Override
     public void deleteFile(String path) {
-        ossService.deleteObject(ossProperties.getBucketName(), path);
+        ossManager.deleteObject(ossProperties.getBucketName(), path);
     }
 
     /**
@@ -57,7 +57,7 @@ public class FilesServiceImpl implements FilesService {
      */
     @Override
     public boolean exists(String path) {
-        return ossService.doesObjectExist(ossProperties.getBucketName(), path);
+        return ossManager.doesObjectExist(ossProperties.getBucketName(), path);
     }
 
     /**
@@ -68,7 +68,7 @@ public class FilesServiceImpl implements FilesService {
      */
     @Override
     public long getFileSize(String path) {
-        return ossService.getContentLength(ossProperties.getBucketName(), path);
+        return ossManager.getContentLength(ossProperties.getBucketName(), path);
     }
 
     /**
@@ -79,7 +79,7 @@ public class FilesServiceImpl implements FilesService {
      */
     @Override
     public InputStream getFileInputStream(String path) {
-        return ossService.getInputStream(ossProperties.getBucketName(), path);
+        return ossManager.getInputStream(ossProperties.getBucketName(), path);
     }
 
     /**
@@ -91,7 +91,7 @@ public class FilesServiceImpl implements FilesService {
      */
     @Override
     public OutputStream getFileOutputStream(String path) throws IOException {
-        return ossService.getOutputStream(ossProperties.getBucketName(), path);
+        return ossManager.getOutputStream(ossProperties.getBucketName(), path);
     }
 
     /**
@@ -128,7 +128,7 @@ public class FilesServiceImpl implements FilesService {
         // 计算URL过期时间
         Date expiration = new Date(System.currentTimeMillis() + expiresInSeconds * 1000);
         // 生成并返回预签名URL
-        return ossService.generatePresignedUrl(ossProperties.getBucketName(), path, expiration);
+        return ossManager.generatePresignedUrl(ossProperties.getBucketName(), path, expiration);
     }
 
 }
