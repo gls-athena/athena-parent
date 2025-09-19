@@ -1,11 +1,9 @@
-package com.gls.athena.starter.core.async;
+package com.gls.athena.starter.async.config;
 
-import com.gls.athena.common.core.constant.IConstants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
@@ -16,7 +14,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  *
  * @author george
  */
-@EnableAsync
 @Configuration
 @EnableConfigurationProperties(ThreadPoolProperties.class)
 public class AsyncConfig {
@@ -31,8 +28,8 @@ public class AsyncConfig {
      * @param threadPoolProperties 线程池配置属性对象，包含线程池的各项配置参数
      * @return 配置完成并初始化的ThreadPoolTaskExecutor实例
      */
-    @Bean(IConstants.DEFAULT_THREAD_POOL_NAME)
-    @ConditionalOnMissingBean(name = IConstants.DEFAULT_THREAD_POOL_NAME)
+    @Bean(AsyncConstants.DEFAULT_THREAD_POOL_NAME)
+    @ConditionalOnMissingBean(name = AsyncConstants.DEFAULT_THREAD_POOL_NAME)
     public Executor threadPoolTaskExecutor(ThreadPoolProperties threadPoolProperties) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         // 设置线程池核心参数

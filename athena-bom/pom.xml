@@ -109,6 +109,11 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
+                <groupId>io.github.gls-athena.starter.async</groupId>
+                <artifactId>athena-starter-async</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.github.gls-athena.starter.core</groupId>
                 <artifactId>athena-starter-core</artifactId>
                 <version>${revision}</version>

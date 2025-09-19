@@ -1,4 +1,4 @@
-package com.gls.athena.starter.core.async;
+package com.gls.athena.starter.async.config;
 
 import com.gls.athena.common.core.constant.BaseProperties;
 import com.gls.athena.common.core.constant.IConstants;
@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + "thread-pool")
+@ConfigurationProperties(prefix = IConstants.BASE_PROPERTIES_PREFIX + ".async.thread-pool")
 public class ThreadPoolProperties extends BaseProperties {
 
     /**

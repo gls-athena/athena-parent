@@ -1,6 +1,6 @@
 package com.gls.athena.starter.excel.async;
 
-import com.gls.athena.common.core.constant.IConstants;
+import com.gls.athena.starter.async.config.AsyncConstants;
 import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
 import com.gls.athena.starter.excel.web.domain.ExcelAsyncRequest;
 import com.gls.athena.starter.excel.web.domain.FileOutputWrapper;
@@ -47,7 +47,7 @@ public class ExcelAsyncExportListener {
      *
      * @param request 异步导出请求对象，包含任务ID、数据源、Excel响应配置等信息
      */
-    @Async(IConstants.DEFAULT_THREAD_POOL_NAME)
+    @Async(AsyncConstants.DEFAULT_THREAD_POOL_NAME)
     @EventListener
     public void handleAsyncExport(ExcelAsyncRequest request) {
         String taskId = request.getTaskId();
