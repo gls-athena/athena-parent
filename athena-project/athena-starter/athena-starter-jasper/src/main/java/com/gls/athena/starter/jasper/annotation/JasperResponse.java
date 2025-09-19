@@ -1,7 +1,7 @@
 package com.gls.athena.starter.jasper.annotation;
 
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.jasper.generator.JasperGenerator;
-import com.gls.athena.starter.web.enums.FileEnums;
 
 import java.lang.annotation.*;
 
@@ -22,7 +22,7 @@ public @interface JasperResponse {
     /**
      * 文件类型
      */
-    FileEnums fileType() default FileEnums.PDF;
+    FileTypeEnums fileType() default FileTypeEnums.PDF;
 
     /**
      * 模板名

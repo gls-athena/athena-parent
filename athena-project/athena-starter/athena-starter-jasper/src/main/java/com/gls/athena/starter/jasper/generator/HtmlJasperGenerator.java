@@ -4,8 +4,8 @@
  */
 package com.gls.athena.starter.jasper.generator;
 
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.jasper.annotation.JasperResponse;
-import com.gls.athena.starter.web.enums.FileEnums;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.export.HtmlExporter;
@@ -53,7 +53,7 @@ public class HtmlJasperGenerator implements JasperGenerator {
     @Override
     public boolean supports(JasperResponse jasperResponse) {
         // 判断文件类型是否为HTML且生成器类型是否为JasperGenerator
-        return FileEnums.HTML.equals(jasperResponse.fileType())
+        return FileTypeEnums.HTML.equals(jasperResponse.fileType())
                 && jasperResponse.generator() == JasperGenerator.class;
     }
 

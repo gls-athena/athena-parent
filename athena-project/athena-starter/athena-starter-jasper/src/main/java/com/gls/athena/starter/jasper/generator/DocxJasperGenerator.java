@@ -1,7 +1,7 @@
 package com.gls.athena.starter.jasper.generator;
 
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.jasper.annotation.JasperResponse;
-import com.gls.athena.starter.web.enums.FileEnums;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
@@ -49,7 +49,7 @@ public class DocxJasperGenerator implements JasperGenerator {
     @Override
     public boolean supports(JasperResponse jasperResponse) {
         // 检查文件类型是否为Word文档（.docx），并且导出器类型为JasperGenerator
-        return FileEnums.DOCX.equals(jasperResponse.fileType())
+        return FileTypeEnums.DOCX.equals(jasperResponse.fileType())
                 && jasperResponse.generator() == JasperGenerator.class;
     }
 

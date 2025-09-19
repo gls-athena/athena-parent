@@ -1,4 +1,4 @@
-package com.gls.athena.starter.web.enums;
+package com.gls.athena.common.core.constant;
 
 import com.gls.athena.common.bean.base.IEnum;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 @Getter
 @RequiredArgsConstructor
-public enum FileEnums implements IEnum<String> {
+public enum FileTypeEnums implements IEnum<String> {
     /**
      * PDF文件
      */
@@ -83,8 +83,8 @@ public enum FileEnums implements IEnum<String> {
      */
     private final String contentType;
 
-    public static FileEnums getFileEnums(String extension) {
-        return Arrays.stream(FileEnums.values())
+    public static FileTypeEnums getFileEnums(String extension) {
+        return Arrays.stream(FileTypeEnums.values())
                 .filter(fileEnums -> fileEnums.extension.equals(extension))
                 .findFirst()
                 .orElse(DEFAULT);
