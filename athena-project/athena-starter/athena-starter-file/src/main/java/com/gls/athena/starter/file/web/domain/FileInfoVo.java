@@ -1,6 +1,7 @@
-package com.gls.athena.starter.file.web.vo;
+package com.gls.athena.starter.file.web.domain;
 
 import com.gls.athena.common.bean.base.BaseVo;
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,7 +16,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FileVo extends BaseVo {
+public class FileInfoVo extends BaseVo {
 
     /**
      * 文件名称
@@ -35,16 +36,6 @@ public class FileVo extends BaseVo {
     /**
      * 文件类型
      */
-    private String fileType;
-
-    /**
-     * 业务类型
-     */
-    private String businessType;
-
-    /**
-     * 业务ID
-     */
-    private String businessId;
+    private FileTypeEnums fileType;
 
 }

@@ -1,9 +1,9 @@
-package com.gls.athena.starter.async.task;
+package com.gls.athena.starter.async.web.vo;
 
+import com.gls.athena.common.bean.base.BaseVo;
 import lombok.Data;
-import lombok.experimental.Accessors;
+import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
@@ -14,19 +14,8 @@ import java.util.Map;
  * @author george
  */
 @Data
-@Accessors(chain = true)
-public class AsyncTask implements Serializable {
-
-    /**
-     * 任务ID
-     */
-    private String taskId;
-
-    /**
-     * 跟踪ID
-     */
-    private String traceId;
-
+@EqualsAndHashCode(callSuper = true)
+public class AsyncTaskInfoVo extends BaseVo {
     /**
      * 任务类型
      */
@@ -82,13 +71,4 @@ public class AsyncTask implements Serializable {
      */
     private Date endTime;
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
-
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
 }

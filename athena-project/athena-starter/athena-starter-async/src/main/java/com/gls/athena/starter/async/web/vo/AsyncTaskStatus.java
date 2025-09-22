@@ -1,4 +1,4 @@
-package com.gls.athena.starter.async.task;
+package com.gls.athena.starter.async.web.vo;
 
 import com.gls.athena.common.bean.base.IEnum;
 import lombok.Getter;
