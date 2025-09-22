@@ -1,4 +1,4 @@
-package com.gls.athena.starter.async.web.vo;
+package com.gls.athena.starter.async.web.domain;
 
 import com.gls.athena.common.bean.base.BaseVo;
 import lombok.Data;
@@ -15,7 +15,12 @@ import java.util.Map;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AsyncTaskInfoVo extends BaseVo {
+public class AsyncTaskInfo extends BaseVo {
+
+    /**
+     * 任务ID
+     */
+    private String taskId;
     /**
      * 任务类型
      */

@@ -3,17 +3,11 @@ package com.gls.athena.starter.excel.config;
 import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
 import com.gls.athena.starter.excel.handler.ExcelRequestHandler;
 import com.gls.athena.starter.excel.handler.ExcelResponseHandler;
-import com.gls.athena.starter.excel.web.service.ExcelFileService;
-import com.gls.athena.starter.excel.web.service.ExcelTaskService;
-import com.gls.athena.starter.excel.web.service.impl.LocalExcelFileServiceImpl;
-import com.gls.athena.starter.excel.web.service.impl.MemoryExcelTaskServiceImpl;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -43,31 +37,6 @@ public class ExcelConfig {
     private RequestMappingHandlerAdapter handlerAdapter;
     @Resource
     private ExcelGeneratorManager excelGeneratorManager;
-
-    /**
-     * 提供默认的Excel任务服务实现（内存方式）
-     * 当容器中不存在ExcelTaskService类型的Bean时，创建并注册MemoryExcelTaskServiceImpl实例。
-     *
-     * @return ExcelTaskService 实例
-     */
-    @Bean
-    @ConditionalOnMissingBean(ExcelTaskService.class)
-    public ExcelTaskService excelTaskService() {
-        return new MemoryExcelTaskServiceImpl();
-    }
-
-    /**
-     * 提供默认的Excel文件服务实现（本地存储方式）
-     * 当容器中不存在ExcelFileService类型的Bean时，根据配置属性创建LocalExcelFileServiceImpl实例。
-     *
-     * @param excelProperties Excel配置属性对象
-     * @return ExcelFileService 实例
-     */
-    @Bean
-    @ConditionalOnMissingBean(ExcelFileService.class)
-    public ExcelFileService excelFileService(ExcelProperties excelProperties) {
-        return new LocalExcelFileServiceImpl(excelProperties);
-    }
 
     /**
      * 初始化Excel处理器配置
