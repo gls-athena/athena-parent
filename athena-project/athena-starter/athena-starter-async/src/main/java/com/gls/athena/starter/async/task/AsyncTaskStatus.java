@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
  * 每个枚举值包含状态码和状态名称，用于任务状态的标识和展示
  * </p>
  *
- * @author lizy19
+ * @author george
  */
 @Getter
 @RequiredArgsConstructor

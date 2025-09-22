@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * 异步任务管理器，用于创建、查询、更新和删除异步任务。
  *
- * @author lizy19
+ * @author george
  */
 @Component
 public class AsyncTaskManager {

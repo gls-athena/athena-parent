@@ -6,7 +6,7 @@ package com.gls.athena.starter.async.config;
  * 该接口定义了异步线程池配置相关的常量信息
  * </p>
  *
- * @author lizy19
+ * @author george
  */
 public interface AsyncConstants {
 

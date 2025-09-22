@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 /**
  * 异步处理自动配置
  *
- * @author lizy19
+ * @author george
  */
 @EnableAsync
 @Configuration

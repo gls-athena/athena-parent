@@ -38,6 +38,7 @@
         <module>athena-starter-data-redis</module>
         <module>athena-starter-dynamic-datasource</module>
         <module>athena-starter-excel</module>
+        <module>athena-starter-file</module>
         <module>athena-starter-jasper</module>
         <module>athena-starter-json</module>
         <module>athena-starter-mybatis</module>
