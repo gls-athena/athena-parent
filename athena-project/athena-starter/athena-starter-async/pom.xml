@@ -6,11 +6,13 @@
     <parent>
         <groupId>io.github.gls-athena.starter</groupId>
         <artifactId>athena-starter</artifactId>
-        <version>0.0.15-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <groupId>io.github.gls-athena.starter.async</groupId>
     <artifactId>athena-starter-async</artifactId>
+    <name>Athena Starter Async</name>
+    <description>Athena 异步任务启动器</description>
 
 
 </project>
