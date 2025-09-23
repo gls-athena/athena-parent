@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * 文件配置属性类
  * 用于配置文件存储相关参数，包括存储类型、路径和URL前缀等信息
  *
- * @author lizy19
+ * @author george
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
