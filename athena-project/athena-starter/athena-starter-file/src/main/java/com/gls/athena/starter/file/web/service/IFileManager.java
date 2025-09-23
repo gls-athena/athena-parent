@@ -1,5 +1,6 @@
 package com.gls.athena.starter.file.web.service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -8,7 +9,7 @@ import java.io.OutputStream;
  *
  * @author lizy19
  */
-public interface IFileService {
+public interface IFileManager {
 
     /**
      * 保存文件到指定路径
@@ -54,8 +55,9 @@ public interface IFileService {
      *
      * @param path 文件路径
      * @return 文件输出流
+     * @throws IOException 如果无法获取输出流则抛出异常
      */
-    OutputStream getFileOutputStream(String path);
+    OutputStream getFileOutputStream(String path) throws IOException;
 
     /**
      * 生成指定类型的文件路径

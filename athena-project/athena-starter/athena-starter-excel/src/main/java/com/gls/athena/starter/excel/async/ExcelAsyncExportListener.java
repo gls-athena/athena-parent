@@ -5,7 +5,7 @@ import com.gls.athena.starter.async.config.AsyncConstants;
 import com.gls.athena.starter.async.web.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.web.service.IAsyncTaskInfoService;
 import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
-import com.gls.athena.starter.file.web.service.IFileService;
+import com.gls.athena.starter.file.web.service.IFileManager;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -34,7 +34,7 @@ public class ExcelAsyncExportListener {
     private IAsyncTaskInfoService asyncTaskInfoService;
 
     @Resource
-    private IFileService fileService;
+    private IFileManager fileManager;
 
     /**
      * 处理异步Excel导出请求
@@ -68,8 +68,8 @@ public class ExcelAsyncExportListener {
             asyncTaskInfoService.updateTaskProgress(taskId, 40);
 
             // 获取文件输出流
-            String filePath = fileService.generateFilePath("excel", filename);
-            OutputStream outputWrapper = fileService.getFileOutputStream(filePath);
+            String filePath = fileManager.generateFilePath("excel", filename);
+            OutputStream outputWrapper = fileManager.getFileOutputStream(filePath);
             asyncTaskInfoService.updateTaskProgress(taskId, 60);
 
             // 生成Excel文件
@@ -79,7 +79,7 @@ public class ExcelAsyncExportListener {
             }
 
             // 验证文件是否生成成功
-            if (fileService.exists(filePath) && fileService.getFileSize(filePath) > 0) {
+            if (fileManager.exists(filePath) && fileManager.getFileSize(filePath) > 0) {
                 asyncTaskInfoService.completeTask(taskId, Map.of("filePath", filePath));
                 log.info("异步Excel导出完成: taskId={}, filePath={}", taskId, filePath);
             } else {
