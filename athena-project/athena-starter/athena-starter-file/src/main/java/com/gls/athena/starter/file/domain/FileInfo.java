@@ -1,4 +1,4 @@
-package com.gls.athena.starter.file.web.domain;
+package com.gls.athena.starter.file.domain;
 
 import com.gls.athena.common.bean.base.BaseVo;
 import com.gls.athena.common.core.constant.FileTypeEnums;
@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FileInfoVo extends BaseVo {
+public class FileInfo extends BaseVo {
 
     /**
      * 文件名称

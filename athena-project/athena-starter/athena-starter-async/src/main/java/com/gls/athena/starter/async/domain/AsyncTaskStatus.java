@@ -1,4 +1,4 @@
-package com.gls.athena.starter.async.web.domain;
+package com.gls.athena.starter.async.domain;
 
 import com.gls.athena.common.bean.base.IEnum;
 import lombok.Getter;

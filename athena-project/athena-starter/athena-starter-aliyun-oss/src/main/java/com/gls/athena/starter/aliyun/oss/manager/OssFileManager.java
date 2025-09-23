@@ -3,7 +3,7 @@ package com.gls.athena.starter.aliyun.oss.manager;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.gls.athena.starter.aliyun.oss.config.AliyunOssProperties;
-import com.gls.athena.starter.file.web.service.IFileManager;
+import com.gls.athena.starter.file.manager.IFileManager;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 

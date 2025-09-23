@@ -1,6 +1,7 @@
 package com.gls.athena.starter.async.config;
 
-import com.gls.athena.starter.async.web.service.IAsyncTaskInfoService;
+import com.gls.athena.starter.async.domain.AsyncTask;
+import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -57,8 +58,8 @@ public class AsyncConfig {
      * @return 创建的IAsyncTaskInfoService实例
      */
     @Bean
-    @ConditionalOnMissingBean(IAsyncTaskInfoService.class)
-    public IAsyncTaskInfoService asyncTaskInfoService() {
-        throw new IllegalStateException("请实现 IAsyncTaskInfoService 接口");
+    @ConditionalOnMissingBean(IAsyncTaskManager.class)
+    public IAsyncTaskManager<AsyncTask> asyncTaskManager() {
+        throw new UnsupportedOperationException("请实现 IAsyncTaskManager 接口");
     }
 }

@@ -2,10 +2,10 @@ package com.gls.athena.starter.excel.async;
 
 import com.gls.athena.common.core.util.AspectUtil;
 import com.gls.athena.starter.async.config.AsyncConstants;
-import com.gls.athena.starter.async.web.domain.AsyncTaskStatus;
-import com.gls.athena.starter.async.web.service.IAsyncTaskInfoService;
+import com.gls.athena.starter.async.domain.AsyncTaskStatus;
+import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
-import com.gls.athena.starter.file.web.service.IFileManager;
+import com.gls.athena.starter.file.manager.IFileManager;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -31,7 +31,7 @@ public class ExcelAsyncExportListener {
     private ExcelGeneratorManager excelGeneratorManager;
 
     @Resource
-    private IAsyncTaskInfoService asyncTaskInfoService;
+    private IAsyncTaskManager asyncTaskManager;
 
     @Resource
     private IFileManager fileManager;
@@ -56,38 +56,38 @@ public class ExcelAsyncExportListener {
         Map<String, Object> params = AspectUtil.getParams(joinPoint);
         params.put("filename", filename);
         // 创建任务并更新状态为处理中
-        asyncTaskInfoService.createTask(taskId, "EXCEL_EXPORT", "Excel导出任务", "异步生成Excel文件", params);
-        asyncTaskInfoService.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
+        asyncTaskManager.createTask(taskId, "EXCEL_EXPORT", "Excel导出任务", "异步生成Excel文件", params);
+        asyncTaskManager.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
 
         try {
             // 更新进度至20%
-            asyncTaskInfoService.updateTaskProgress(taskId, 20);
+            asyncTaskManager.updateTaskProgress(taskId, 20);
 
             // 执行被拦截的方法获取数据
             Object data = joinPoint.proceed();
-            asyncTaskInfoService.updateTaskProgress(taskId, 40);
+            asyncTaskManager.updateTaskProgress(taskId, 40);
 
             // 获取文件输出流
             String filePath = fileManager.generateFilePath("excel", filename);
             OutputStream outputWrapper = fileManager.getFileOutputStream(filePath);
-            asyncTaskInfoService.updateTaskProgress(taskId, 60);
+            asyncTaskManager.updateTaskProgress(taskId, 60);
 
             // 生成Excel文件
             try (OutputStream outputStream = outputWrapper) {
                 excelGeneratorManager.generate(data, request.getExcelResponse(), outputStream);
-                asyncTaskInfoService.updateTaskProgress(taskId, 80);
+                asyncTaskManager.updateTaskProgress(taskId, 80);
             }
 
             // 验证文件是否生成成功
             if (fileManager.exists(filePath) && fileManager.getFileSize(filePath) > 0) {
-                asyncTaskInfoService.completeTask(taskId, Map.of("filePath", filePath));
+                asyncTaskManager.completeTask(taskId, Map.of("filePath", filePath));
                 log.info("异步Excel导出完成: taskId={}, filePath={}", taskId, filePath);
             } else {
-                asyncTaskInfoService.failTask(taskId, "文件生成失败或文件为空");
+                asyncTaskManager.failTask(taskId, "文件生成失败或文件为空");
             }
         } catch (Throwable e) {
             log.error("异步Excel导出失败: taskId={}", taskId, e);
-            asyncTaskInfoService.failTask(taskId, e.getMessage());
+            asyncTaskManager.failTask(taskId, e.getMessage());
         }
     }
 

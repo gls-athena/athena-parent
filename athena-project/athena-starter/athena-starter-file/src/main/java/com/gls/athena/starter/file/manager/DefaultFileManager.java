@@ -1,4 +1,4 @@
-package com.gls.athena.starter.file.web.service;
+package com.gls.athena.starter.file.manager;
 
 import com.gls.athena.starter.file.config.FileProperties;
 import lombok.RequiredArgsConstructor;

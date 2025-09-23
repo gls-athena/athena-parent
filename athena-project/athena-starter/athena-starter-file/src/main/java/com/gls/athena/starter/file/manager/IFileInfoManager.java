@@ -1,7 +1,7 @@
-package com.gls.athena.starter.file.web.service;
+package com.gls.athena.starter.file.manager;
 
 import com.gls.athena.common.core.base.IService;
-import com.gls.athena.starter.file.web.domain.FileInfoVo;
+import com.gls.athena.starter.file.domain.FileInfo;
 
 /**
  * 文件信息服务接口
@@ -12,5 +12,5 @@ import com.gls.athena.starter.file.web.domain.FileInfoVo;
  * @author athena 自动生成
  * @version 0.0.1-SNAPSHOT
  */
-public interface IFileInfoService extends IService<FileInfoVo> {
+public interface IFileInfoManager extends IService<FileInfo> {
 }
