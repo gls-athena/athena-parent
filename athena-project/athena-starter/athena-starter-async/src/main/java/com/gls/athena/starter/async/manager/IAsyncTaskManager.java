@@ -1,5 +1,6 @@
 package com.gls.athena.starter.async.manager;
 
+import cn.hutool.core.util.ReflectUtil;
 import com.gls.athena.common.core.base.IService;
 import com.gls.athena.starter.async.domain.AsyncTask;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
@@ -26,9 +27,23 @@ public interface IAsyncTaskManager<V extends AsyncTask> extends IService<V> {
      * @return 创建后的异步任务对象
      */
     default V createTask(String taskId, String code, String name, String description, Map<String, Object> params) {
-        return null;
+        V task = ReflectUtil.newInstance(getClassType());
+        task.setTaskId(taskId);
+        task.setCode(code);
+        task.setName(name);
+        task.setDescription(description);
+        task.setParams(params);
+        task.setStatus(AsyncTaskStatus.PENDING);
+        task.setStartTime(new Date());
+        task.setProgress(0);
+        return this.insert(task);
     }
 
+    /**
+     * 获取泛型参数类型
+     *
+     * @return 异步任务的具体实现类类型
+     */
     Class<V> getClassType();
 
     /**
