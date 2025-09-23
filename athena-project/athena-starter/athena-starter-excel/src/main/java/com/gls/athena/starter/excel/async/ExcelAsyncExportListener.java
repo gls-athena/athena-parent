@@ -1,9 +1,9 @@
 package com.gls.athena.starter.excel.async;
 
-import com.gls.athena.common.core.util.AspectUtil;
 import com.gls.athena.starter.async.config.AsyncConstants;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
+import com.gls.athena.starter.async.util.AopUtil;
 import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
 import com.gls.athena.starter.file.manager.IFileManager;
 import jakarta.annotation.Resource;
@@ -53,7 +53,7 @@ public class ExcelAsyncExportListener {
         String taskId = request.getTaskId();
         ProceedingJoinPoint joinPoint = request.getJoinPoint();
         String filename = request.getExcelResponse().filename() + request.getExcelResponse().excelType().getValue();
-        Map<String, Object> params = AspectUtil.getParams(joinPoint);
+        Map<String, Object> params = AopUtil.getParams(joinPoint);
         params.put("filename", filename);
         // 创建任务并更新状态为处理中
         asyncTaskManager.createTask(taskId, "EXCEL_EXPORT", "Excel导出任务", "异步生成Excel文件", params);

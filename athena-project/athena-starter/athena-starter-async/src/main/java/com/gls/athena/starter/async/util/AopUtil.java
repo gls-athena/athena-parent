@@ -1,4 +1,4 @@
-package com.gls.athena.common.core.util;
+package com.gls.athena.starter.async.util;
 
 import lombok.experimental.UtilityClass;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -20,7 +20,7 @@ import java.util.Optional;
  * @author george
  */
 @UtilityClass
-public class AspectUtil {
+public class AopUtil {
 
     /**
      * 提取方法调用参数

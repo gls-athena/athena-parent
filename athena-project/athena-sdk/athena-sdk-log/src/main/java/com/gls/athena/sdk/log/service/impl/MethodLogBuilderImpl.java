@@ -1,13 +1,13 @@
 package com.gls.athena.sdk.log.service.impl;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.gls.athena.common.core.util.AspectUtil;
 import com.gls.athena.sdk.log.domain.MethodLogDto;
 import com.gls.athena.sdk.log.domain.MethodLogType;
 import com.gls.athena.sdk.log.method.MethodLog;
 import com.gls.athena.sdk.log.service.IMethodLogBuilder;
 import com.gls.athena.sdk.log.service.IPerformanceMonitorService;
 import com.gls.athena.sdk.log.service.ITraceService;
+import com.gls.athena.starter.async.util.AopUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -53,7 +53,7 @@ public class MethodLogBuilderImpl implements IMethodLogBuilder {
                 .setMethodName(point.getSignature().getName());
 
         // 设置执行参数和时间
-        logDto.setArgs(AspectUtil.getParams(point))
+        logDto.setArgs(AopUtil.getParams(point))
                 .setStartTime(new Date())
                 .setTraceId(traceService.getCurrentTraceId());
 
@@ -87,7 +87,7 @@ public class MethodLogBuilderImpl implements IMethodLogBuilder {
         log.error("方法执行异常：{}", throwable.getMessage(), throwable);
 
         logDto.setErrorMessage(throwable.getMessage())
-                .setThrowable(AspectUtil.getStackTraceAsString(throwable))
+                .setThrowable(AopUtil.getStackTraceAsString(throwable))
                 .setEndTime(new Date())
                 .setType(MethodLogType.ERROR);
 
