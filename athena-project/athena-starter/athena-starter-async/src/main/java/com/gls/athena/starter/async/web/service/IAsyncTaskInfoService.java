@@ -1,7 +1,7 @@
 package com.gls.athena.starter.async.web.service;
 
 import com.gls.athena.common.core.base.IService;
-import com.gls.athena.starter.async.web.domain.AsyncTaskInfo;
+import com.gls.athena.starter.async.web.domain.AsyncTaskInfoVo;
 import com.gls.athena.starter.async.web.domain.AsyncTaskStatus;
 
 import java.util.Date;
@@ -9,11 +9,11 @@ import java.util.Map;
 
 /**
  * 异步任务信息服务接口，提供对异步任务信息的创建、查询、更新等操作。
- * 继承自通用服务接口 IService<AsyncTaskInfo>。
+ * 继承自通用服务接口 IService<AsyncTaskInfoVo>。
  *
  * @author lizy19
  */
-public interface IAsyncTaskInfoService extends IService<AsyncTaskInfo> {
+public interface IAsyncTaskInfoService extends IService<AsyncTaskInfoVo> {
 
     /**
      * 创建一个新的异步任务。
@@ -25,8 +25,8 @@ public interface IAsyncTaskInfoService extends IService<AsyncTaskInfo> {
      * @param params      任务参数，以键值对形式存储
      * @return 创建后的异步任务对象
      */
-    default AsyncTaskInfo createTask(String taskId, String code, String name, String description, Map<String, Object> params) {
-        AsyncTaskInfo task = new AsyncTaskInfo();
+    default AsyncTaskInfoVo createTask(String taskId, String code, String name, String description, Map<String, Object> params) {
+        AsyncTaskInfoVo task = new AsyncTaskInfoVo();
         task.setTaskId(taskId);
         task.setCode(code);
         task.setName(name);
@@ -44,7 +44,7 @@ public interface IAsyncTaskInfoService extends IService<AsyncTaskInfo> {
      * @param taskId 任务ID
      * @return 对应的任务信息对象，若不存在则返回null
      */
-    AsyncTaskInfo getTask(String taskId);
+    AsyncTaskInfoVo getTask(String taskId);
 
     /**
      * 更新指定任务的状态。
@@ -55,7 +55,7 @@ public interface IAsyncTaskInfoService extends IService<AsyncTaskInfo> {
      * @throws IllegalArgumentException 当任务不存在时抛出异常
      */
     default void updateTaskStatus(String taskId, AsyncTaskStatus status) {
-        AsyncTaskInfo task = this.getTask(taskId);
+        AsyncTaskInfoVo task = this.getTask(taskId);
         if (task == null) {
             throw new IllegalArgumentException("任务不存在: " + taskId);
         }
@@ -82,7 +82,7 @@ public interface IAsyncTaskInfoService extends IService<AsyncTaskInfo> {
      * @throws IllegalArgumentException 当任务不存在时抛出异常
      */
     default void updateTaskProgress(String taskId, Integer progress) {
-        AsyncTaskInfo task = this.getTask(taskId);
+        AsyncTaskInfoVo task = this.getTask(taskId);
         if (task == null) {
             throw new IllegalArgumentException("任务不存在: " + taskId);
         }
@@ -98,7 +98,7 @@ public interface IAsyncTaskInfoService extends IService<AsyncTaskInfo> {
      * @throws IllegalArgumentException 当任务不存在时抛出异常
      */
     default void completeTask(String taskId, Map<String, Object> result) {
-        AsyncTaskInfo task = this.getTask(taskId);
+        AsyncTaskInfoVo task = this.getTask(taskId);
         if (task == null) {
             throw new IllegalArgumentException("任务不存在: " + taskId);
         }
@@ -117,7 +117,7 @@ public interface IAsyncTaskInfoService extends IService<AsyncTaskInfo> {
      * @throws IllegalArgumentException 当任务不存在时抛出异常
      */
     default void failTask(String taskId, String errorMessage) {
-        AsyncTaskInfo task = this.getTask(taskId);
+        AsyncTaskInfoVo task = this.getTask(taskId);
         if (task == null) {
             throw new IllegalArgumentException("任务不存在: " + taskId);
         }

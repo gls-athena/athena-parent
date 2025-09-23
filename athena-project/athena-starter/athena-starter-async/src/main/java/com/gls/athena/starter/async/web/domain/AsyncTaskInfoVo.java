@@ -15,7 +15,7 @@ import java.util.Map;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AsyncTaskInfo extends BaseVo {
+public class AsyncTaskInfoVo extends BaseVo {
 
     /**
      * 任务ID
