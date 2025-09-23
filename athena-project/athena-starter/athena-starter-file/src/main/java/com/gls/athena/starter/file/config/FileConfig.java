@@ -1,7 +1,6 @@
 package com.gls.athena.starter.file.config;
 
 import com.gls.athena.starter.file.manager.DefaultFileManager;
-import com.gls.athena.starter.file.manager.IFileInfoManager;
 import com.gls.athena.starter.file.manager.IFileManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -30,9 +29,4 @@ public class FileConfig {
         return new DefaultFileManager(fileProperties);
     }
 
-    @Bean
-    @ConditionalOnMissingBean(IFileInfoManager.class)
-    public IFileInfoManager fileInfoService() {
-        throw new UnsupportedOperationException("请自行实现 IFileInfoManager 接口");
-    }
 }

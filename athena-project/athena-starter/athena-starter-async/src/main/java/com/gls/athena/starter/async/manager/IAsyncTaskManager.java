@@ -1,7 +1,6 @@
 package com.gls.athena.starter.async.manager;
 
 import cn.hutool.core.util.ReflectUtil;
-import com.gls.athena.common.core.base.IService;
 import com.gls.athena.starter.async.domain.AsyncTask;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 
@@ -14,7 +13,7 @@ import java.util.Map;
  *
  * @author george
  */
-public interface IAsyncTaskManager<V extends AsyncTask> extends IService<V> {
+public interface IAsyncTaskManager<V extends AsyncTask> {
 
     /**
      * 创建一个新的异步任务。
@@ -38,6 +37,14 @@ public interface IAsyncTaskManager<V extends AsyncTask> extends IService<V> {
         task.setProgress(0);
         return this.insert(task);
     }
+
+    /**
+     * 插入任务信息
+     *
+     * @param task 任务对象
+     * @return 插入后的任务对象
+     */
+    V insert(V task);
 
     /**
      * 获取泛型参数类型
@@ -81,6 +88,13 @@ public interface IAsyncTaskManager<V extends AsyncTask> extends IService<V> {
         }
         this.update(task);
     }
+
+    /**
+     * 更新任务信息
+     *
+     * @param task 任务对象
+     */
+    void update(V task);
 
     /**
      * 更新指定任务的进度。

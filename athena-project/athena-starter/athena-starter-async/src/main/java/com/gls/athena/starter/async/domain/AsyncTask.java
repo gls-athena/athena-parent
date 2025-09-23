@@ -1,9 +1,8 @@
 package com.gls.athena.starter.async.domain;
 
-import com.gls.athena.common.bean.base.BaseVo;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
@@ -14,8 +13,7 @@ import java.util.Map;
  * @author george
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class AsyncTask extends BaseVo {
+public class AsyncTask implements Serializable {
 
     /**
      * 任务ID

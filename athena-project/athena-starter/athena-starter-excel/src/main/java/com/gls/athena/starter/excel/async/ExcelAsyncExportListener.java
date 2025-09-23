@@ -31,7 +31,7 @@ public class ExcelAsyncExportListener {
     private ExcelGeneratorManager excelGeneratorManager;
 
     @Resource
-    private IAsyncTaskManager asyncTaskManager;
+    private IAsyncTaskManager<?> asyncTaskManager;
 
     @Resource
     private IFileManager fileManager;

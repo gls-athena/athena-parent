@@ -77,7 +77,7 @@ public @interface ExcelResponse {
     ExcelSheet[] sheets() default @ExcelSheet(sheetNo = 0);
 
     /**
-     * 指定生成的Excel文件名
+     * 指定生成的Excel文件名(不包含扩展名)
      */
     String filename();
 

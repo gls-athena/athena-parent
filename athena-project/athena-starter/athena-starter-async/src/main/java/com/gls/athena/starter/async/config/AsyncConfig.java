@@ -1,6 +1,7 @@
 package com.gls.athena.starter.async.config;
 
 import com.gls.athena.starter.async.domain.AsyncTask;
+import com.gls.athena.starter.async.manager.DefaultAsyncTaskManager;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -60,6 +61,6 @@ public class AsyncConfig {
     @Bean
     @ConditionalOnMissingBean(IAsyncTaskManager.class)
     public IAsyncTaskManager<AsyncTask> asyncTaskManager() {
-        throw new UnsupportedOperationException("请实现 IAsyncTaskManager 接口");
+        return new DefaultAsyncTaskManager();
     }
 }
