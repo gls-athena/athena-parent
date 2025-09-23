@@ -1,5 +1,6 @@
 package com.gls.athena.starter.async.config;
 
+import com.gls.athena.starter.async.web.service.IAsyncTaskInfoService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -48,4 +49,16 @@ public class AsyncConfig {
         return executor;
     }
 
+    /**
+     * 创建异步任务信息服务接口实例
+     * <p>
+     * 该方法创建一个IAsyncTaskInfoService实例，用于处理异步任务信息。
+     *
+     * @return 创建的IAsyncTaskInfoService实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(IAsyncTaskInfoService.class)
+    public IAsyncTaskInfoService asyncTaskInfoService() {
+        throw new IllegalStateException("请实现 IAsyncTaskInfoService 接口");
+    }
 }

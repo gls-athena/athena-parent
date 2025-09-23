@@ -5,11 +5,9 @@ import com.gls.athena.starter.excel.handler.ExcelRequestHandler;
 import com.gls.athena.starter.excel.handler.ExcelResponseHandler;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
@@ -26,9 +24,7 @@ import java.util.List;
  *
  * @author george
  */
-@AutoConfiguration
-@EnableAsync
-@EnableScheduling
+@Configuration
 @EnableConfigurationProperties(ExcelProperties.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class ExcelConfig {
