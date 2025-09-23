@@ -11,7 +11,7 @@ import java.util.Map;
  * 异步任务信息服务接口，提供对异步任务信息的创建、查询、更新等操作。
  * 继承自通用服务接口 IService<AsyncTaskInfoVo>。
  *
- * @author lizy19
+ * @author george
  */
 public interface IAsyncTaskInfoService extends IService<AsyncTaskInfoVo> {
 

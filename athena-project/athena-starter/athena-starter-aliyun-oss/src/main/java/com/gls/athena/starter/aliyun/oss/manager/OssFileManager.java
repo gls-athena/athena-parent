@@ -18,7 +18,7 @@ import java.util.Date;
  * OssFileManager类实现了IFileService接口，提供基于阿里云OSS的文件管理功能
  * 包括文件的保存、删除、存在性检查、获取文件大小、生成文件路径和URL等功能
  *
- * @author lizy19
+ * @author george
  */
 @Service
 public class OssFileManager implements IFileManager {

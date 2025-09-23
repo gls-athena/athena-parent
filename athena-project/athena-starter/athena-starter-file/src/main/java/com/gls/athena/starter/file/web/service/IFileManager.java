@@ -7,7 +7,7 @@ import java.io.OutputStream;
 /**
  * 文件服务接口，提供文件的基本操作功能
  *
- * @author lizy19
+ * @author george
  */
 public interface IFileManager {
 
