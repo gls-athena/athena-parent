@@ -2,6 +2,7 @@ package com.gls.athena.starter.async.util;
 
 import lombok.experimental.UtilityClass;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
 
 import java.io.PrintWriter;
@@ -91,7 +92,7 @@ public class AopUtil {
     public String getMethodName(ProceedingJoinPoint point) {
         return Optional.ofNullable(point)
                 .map(ProceedingJoinPoint::getSignature)
-                .map(signature -> signature.getName())
+                .map(Signature::getName)
                 .orElse("");
     }
 
