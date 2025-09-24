@@ -55,4 +55,21 @@ public enum AsyncTaskStatus implements IEnum<Integer> {
      * 用于展示给用户查看的任务状态描述
      */
     private final String name;
+
+    /**
+     * 根据代码值转换为对应的AsyncTaskStatus枚举对象
+     *
+     * @param code 要转换的代码值
+     * @return 对应的AsyncTaskStatus枚举对象，如果未找到匹配项则返回null
+     */
+    public static AsyncTaskStatus convert(Integer code) {
+        // 遍历所有枚举值，查找代码值匹配的枚举对象
+        for (AsyncTaskStatus value : values()) {
+            if (value.code.equals(code)) {
+                return value;
+            }
+        }
+        return null;
+    }
+
 }
