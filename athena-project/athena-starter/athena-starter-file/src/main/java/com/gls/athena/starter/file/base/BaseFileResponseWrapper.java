@@ -14,7 +14,7 @@ import java.lang.annotation.Annotation;
  * 用于处理文件下载响应的通用包装器，提供文件相关信息的抽象方法
  *
  * @param <Response> 响应注解类型
- * @author lizy19
+ * @author george
  */
 @Data
 public abstract class BaseFileResponseWrapper<Response extends Annotation> {

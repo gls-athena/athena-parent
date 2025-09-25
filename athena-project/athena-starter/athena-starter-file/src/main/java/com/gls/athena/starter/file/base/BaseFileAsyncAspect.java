@@ -24,7 +24,7 @@ import java.util.concurrent.Executor;
  * 文件异步处理切面接口，用于拦截带有特定响应注解的方法并实现异步逻辑处理
  *
  * @param <Response> 响应注解类型，必须是 Annotation 的子类型
- * @author lizy19
+ * @author george
  */
 @Slf4j
 @RequiredArgsConstructor

@@ -19,7 +19,7 @@ import java.util.concurrent.Executor;
  * PDF异步处理切面类
  * 用于拦截带有PdfResponse注解的方法，实现PDF文件的异步生成和处理
  *
- * @author lizy19
+ * @author george
  */
 @Slf4j
 @Aspect

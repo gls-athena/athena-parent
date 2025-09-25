@@ -8,7 +8,7 @@ import com.gls.athena.starter.file.base.BaseFileResponseWrapper;
  * Excel响应包装器类，用于处理Excel响应注解的相关信息
  * 继承自BaseFileResponseWrapper基类，专门处理ExcelResponse注解
  *
- * @author lizy19
+ * @author george
  */
 public class ExcelResponseWrapper extends BaseFileResponseWrapper<ExcelResponse> {
 

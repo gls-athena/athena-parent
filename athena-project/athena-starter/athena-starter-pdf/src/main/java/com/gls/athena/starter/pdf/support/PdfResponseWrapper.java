@@ -8,7 +8,7 @@ import com.gls.athena.starter.pdf.annotation.PdfResponse;
  * PDF响应包装器类，用于处理PDF文件响应的相关信息
  * 继承自BaseFileResponseWrapper基类，专门处理PdfResponse注解
  *
- * @author lizy19
+ * @author george
  */
 public class PdfResponseWrapper extends BaseFileResponseWrapper<PdfResponse> {
 

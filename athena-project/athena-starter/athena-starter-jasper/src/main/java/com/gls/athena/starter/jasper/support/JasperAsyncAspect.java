@@ -22,7 +22,7 @@ import java.util.concurrent.Executor;
  * 该类继承自{@link BaseFileAsyncAspect}，实现了对Jasper报表生成任务的异步处理逻辑。
  * </p>
  *
- * @author lizy19
+ * @author george
  */
 @Slf4j
 @Aspect

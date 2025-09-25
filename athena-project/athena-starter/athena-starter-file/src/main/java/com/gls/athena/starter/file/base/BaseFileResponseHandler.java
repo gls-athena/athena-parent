@@ -19,7 +19,7 @@ import java.util.List;
  * 用于处理带有特定注解的控制器方法返回值，将其转换为文件响应。
  *
  * @param <Response> 响应注解类型，必须继承自Annotation
- * @author lizy19
+ * @author george
  */
 @Slf4j
 @RequiredArgsConstructor

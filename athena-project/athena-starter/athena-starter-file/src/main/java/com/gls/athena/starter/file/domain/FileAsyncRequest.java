@@ -11,7 +11,7 @@ import java.lang.annotation.Annotation;
  * 用于封装文件异步处理相关的请求信息，包括任务ID、响应注解和连接点信息
  *
  * @param <Response> 响应注解类型，必须继承自Annotation
- * @author lizy19
+ * @author george
  */
 @Data
 public class FileAsyncRequest<Response extends Annotation> {

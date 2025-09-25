@@ -1,7 +1,7 @@
 package com.gls.athena.starter.word.config;
 
-import com.gls.athena.starter.word.generator.WordGeneratorManager;
-import com.gls.athena.starter.word.handler.WordResponseHandler;
+import com.gls.athena.starter.word.generator.WordGenerator;
+import com.gls.athena.starter.word.support.WordResponseHandler;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -30,7 +30,7 @@ public class WordConfig {
      * Word生成器管理器，用于管理Word生成器
      */
     @Resource
-    private WordGeneratorManager wordGeneratorManager;
+    private List<WordGenerator> wordGenerators;
 
     /**
      * 初始化方法，用于在配置类加载后执行额外的初始化逻辑
@@ -42,7 +42,7 @@ public class WordConfig {
         List<HandlerMethodReturnValueHandler> returnValueHandlers = requestMappingHandlerAdapter.getReturnValueHandlers();
         // 创建新的处理器列表，首先添加自定义的Word响应处理器
         List<HandlerMethodReturnValueHandler> newHandlers = new ArrayList<>();
-        newHandlers.add(new WordResponseHandler(wordGeneratorManager));
+        newHandlers.add(new WordResponseHandler(wordGenerators));
         // 如果存在原有的处理器列表，将其全部添加到新的处理器列表中
         if (returnValueHandlers != null) {
             newHandlers.addAll(returnValueHandlers);
