@@ -16,16 +16,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.github.gls-athena.starter.web</groupId>
-            <artifactId>athena-starter-web</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.github.gls-athena.starter.file</groupId>
             <artifactId>athena-starter-file</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.gls-athena.starter.async</groupId>
-            <artifactId>athena-starter-async</artifactId>
         </dependency>
         <dependency>
             <groupId>cn.idev.excel</groupId>

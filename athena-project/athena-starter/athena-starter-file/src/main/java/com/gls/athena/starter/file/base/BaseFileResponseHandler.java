@@ -8,7 +8,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -40,7 +39,11 @@ public abstract class BaseFileResponseHandler<Generator extends FileGenerator<Re
     @Override
     public boolean supportsReturnType(MethodParameter parameter) {
         Response response = parameter.getMethodAnnotation(getResponseClass());
-        return response != null && !isAsync(response);
+        if (response == null) {
+            return false;
+        }
+        BaseFileResponseWrapper<Response> wrapper = getResponseWrapper(response);
+        return !wrapper.isAsync();
     }
 
     /**
@@ -61,9 +64,9 @@ public abstract class BaseFileResponseHandler<Generator extends FileGenerator<Re
 
         // 获取Response注解
         Response response = returnType.getMethodAnnotation(getResponseClass());
-
+        BaseFileResponseWrapper<Response> wrapper = getResponseWrapper(response);
         // 创建文件输出流并生成文件
-        try (OutputStream outputStream = createOutputStream(webRequest, response)) {
+        try (OutputStream outputStream = wrapper.createOutputStream(webRequest)) {
             generators.stream()
                     .filter(generator -> generator.supports(response))
                     .findFirst()
@@ -75,14 +78,6 @@ public abstract class BaseFileResponseHandler<Generator extends FileGenerator<Re
     }
 
     /**
-     * 判断指定的响应注解是否表示异步处理
-     *
-     * @param response 响应注解实例
-     * @return 如果是异步处理返回true，否则返回false
-     */
-    protected abstract boolean isAsync(Response response);
-
-    /**
      * 获取响应注解的类型Class
      *
      * @return 响应注解的Class对象
@@ -90,13 +85,11 @@ public abstract class BaseFileResponseHandler<Generator extends FileGenerator<Re
     protected abstract Class<Response> getResponseClass();
 
     /**
-     * 创建文件输出流
+     * 获取响应包装器实例，用于解析响应注解中的配置信息
      *
-     * @param webRequest 当前的Web请求对象
-     * @param response   响应注解实例
-     * @return 文件输出流
-     * @throws IOException 创建输出流时发生IO异常
+     * @param response 响应注解对象
+     * @return 对应的响应包装器实例
      */
-    protected abstract OutputStream createOutputStream(NativeWebRequest webRequest, Response response) throws IOException;
+    protected abstract BaseFileResponseWrapper<Response> getResponseWrapper(Response response);
 }
 

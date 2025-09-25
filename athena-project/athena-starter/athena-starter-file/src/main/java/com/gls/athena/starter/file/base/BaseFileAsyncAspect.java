@@ -2,7 +2,6 @@ package com.gls.athena.starter.file.base;
 
 import cn.hutool.core.util.IdUtil;
 import com.gls.athena.common.bean.result.Result;
-import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.async.util.AopUtil;
@@ -51,7 +50,11 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
      */
     public Object around(ProceedingJoinPoint joinPoint, Response response) throws Throwable {
         // 如果响应对象为空或不是异步响应，则直接执行原方法
-        if (response == null || !isAsync(response)) {
+        if (response == null) {
+            return joinPoint.proceed();
+        }
+        BaseFileResponseWrapper<Response> responseWrapper = getResponseWrapper(response);
+        if (!responseWrapper.isAsync()) {
             return joinPoint.proceed();
         }
 
@@ -61,7 +64,7 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
         // 创建异步请求对象并设置相关属性
         FileAsyncRequest<Response> fileAsyncRequest = new FileAsyncRequest<>();
         fileAsyncRequest.setTaskId(taskId);
-        fileAsyncRequest.setResponse(response);
+        fileAsyncRequest.setResponse(responseWrapper);
         fileAsyncRequest.setJoinPoint(joinPoint);
 
         CompletableFuture.runAsync(() -> handleFileAsync(fileAsyncRequest), executor);
@@ -84,14 +87,14 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
      */
     private void handleFileAsync(FileAsyncRequest<Response> request) {
         String taskId = request.getTaskId();
-        Response response = request.getResponse();
+        BaseFileResponseWrapper<Response> wrapper = request.getResponse();
         ProceedingJoinPoint joinPoint = request.getJoinPoint();
-        String filename = getFilename(response);
+        String filename = wrapper.getFilename();
         Map<String, Object> params = AopUtil.getParams(joinPoint);
         params.put("filename", filename);
 
         // 创建任务并更新状态为处理中
-        asyncTaskManager.createTask(taskId, getCode(response), getName(response), getDescription(response), params);
+        asyncTaskManager.createTask(taskId, wrapper.getCode(), wrapper.getName(), wrapper.getDescription(), params);
         asyncTaskManager.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
 
         try {
@@ -103,17 +106,17 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
             asyncTaskManager.updateTaskProgress(taskId, 40);
 
             // 获取文件输出流
-            String type = getFileType(response).getCode();
+            String type = wrapper.getFileType().getCode();
             String filePath = fileManager.generateFilePath(type, filename);
             asyncTaskManager.updateTaskProgress(taskId, 60);
 
             // 生成文件
             try (OutputStream outputStream = fileManager.getFileOutputStream(filePath)) {
                 generators.stream()
-                        .filter(generator -> generator.supports(response))
+                        .filter(generator -> generator.supports(wrapper.getResponse()))
                         .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException("不支持的文件类型: " + getFileType(response).getExtension()))
-                        .generate(data, response, outputStream);
+                        .orElseThrow(() -> new IllegalArgumentException("不支持的文件类型: " + wrapper.getFileType().getExtension()))
+                        .generate(data, wrapper.getResponse(), outputStream);
                 asyncTaskManager.updateTaskProgress(taskId, 80);
             }
 
@@ -131,51 +134,11 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
     }
 
     /**
-     * 获取任务编码
+     * 获取响应包装器实例，用于解析响应注解中的配置信息
      *
      * @param response 响应注解对象
-     * @return 任务编码字符串
+     * @return 对应的响应包装器实例
      */
-    protected abstract String getCode(Response response);
-
-    /**
-     * 获取任务名称
-     *
-     * @param response 响应注解对象
-     * @return 任务名称字符串
-     */
-    protected abstract String getName(Response response);
-
-    /**
-     * 获取任务描述
-     *
-     * @param response 响应注解对象
-     * @return 任务描述字符串
-     */
-    protected abstract String getDescription(Response response);
-
-    /**
-     * 根据响应注解获取文件名
-     *
-     * @param response 响应注解对象
-     * @return 文件名字符串
-     */
-    protected abstract String getFilename(Response response);
-
-    /**
-     * 根据响应注解获取文件类型枚举
-     *
-     * @param response 响应注解对象
-     * @return 文件类型枚举
-     */
-    protected abstract FileTypeEnums getFileType(Response response);
-
-    /**
-     * 判断当前响应是否为异步处理模式
-     *
-     * @param response 响应注解对象
-     * @return true 表示需要异步处理，false 表示同步处理
-     */
-    protected abstract boolean isAsync(Response response);
+    protected abstract BaseFileResponseWrapper<Response> getResponseWrapper(Response response);
 
 }
