@@ -84,13 +84,14 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
      */
     private void handleFileAsync(FileAsyncRequest<Response> request) {
         String taskId = request.getTaskId();
+        Response response = request.getResponse();
         ProceedingJoinPoint joinPoint = request.getJoinPoint();
-        String filename = getFilename(request.getResponse());
+        String filename = getFilename(response);
         Map<String, Object> params = AopUtil.getParams(joinPoint);
         params.put("filename", filename);
 
         // 创建任务并更新状态为处理中
-        asyncTaskManager.createTask(taskId, getCode(), getName(), getDescription(), params);
+        asyncTaskManager.createTask(taskId, getCode(response), getName(response), getDescription(response), params);
         asyncTaskManager.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
 
         try {
@@ -102,18 +103,17 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
             asyncTaskManager.updateTaskProgress(taskId, 40);
 
             // 获取文件输出流
-            String type = getFileType(request.getResponse()).getCode();
+            String type = getFileType(response).getCode();
             String filePath = fileManager.generateFilePath(type, filename);
-            OutputStream outputWrapper = fileManager.getFileOutputStream(filePath);
             asyncTaskManager.updateTaskProgress(taskId, 60);
 
             // 生成文件
-            try (OutputStream outputStream = outputWrapper) {
+            try (OutputStream outputStream = fileManager.getFileOutputStream(filePath)) {
                 generators.stream()
-                        .filter(generator -> generator.supports(request.getResponse()))
+                        .filter(generator -> generator.supports(response))
                         .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException("不支持的文件类型: " + getFileType(request.getResponse()).getExtension()))
-                        .generate(data, request.getResponse(), outputStream);
+                        .orElseThrow(() -> new IllegalArgumentException("不支持的文件类型: " + getFileType(response).getExtension()))
+                        .generate(data, response, outputStream);
                 asyncTaskManager.updateTaskProgress(taskId, 80);
             }
 
@@ -133,23 +133,26 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
     /**
      * 获取任务编码
      *
+     * @param response 响应注解对象
      * @return 任务编码字符串
      */
-    protected abstract String getCode();
+    protected abstract String getCode(Response response);
 
     /**
      * 获取任务名称
      *
+     * @param response 响应注解对象
      * @return 任务名称字符串
      */
-    protected abstract String getName();
+    protected abstract String getName(Response response);
 
     /**
      * 获取任务描述
      *
+     * @param response 响应注解对象
      * @return 任务描述字符串
      */
-    protected abstract String getDescription();
+    protected abstract String getDescription(Response response);
 
     /**
      * 根据响应注解获取文件名

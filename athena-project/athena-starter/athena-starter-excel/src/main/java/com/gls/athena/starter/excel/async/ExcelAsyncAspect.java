@@ -61,8 +61,8 @@ public class ExcelAsyncAspect extends BaseFileAsyncAspect<ExcelGenerator, ExcelR
      * @return 返回固定的任务编码 "excel_export"
      */
     @Override
-    protected String getCode() {
-        return "excel_export";
+    protected String getCode(ExcelResponse excelResponse) {
+        return excelResponse.code();
     }
 
     /**
@@ -71,8 +71,8 @@ public class ExcelAsyncAspect extends BaseFileAsyncAspect<ExcelGenerator, ExcelR
      * @return 返回固定的任务名称 "Excel导出"
      */
     @Override
-    protected String getName() {
-        return "Excel导出";
+    protected String getName(ExcelResponse excelResponse) {
+        return excelResponse.name();
     }
 
     /**
@@ -81,8 +81,8 @@ public class ExcelAsyncAspect extends BaseFileAsyncAspect<ExcelGenerator, ExcelR
      * @return 返回固定的任务描述 "Excel异步导出任务"
      */
     @Override
-    protected String getDescription() {
-        return "Excel异步导出任务";
+    protected String getDescription(ExcelResponse excelResponse) {
+        return excelResponse.description();
     }
 
     /**

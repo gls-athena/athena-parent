@@ -98,4 +98,22 @@ public @interface ExcelResponse {
      * 默认值为false，表示同步生成
      */
     boolean async() default false;
+
+    /**
+     * 导出任务的编码标识
+     * 默认值为"excel_export"
+     */
+    String code() default "excel_export";
+
+    /**
+     * 导出任务的名称
+     * 默认值为"Excel导出"
+     */
+    String name() default "Excel导出";
+
+    /**
+     * 导出任务的描述信息
+     * 默认值为"Excel异步导出任务"
+     */
+    String description() default "Excel异步导出任务";
 }
