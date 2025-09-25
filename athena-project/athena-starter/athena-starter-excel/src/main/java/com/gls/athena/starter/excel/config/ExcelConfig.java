@@ -1,8 +1,9 @@
 package com.gls.athena.starter.excel.config;
 
-import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
+import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.handler.ExcelRequestHandler;
 import com.gls.athena.starter.excel.handler.ExcelResponseHandler;
+import com.gls.athena.starter.file.generator.FileGeneratorManager;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -32,7 +33,7 @@ public class ExcelConfig {
     @Resource
     private RequestMappingHandlerAdapter handlerAdapter;
     @Resource
-    private ExcelGeneratorManager excelGeneratorManager;
+    private FileGeneratorManager<ExcelResponse> excelGeneratorManager;
 
     /**
      * 初始化Excel处理器配置

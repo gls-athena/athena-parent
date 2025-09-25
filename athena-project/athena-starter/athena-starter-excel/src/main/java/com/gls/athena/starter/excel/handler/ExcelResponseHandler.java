@@ -1,7 +1,7 @@
 package com.gls.athena.starter.excel.handler;
 
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
-import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
+import com.gls.athena.starter.file.generator.FileGeneratorManager;
 import com.gls.athena.starter.web.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.io.OutputStream;
 @RequiredArgsConstructor
 public class ExcelResponseHandler implements HandlerMethodReturnValueHandler {
 
-    private final ExcelGeneratorManager generatorManager;
+    private final FileGeneratorManager<ExcelResponse> generatorManager;
 
     /**
      * 判断处理器是否支持处理该返回类型

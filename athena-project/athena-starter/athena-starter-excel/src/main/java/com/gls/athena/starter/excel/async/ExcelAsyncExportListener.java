@@ -4,7 +4,8 @@ import com.gls.athena.starter.async.config.AsyncConstants;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.async.util.AopUtil;
-import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
+import com.gls.athena.starter.excel.annotation.ExcelResponse;
+import com.gls.athena.starter.file.generator.FileGeneratorManager;
 import com.gls.athena.starter.file.manager.IFileManager;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,7 @@ import java.util.Map;
 public class ExcelAsyncExportListener {
 
     @Resource
-    private ExcelGeneratorManager excelGeneratorManager;
+    private FileGeneratorManager<ExcelResponse> excelGeneratorManager;
 
     @Resource
     private IAsyncTaskManager<?> asyncTaskManager;

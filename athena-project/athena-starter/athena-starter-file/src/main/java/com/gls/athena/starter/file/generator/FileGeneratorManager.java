@@ -1,6 +1,5 @@
-package com.gls.athena.starter.file.manager;
+package com.gls.athena.starter.file.generator;
 
-import com.gls.athena.starter.file.generator.FileGenerator;
 import lombok.RequiredArgsConstructor;
 
 import java.io.OutputStream;
@@ -19,7 +18,7 @@ public class FileGeneratorManager<Response> {
     /**
      * 文件生成器列表，包含所有可用的文件生成器实现
      */
-    private final List<FileGenerator<Response>> fileGenerators;
+    private final List<? extends FileGenerator<Response>> fileGenerators;
 
     /**
      * 根据数据和响应类型生成文件并写入输出流
@@ -34,7 +33,7 @@ public class FileGeneratorManager<Response> {
         fileGenerators.stream()
                 .filter(generator -> generator.supports(response))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("未找到适配的FileGenerator实现"))
+                .orElseThrow(() -> new IllegalArgumentException("未找到适配的Generator实现"))
                 .generate(data, response, outputStream);
     }
 }
