@@ -2,7 +2,7 @@ package com.gls.athena.starter.word.generator;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
-import com.gls.athena.common.core.util.FileUtil;
+import com.gls.athena.starter.file.util.FileUtil;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.config.WordProperties;
 import jakarta.annotation.Resource;

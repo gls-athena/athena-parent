@@ -1,4 +1,4 @@
-package com.gls.athena.common.core.util;
+package com.gls.athena.starter.file.util;
 
 import cn.hutool.core.util.StrUtil;
 import lombok.experimental.UtilityClass;
