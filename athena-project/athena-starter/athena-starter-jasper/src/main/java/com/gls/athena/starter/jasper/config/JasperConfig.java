@@ -1,7 +1,7 @@
 package com.gls.athena.starter.jasper.config;
 
 import com.gls.athena.starter.jasper.generator.JasperGenerator;
-import com.gls.athena.starter.jasper.handler.JasperResponseHandler;
+import com.gls.athena.starter.jasper.support.JasperResponseHandler;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

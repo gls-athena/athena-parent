@@ -1,4 +1,4 @@
-package com.gls.athena.starter.jasper.handler;
+package com.gls.athena.starter.jasper.support;
 
 import com.gls.athena.starter.file.base.BaseFileResponseHandler;
 import com.gls.athena.starter.file.base.BaseFileResponseWrapper;
@@ -35,9 +35,15 @@ public class JasperResponseHandler extends BaseFileResponseHandler<JasperGenerat
         return JasperResponse.class;
     }
 
+    /**
+     * 获取响应包装器实例
+     *
+     * @param jasperResponse Jasper响应注解对象
+     * @return Jasper响应包装器实例
+     */
     @Override
     protected BaseFileResponseWrapper<JasperResponse> getResponseWrapper(JasperResponse jasperResponse) {
-        return null;
+        return new JasperResponseWrapper(jasperResponse);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.gls.athena.starter.jasper.async;
+package com.gls.athena.starter.jasper.support;
 
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.file.base.BaseFileAsyncAspect;
@@ -56,9 +56,15 @@ public class JasperAsyncAspect extends BaseFileAsyncAspect<JasperGenerator, Jasp
         return super.around(joinPoint, jasperResponse);
     }
 
+    /**
+     * 获取Jasper响应包装器实例。
+     *
+     * @param jasperResponse Jasper响应注解对象
+     * @return Jasper响应包装器对象
+     */
     @Override
     protected BaseFileResponseWrapper<JasperResponse> getResponseWrapper(JasperResponse jasperResponse) {
-        return null;
+        return new JasperResponseWrapper(jasperResponse);
     }
 
 }
