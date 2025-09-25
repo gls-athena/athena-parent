@@ -1,7 +1,6 @@
 package com.gls.athena.starter.pdf.support;
 
 import com.gls.athena.starter.file.base.BaseFileResponseHandler;
-import com.gls.athena.starter.file.base.BaseFileResponseWrapper;
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import com.gls.athena.starter.pdf.generator.PdfGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -36,15 +35,5 @@ public class PdfResponseHandler extends BaseFileResponseHandler<PdfGenerator, Pd
         return PdfResponse.class;
     }
 
-    /**
-     * 获取PDF响应包装器
-     *
-     * @param pdfResponse PDF响应注解对象
-     * @return 返回BaseFileResponseWrapper<PdfResponse>类型的响应包装器实例
-     */
-    @Override
-    protected BaseFileResponseWrapper<PdfResponse> getResponseWrapper(PdfResponse pdfResponse) {
-        return new PdfResponseWrapper(pdfResponse);
-    }
 }
 

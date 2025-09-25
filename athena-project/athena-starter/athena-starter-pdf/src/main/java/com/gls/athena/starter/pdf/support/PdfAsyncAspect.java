@@ -1,8 +1,7 @@
 package com.gls.athena.starter.pdf.support;
 
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
-import com.gls.athena.starter.file.base.BaseFileAsyncAspect;
-import com.gls.athena.starter.file.base.BaseFileResponseWrapper;
+import com.gls.athena.starter.file.base.FileAsyncAspect;
 import com.gls.athena.starter.file.manager.IFileManager;
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import com.gls.athena.starter.pdf.generator.PdfGenerator;
@@ -24,7 +23,7 @@ import java.util.concurrent.Executor;
 @Slf4j
 @Aspect
 @Component
-public class PdfAsyncAspect extends BaseFileAsyncAspect<PdfGenerator, PdfResponse> {
+public class PdfAsyncAspect extends FileAsyncAspect<PdfGenerator, PdfResponse> {
 
     /**
      * 构造函数，初始化PDF异步处理切面
@@ -52,15 +51,5 @@ public class PdfAsyncAspect extends BaseFileAsyncAspect<PdfGenerator, PdfRespons
         return super.around(joinPoint, pdfResponse);
     }
 
-    /**
-     * 获取PDF响应包装器
-     *
-     * @param pdfResponse PDF响应注解对象
-     * @return PDF响应包装器实例
-     */
-    @Override
-    protected BaseFileResponseWrapper<PdfResponse> getResponseWrapper(PdfResponse pdfResponse) {
-        return new PdfResponseWrapper(pdfResponse);
-    }
 }
 

@@ -1,8 +1,7 @@
 package com.gls.athena.starter.jasper.support;
 
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
-import com.gls.athena.starter.file.base.BaseFileAsyncAspect;
-import com.gls.athena.starter.file.base.BaseFileResponseWrapper;
+import com.gls.athena.starter.file.base.FileAsyncAspect;
 import com.gls.athena.starter.file.manager.IFileManager;
 import com.gls.athena.starter.jasper.annotation.JasperResponse;
 import com.gls.athena.starter.jasper.generator.JasperGenerator;
@@ -19,7 +18,7 @@ import java.util.concurrent.Executor;
  * Jasper异步处理切面类，用于拦截带有{@link JasperResponse}注解的方法，
  * 并根据配置决定是否异步生成报表文件。
  * <p>
- * 该类继承自{@link BaseFileAsyncAspect}，实现了对Jasper报表生成任务的异步处理逻辑。
+ * 该类继承自{@link FileAsyncAspect}，实现了对Jasper报表生成任务的异步处理逻辑。
  * </p>
  *
  * @author george
@@ -27,7 +26,7 @@ import java.util.concurrent.Executor;
 @Slf4j
 @Aspect
 @Component
-public class JasperAsyncAspect extends BaseFileAsyncAspect<JasperGenerator, JasperResponse> {
+public class JasperAsyncAspect extends FileAsyncAspect<JasperGenerator, JasperResponse> {
 
     /**
      * 构造方法，初始化Jasper异步处理切面所需的依赖组件。
@@ -54,17 +53,6 @@ public class JasperAsyncAspect extends BaseFileAsyncAspect<JasperGenerator, Jasp
     @Around("@annotation(jasperResponse)")
     public Object around(ProceedingJoinPoint joinPoint, JasperResponse jasperResponse) throws Throwable {
         return super.around(joinPoint, jasperResponse);
-    }
-
-    /**
-     * 获取Jasper响应包装器实例。
-     *
-     * @param jasperResponse Jasper响应注解对象
-     * @return Jasper响应包装器对象
-     */
-    @Override
-    protected BaseFileResponseWrapper<JasperResponse> getResponseWrapper(JasperResponse jasperResponse) {
-        return new JasperResponseWrapper(jasperResponse);
     }
 
 }

@@ -3,9 +3,7 @@ package com.gls.athena.starter.excel.async;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.generator.ExcelGenerator;
-import com.gls.athena.starter.excel.support.ExcelResponseWrapper;
-import com.gls.athena.starter.file.base.BaseFileAsyncAspect;
-import com.gls.athena.starter.file.base.BaseFileResponseWrapper;
+import com.gls.athena.starter.file.base.FileAsyncAspect;
 import com.gls.athena.starter.file.manager.IFileManager;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -28,7 +26,7 @@ import java.util.concurrent.Executor;
 @Slf4j
 @Aspect
 @Component
-public class ExcelAsyncAspect extends BaseFileAsyncAspect<ExcelGenerator, ExcelResponse> {
+public class ExcelAsyncAspect extends FileAsyncAspect<ExcelGenerator, ExcelResponse> {
 
     public ExcelAsyncAspect(List<ExcelGenerator> excelGenerators,
                             IAsyncTaskManager<?> asyncTaskManager,
@@ -54,11 +52,6 @@ public class ExcelAsyncAspect extends BaseFileAsyncAspect<ExcelGenerator, ExcelR
     @Around("@annotation(excelResponse)")
     public Object around(ProceedingJoinPoint joinPoint, ExcelResponse excelResponse) throws Throwable {
         return super.around(joinPoint, excelResponse);
-    }
-
-    @Override
-    protected BaseFileResponseWrapper<ExcelResponse> getResponseWrapper(ExcelResponse excelResponse) {
-        return new ExcelResponseWrapper(excelResponse);
     }
 
 }

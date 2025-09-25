@@ -1,7 +1,6 @@
 package com.gls.athena.starter.word.support;
 
 import com.gls.athena.starter.file.base.BaseFileResponseHandler;
-import com.gls.athena.starter.file.base.BaseFileResponseWrapper;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.generator.WordGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -38,16 +37,5 @@ public class WordResponseHandler extends BaseFileResponseHandler<WordGenerator, 
         return WordResponse.class;
     }
 
-    /**
-     * 获取响应包装器
-     * 根据Word响应注解创建对应的响应包装器实例
-     *
-     * @param wordResponse Word响应注解对象
-     * @return BaseFileResponseWrapper<WordResponse> 基础文件响应包装器实例
-     */
-    @Override
-    protected BaseFileResponseWrapper<WordResponse> getResponseWrapper(WordResponse wordResponse) {
-        return new WordResponseWrapper(wordResponse);
-    }
 }
 

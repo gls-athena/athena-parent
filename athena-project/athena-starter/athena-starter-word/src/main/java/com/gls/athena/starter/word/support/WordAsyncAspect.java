@@ -1,8 +1,7 @@
 package com.gls.athena.starter.word.support;
 
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
-import com.gls.athena.starter.file.base.BaseFileAsyncAspect;
-import com.gls.athena.starter.file.base.BaseFileResponseWrapper;
+import com.gls.athena.starter.file.base.FileAsyncAspect;
 import com.gls.athena.starter.file.manager.IFileManager;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.generator.WordGenerator;
@@ -23,7 +22,7 @@ import java.util.concurrent.Executor;
  */
 @Aspect
 @Component
-public class WordAsyncAspect extends BaseFileAsyncAspect<WordGenerator, WordResponse> {
+public class WordAsyncAspect extends FileAsyncAspect<WordGenerator, WordResponse> {
 
     /**
      * 构造函数
@@ -53,15 +52,4 @@ public class WordAsyncAspect extends BaseFileAsyncAspect<WordGenerator, WordResp
         return super.around(joinPoint, wordResponse);
     }
 
-    /**
-     * 获取响应包装器
-     * 根据WordResponse注解创建对应的响应包装器实例
-     *
-     * @param wordResponse Word响应注解对象
-     * @return Word响应包装器实例
-     */
-    @Override
-    protected BaseFileResponseWrapper<WordResponse> getResponseWrapper(WordResponse wordResponse) {
-        return new WordResponseWrapper(wordResponse);
-    }
 }

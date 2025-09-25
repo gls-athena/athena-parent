@@ -28,7 +28,7 @@ import java.util.concurrent.Executor;
  */
 @Slf4j
 @RequiredArgsConstructor
-public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Response>, Response extends Annotation> {
+public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response extends Annotation> {
 
     private final List<Generator> generators;
 
@@ -53,7 +53,7 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
         if (response == null) {
             return joinPoint.proceed();
         }
-        BaseFileResponseWrapper<Response> responseWrapper = getResponseWrapper(response);
+        FileResponseWrapper<Response> responseWrapper = getResponseWrapper(response);
         if (!responseWrapper.isAsync()) {
             return joinPoint.proceed();
         }
@@ -87,7 +87,7 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
      */
     private void handleFileAsync(FileAsyncRequest<Response> request) {
         String taskId = request.getTaskId();
-        BaseFileResponseWrapper<Response> wrapper = request.getResponse();
+        FileResponseWrapper<Response> wrapper = request.getResponse();
         ProceedingJoinPoint joinPoint = request.getJoinPoint();
         String filename = wrapper.getFilename();
         Map<String, Object> params = AopUtil.getParams(joinPoint);
@@ -139,6 +139,8 @@ public abstract class BaseFileAsyncAspect<Generator extends FileGenerator<Respon
      * @param response 响应注解对象
      * @return 对应的响应包装器实例
      */
-    protected abstract BaseFileResponseWrapper<Response> getResponseWrapper(Response response);
+    private FileResponseWrapper<Response> getResponseWrapper(Response response) {
+        return new FileResponseWrapper<>(response);
+    }
 
 }

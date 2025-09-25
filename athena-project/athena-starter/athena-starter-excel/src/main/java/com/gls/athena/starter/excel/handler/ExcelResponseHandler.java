@@ -2,9 +2,7 @@ package com.gls.athena.starter.excel.handler;
 
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.generator.ExcelGenerator;
-import com.gls.athena.starter.excel.support.ExcelResponseWrapper;
 import com.gls.athena.starter.file.base.BaseFileResponseHandler;
-import com.gls.athena.starter.file.base.BaseFileResponseWrapper;
 
 import java.util.List;
 
@@ -27,11 +25,6 @@ public class ExcelResponseHandler extends BaseFileResponseHandler<ExcelGenerator
     @Override
     protected Class<ExcelResponse> getResponseClass() {
         return ExcelResponse.class;
-    }
-
-    @Override
-    protected BaseFileResponseWrapper<ExcelResponse> getResponseWrapper(ExcelResponse excelResponse) {
-        return new ExcelResponseWrapper(excelResponse);
     }
 
 }

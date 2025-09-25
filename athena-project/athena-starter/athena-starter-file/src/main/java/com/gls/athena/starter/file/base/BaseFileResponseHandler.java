@@ -42,7 +42,7 @@ public abstract class BaseFileResponseHandler<Generator extends FileGenerator<Re
         if (response == null) {
             return false;
         }
-        BaseFileResponseWrapper<Response> wrapper = getResponseWrapper(response);
+        FileResponseWrapper<Response> wrapper = getResponseWrapper(response);
         return !wrapper.isAsync();
     }
 
@@ -64,7 +64,7 @@ public abstract class BaseFileResponseHandler<Generator extends FileGenerator<Re
 
         // 获取Response注解
         Response response = returnType.getMethodAnnotation(getResponseClass());
-        BaseFileResponseWrapper<Response> wrapper = getResponseWrapper(response);
+        FileResponseWrapper<Response> wrapper = getResponseWrapper(response);
         // 创建文件输出流并生成文件
         try (OutputStream outputStream = wrapper.createOutputStream(webRequest)) {
             generators.stream()
@@ -90,6 +90,8 @@ public abstract class BaseFileResponseHandler<Generator extends FileGenerator<Re
      * @param response 响应注解对象
      * @return 对应的响应包装器实例
      */
-    protected abstract BaseFileResponseWrapper<Response> getResponseWrapper(Response response);
+    private FileResponseWrapper<Response> getResponseWrapper(Response response) {
+        return new FileResponseWrapper<>(response);
+    }
 }
 

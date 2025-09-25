@@ -1,5 +1,6 @@
 package com.gls.athena.starter.file.base;
 
+import cn.hutool.core.util.ReflectUtil;
 import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.web.util.WebUtil;
 import lombok.Data;
@@ -17,7 +18,7 @@ import java.lang.annotation.Annotation;
  * @author george
  */
 @Data
-public abstract class BaseFileResponseWrapper<Response extends Annotation> {
+public class FileResponseWrapper<Response extends Annotation> {
 
     private final Response response;
 
@@ -26,42 +27,54 @@ public abstract class BaseFileResponseWrapper<Response extends Annotation> {
      *
      * @return 任务编码字符串
      */
-    public abstract String getCode();
+    public String getCode() {
+        return ReflectUtil.invoke(response, "code");
+    }
 
     /**
      * 获取任务名称
      *
      * @return 任务名称字符串
      */
-    public abstract String getName();
+    public String getName() {
+        return ReflectUtil.invoke(response, "name");
+    }
 
     /**
      * 获取任务描述
      *
      * @return 任务描述字符串
      */
-    public abstract String getDescription();
+    public String getDescription() {
+        return ReflectUtil.invoke(response, "description");
+    }
 
     /**
      * 根据响应注解获取文件名
      *
      * @return 文件名字符串
      */
-    public abstract String getFilename();
+    public String getFilename() {
+        return ReflectUtil.invoke(response, "filename");
+    }
 
     /**
      * 根据响应注解获取文件类型枚举
      *
      * @return 文件类型枚举
      */
-    public abstract FileTypeEnums getFileType();
+    public FileTypeEnums getFileType() {
+        return ReflectUtil.invoke(response, "fileType");
+    }
 
     /**
      * 判断当前响应是否为异步处理模式
      *
      * @return true 表示需要异步处理，false 表示同步处理
      */
-    public abstract boolean isAsync();
+    public boolean isAsync() {
+        return ReflectUtil.invoke(response, "async");
+    }
 
     /**
      * 创建文件输出流
