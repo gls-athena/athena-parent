@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -42,7 +43,7 @@ public class AsyncTask implements Serializable {
     /**
      * 任务参数
      */
-    private Map<String, Object> params;
+    private Map<String, Object> params = new HashMap<>();
 
     /**
      * 任务状态
@@ -62,7 +63,7 @@ public class AsyncTask implements Serializable {
     /**
      * 任务结果
      */
-    private Map<String, Object> result;
+    private Map<String, Object> result = new HashMap<>();
 
     /**
      * 开始时间

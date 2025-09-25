@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
@@ -31,8 +32,8 @@ public class AsyncConfig {
      * @param threadPoolProperties 线程池配置属性对象，包含线程池的各项配置参数
      * @return 配置完成并初始化的ThreadPoolTaskExecutor实例
      */
+    @Primary
     @Bean(AsyncConstants.DEFAULT_THREAD_POOL_NAME)
-    @ConditionalOnMissingBean(name = AsyncConstants.DEFAULT_THREAD_POOL_NAME)
     public Executor threadPoolTaskExecutor(ThreadPoolProperties threadPoolProperties) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         // 设置线程池核心参数

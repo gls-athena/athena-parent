@@ -1,6 +1,7 @@
 package com.gls.athena.starter.file.generator;
 
 import java.io.OutputStream;
+import java.lang.annotation.Annotation;
 
 /**
  * 文件生成器接口
@@ -9,7 +10,7 @@ import java.io.OutputStream;
  * @param <Response> 文件响应类型
  * @author george
  */
-public interface FileGenerator<Response> {
+public interface FileGenerator<Response extends Annotation> {
 
     /**
      * 根据数据生成文件并写入到输出流中
