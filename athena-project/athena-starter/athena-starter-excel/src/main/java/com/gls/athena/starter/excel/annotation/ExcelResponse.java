@@ -1,6 +1,6 @@
 package com.gls.athena.starter.excel.annotation;
 
-import cn.idev.excel.support.ExcelTypeEnum;
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.excel.generator.ExcelGenerator;
 
 import java.lang.annotation.*;
@@ -15,6 +15,40 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExcelResponse {
+    /**
+     * 导出任务的编码标识
+     * 默认值为"excel_export"
+     */
+    String code() default "excel_export";
+
+    /**
+     * 导出任务的名称
+     * 默认值为"Excel导出"
+     */
+    String name() default "Excel导出";
+
+    /**
+     * 导出任务的描述信息
+     * 默认值为"Excel异步导出任务"
+     */
+    String description() default "Excel异步导出任务";
+
+    /**
+     * 指定生成的Excel文件名(不包含扩展名)
+     */
+    String filename();
+
+    /**
+     * 输出文件的类型
+     * 默认值为XLSX类型
+     */
+    FileTypeEnums fileType() default FileTypeEnums.XLSX;
+
+    /**
+     * 是否异步生成Excel文件
+     * 默认值为false，表示同步生成
+     */
+    boolean async() default false;
 
     /**
      * 指定Excel的配置信息
@@ -47,12 +81,6 @@ public @interface ExcelResponse {
     boolean writeExcelOnException() default true;
 
     /**
-     * 指定Excel文件的类型
-     * 默认值为XLSX类型
-     */
-    ExcelTypeEnum excelType() default ExcelTypeEnum.XLSX;
-
-    /**
      * 指定Excel文件的字符集
      * 默认值为空字符串，表示使用默认字符集
      */
@@ -77,11 +105,6 @@ public @interface ExcelResponse {
     ExcelSheet[] sheets() default @ExcelSheet(sheetNo = 0);
 
     /**
-     * 指定生成的Excel文件名(不包含扩展名)
-     */
-    String filename();
-
-    /**
      * 是否强制使用InputStream返回Excel文件
      * 默认值为false，表示不强制使用InputStream
      */
@@ -93,27 +116,4 @@ public @interface ExcelResponse {
      */
     Class<? extends ExcelGenerator> generator() default ExcelGenerator.class;
 
-    /**
-     * 是否异步生成Excel文件
-     * 默认值为false，表示同步生成
-     */
-    boolean async() default false;
-
-    /**
-     * 导出任务的编码标识
-     * 默认值为"excel_export"
-     */
-    String code() default "excel_export";
-
-    /**
-     * 导出任务的名称
-     * 默认值为"Excel导出"
-     */
-    String name() default "Excel导出";
-
-    /**
-     * 导出任务的描述信息
-     * 默认值为"Excel异步导出任务"
-     */
-    String description() default "Excel异步导出任务";
 }

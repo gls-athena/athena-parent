@@ -14,20 +14,40 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface WordResponse {
-
     /**
-     * 文档文件名
-     *
-     * @return 文件名，默认为"document.docx"
+     * 导出任务的编码标识
+     * 默认值为"word_export"
      */
-    String filename() default "document.docx";
+    String code() default "word_export";
 
     /**
-     * 文档文件类型(默认docx)
-     *
-     * @return 文件类型枚举，默认为DOCX格式
+     * 导出任务的名称
+     * 默认值为"Word导出"
+     */
+    String name() default "Word导出";
+
+    /**
+     * 导出任务的描述信息
+     * 默认值为"Word异步导出任务"
+     */
+    String description() default "Word异步导出任务";
+
+    /**
+     * 指定生成的Word文件名(不包含扩展名)
+     */
+    String filename();
+
+    /**
+     * 输出文件的类型
+     * 默认值为PDF类型
      */
     FileTypeEnums fileType() default FileTypeEnums.DOCX;
+
+    /**
+     * 是否异步生成Word文件
+     * 默认值为false，表示同步生成
+     */
+    boolean async() default false;
 
     /**
      * 模板路径
@@ -42,33 +62,5 @@ public @interface WordResponse {
      * @return Word生成器实现类，默认使用WordGenerator类
      */
     Class<? extends WordGenerator> generator() default WordGenerator.class;
-
-    /**
-     * 是否异步处理
-     *
-     * @return true表示异步处理，false表示同步处理，默认为false
-     */
-    boolean async() default false;
-
-    /**
-     * 代码标识
-     *
-     * @return 代码字符串，默认为空字符串
-     */
-    String code() default "";
-
-    /**
-     * 名称
-     *
-     * @return 名称字符串，默认为空字符串
-     */
-    String name() default "";
-
-    /**
-     * 描述信息
-     *
-     * @return 描述字符串，默认为空字符串
-     */
-    String description() default "";
 
 }

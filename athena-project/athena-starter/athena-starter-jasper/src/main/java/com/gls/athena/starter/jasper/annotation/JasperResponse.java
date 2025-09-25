@@ -16,16 +16,39 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JasperResponse {
     /**
-     * 文件名(不含扩展名)
-     * 指定导出文件的名称，不包含文件扩展名
+     * 导出任务的编码标识
+     * 默认值为"jasper_export"
      */
-    String filename() default "document";
+    String code() default "jasper_export";
 
     /**
-     * 文件类型
-     * 指定导出文件的类型，如PDF、Excel等
+     * 导出任务的名称
+     * 默认值为"Jasper导出"
+     */
+    String name() default "Jasper导出";
+
+    /**
+     * 导出任务的描述信息
+     * 默认值为"Jasper异步导出任务"
+     */
+    String description() default "Jasper异步导出任务";
+
+    /**
+     * 指定生成的Jasper文件名(不包含扩展名)
+     */
+    String filename();
+
+    /**
+     * 输出文件的类型
+     * 默认值为PDF类型
      */
     FileTypeEnums fileType() default FileTypeEnums.PDF;
+
+    /**
+     * 是否异步生成Jasper文件
+     * 默认值为false，表示同步生成
+     */
+    boolean async() default false;
 
     /**
      * 模板名
@@ -38,29 +61,5 @@ public @interface JasperResponse {
      * 指定用于生成报表的自定义生成器类
      */
     Class<? extends JasperGenerator> generator() default JasperGenerator.class;
-
-    /**
-     * 是否异步执行
-     * true表示异步生成报表，false表示同步生成
-     */
-    boolean async() default false;
-
-    /**
-     * 代码标识
-     * 用于标识该导出功能的唯一代码
-     */
-    String code() default "jasper_export";
-
-    /**
-     * 功能名称
-     * 该导出功能的显示名称
-     */
-    String name() default "Jasper导出";
-
-    /**
-     * 功能描述
-     * 该导出功能的详细描述信息
-     */
-    String description() default "Jasper导出";
 
 }

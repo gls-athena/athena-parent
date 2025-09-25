@@ -2,7 +2,9 @@ package com.gls.athena.starter.excel.customizer;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.idev.excel.ExcelWriter;
+import cn.idev.excel.support.ExcelTypeEnum;
 import cn.idev.excel.write.metadata.WriteWorkbook;
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.config.ExcelProperties;
 import com.gls.athena.starter.file.util.FileUtil;
@@ -86,8 +88,8 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
     @Override
     protected void customizeWrite(WriteWorkbook writeWorkbook) {
         // 设置Excel文件类型（XLSX、XLS等）
-        if (ObjUtil.isNotEmpty(excelResponse.excelType())) {
-            writeWorkbook.setExcelType(excelResponse.excelType());
+        if (ObjUtil.isNotEmpty(excelResponse.fileType())) {
+            writeWorkbook.setExcelType(convertExcelType(excelResponse.fileType()));
         }
 
         // 设置输出流
@@ -135,6 +137,22 @@ public class WriteWorkbookCustomizer extends BaseWriteCustomizer<WriteWorkbook> 
         if (ObjUtil.isNotNull(excelResponse.writeExcelOnException())) {
             writeWorkbook.setWriteExcelOnException(excelResponse.writeExcelOnException());
         }
+    }
+
+    /**
+     * 将文件类型枚举转换为Excel类型枚举
+     *
+     * @param fileTypeEnums 文件类型枚举，表示文件的格式类型
+     * @return ExcelTypeEnum 对应的Excel文件类型枚举
+     * @throws IllegalArgumentException 当文件类型不被支持时抛出异常
+     */
+    private ExcelTypeEnum convertExcelType(FileTypeEnums fileTypeEnums) {
+        // 根据文件类型枚举匹配对应的Excel类型
+        return switch (fileTypeEnums) {
+            case XLS -> ExcelTypeEnum.XLS;
+            case XLSX -> ExcelTypeEnum.XLSX;
+            default -> throw new IllegalArgumentException("不支持的Excel文件类型");
+        };
     }
 
 }
