@@ -1,6 +1,6 @@
 package com.gls.athena.starter.jasper.support;
 
-import com.gls.athena.starter.file.base.BaseFileResponseHandler;
+import com.gls.athena.starter.file.base.FileResponseHandler;
 import com.gls.athena.starter.jasper.annotation.JasperResponse;
 import com.gls.athena.starter.jasper.generator.JasperGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import java.util.List;
  * @author george
  */
 @Slf4j
-public class JasperResponseHandler extends BaseFileResponseHandler<JasperGenerator, JasperResponse> {
+public class JasperResponseHandler extends FileResponseHandler<JasperGenerator, JasperResponse> {
 
     /**
      * 构造函数，初始化Jasper响应处理器

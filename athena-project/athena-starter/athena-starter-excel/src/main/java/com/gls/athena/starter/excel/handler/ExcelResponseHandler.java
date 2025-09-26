@@ -2,7 +2,7 @@ package com.gls.athena.starter.excel.handler;
 
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.generator.ExcelGenerator;
-import com.gls.athena.starter.file.base.BaseFileResponseHandler;
+import com.gls.athena.starter.file.base.FileResponseHandler;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author george
  */
-public class ExcelResponseHandler extends BaseFileResponseHandler<ExcelGenerator, ExcelResponse> {
+public class ExcelResponseHandler extends FileResponseHandler<ExcelGenerator, ExcelResponse> {
 
     public ExcelResponseHandler(List<ExcelGenerator> excelGenerators) {
         super(excelGenerators);

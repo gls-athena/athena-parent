@@ -1,6 +1,6 @@
 package com.gls.athena.starter.word.support;
 
-import com.gls.athena.starter.file.base.BaseFileResponseHandler;
+import com.gls.athena.starter.file.base.FileResponseHandler;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.generator.WordGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import java.util.List;
  * @author george
  */
 @Slf4j
-public class WordResponseHandler extends BaseFileResponseHandler<WordGenerator, WordResponse> {
+public class WordResponseHandler extends FileResponseHandler<WordGenerator, WordResponse> {
 
     /**
      * 构造函数

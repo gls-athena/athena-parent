@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public abstract class BaseFileResponseHandler<Generator extends FileGenerator<Response>, Response extends Annotation>
+public class FileResponseHandler<Generator extends FileGenerator<Response>, Response extends Annotation>
         implements HandlerMethodReturnValueHandler {
 
     private final List<Generator> generators;
