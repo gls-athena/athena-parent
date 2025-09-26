@@ -25,15 +25,5 @@ public class PdfResponseHandler extends BaseFileResponseHandler<PdfGenerator, Pd
         super(pdfGenerators);
     }
 
-    /**
-     * 获取响应注解的类型类
-     *
-     * @return 返回PdfResponse类对象，表示该处理器处理的响应注解类型
-     */
-    @Override
-    protected Class<PdfResponse> getResponseClass() {
-        return PdfResponse.class;
-    }
-
 }
 

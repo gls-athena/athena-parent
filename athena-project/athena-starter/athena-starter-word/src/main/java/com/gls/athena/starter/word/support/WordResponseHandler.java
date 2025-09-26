@@ -26,16 +26,5 @@ public class WordResponseHandler extends BaseFileResponseHandler<WordGenerator, 
         super(wordGenerators);
     }
 
-    /**
-     * 获取响应注解类型
-     * 返回WordResponse类的Class对象，用于标识处理的响应类型
-     *
-     * @return WordResponse.class Word响应注解的Class对象
-     */
-    @Override
-    protected Class<WordResponse> getResponseClass() {
-        return WordResponse.class;
-    }
-
 }
 

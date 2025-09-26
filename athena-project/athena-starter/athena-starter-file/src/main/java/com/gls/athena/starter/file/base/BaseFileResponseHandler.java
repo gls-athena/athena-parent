@@ -1,5 +1,6 @@
 package com.gls.athena.starter.file.base;
 
+import cn.hutool.core.util.TypeUtil;
 import com.gls.athena.starter.file.generator.FileGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +83,9 @@ public abstract class BaseFileResponseHandler<Generator extends FileGenerator<Re
      *
      * @return 响应注解的Class对象
      */
-    protected abstract Class<Response> getResponseClass();
+    private Class<Response> getResponseClass() {
+        return (Class<Response>) TypeUtil.getTypeArgument(this.getClass(), 1);
+    }
 
     /**
      * 获取响应包装器实例，用于解析响应注解中的配置信息

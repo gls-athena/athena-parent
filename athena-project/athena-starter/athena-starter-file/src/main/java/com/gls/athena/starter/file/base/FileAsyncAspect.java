@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -30,12 +31,18 @@ import java.util.concurrent.Executor;
 @RequiredArgsConstructor
 public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response extends Annotation> {
 
+    /**
+     * 进度百分比
+     */
+    private static final int PROGRESS_TASK_CREATED = 20;
+    private static final int PROGRESS_DATA_RETRIEVED = 40;
+    private static final int PROGRESS_FILE_PATH_PREPARED = 60;
+    private static final int PROGRESS_FILE_GENERATED = 80;
+    private static final int PROGRESS_COMPLETED = 100;
+
     private final List<Generator> generators;
-
     private final IAsyncTaskManager<?> asyncTaskManager;
-
     private final IFileManager fileManager;
-
     private final Executor executor;
 
     /**
@@ -49,33 +56,33 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      * @throws Throwable 方法执行过程中抛出的异常
      */
     public Object around(ProceedingJoinPoint joinPoint, Response response) throws Throwable {
-        // 如果响应对象为空或不是异步响应，则直接执行原方法
+        // 早期返回：如果响应对象为空，直接执行原方法
         if (response == null) {
             return joinPoint.proceed();
         }
-        FileResponseWrapper<Response> responseWrapper = getResponseWrapper(response);
+
+        FileResponseWrapper<Response> responseWrapper = new FileResponseWrapper<>(response);
+        // 早期返回：如果不是异步响应，直接执行原方法
         if (!responseWrapper.isAsync()) {
             return joinPoint.proceed();
         }
 
-        // 生成唯一的任务ID
+        // 异步处理逻辑
         String taskId = IdUtil.randomUUID();
+        FileAsyncRequest<Response> fileAsyncRequest = createAsyncRequest(taskId, responseWrapper, joinPoint);
 
-        // 创建异步请求对象并设置相关属性
-        FileAsyncRequest<Response> fileAsyncRequest = new FileAsyncRequest<>();
-        fileAsyncRequest.setTaskId(taskId);
-        fileAsyncRequest.setResponse(responseWrapper);
-        fileAsyncRequest.setJoinPoint(joinPoint);
+        // 提交异步任务
+        CompletableFuture.runAsync(() -> handleFileAsync(fileAsyncRequest), executor)
+                .exceptionally(throwable -> {
+                    log.error("异步任务提交失败: taskId={}", taskId, throwable);
+                    asyncTaskManager.failTask(taskId, "任务提交失败: " + throwable.getMessage());
+                    return null;
+                });
 
-        CompletableFuture.runAsync(() -> handleFileAsync(fileAsyncRequest), executor);
-        // 发布异步请求事件
         log.info("异步文件导出任务已提交，任务ID: {}, 方法: {}", taskId, joinPoint.getSignature().getName());
 
         // 立即响应客户端任务ID
-        Result<String> result = Result.success("任务已提交，请稍后查看", taskId);
-        WebUtil.writeJson(result);
-
-        // 返回null，表示响应已经处理完成
+        writeSuccessResponse(taskId);
         return null;
     }
 
@@ -89,58 +96,178 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         String taskId = request.getTaskId();
         FileResponseWrapper<Response> wrapper = request.getResponse();
         ProceedingJoinPoint joinPoint = request.getJoinPoint();
-        String filename = wrapper.getFilename();
-        Map<String, Object> params = AopUtil.getParams(joinPoint);
-        params.put("filename", filename);
-
-        // 创建任务并更新状态为处理中
-        asyncTaskManager.createTask(taskId, wrapper.getCode(), wrapper.getName(), wrapper.getDescription(), params);
-        asyncTaskManager.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
 
         try {
-            // 更新进度至20%
-            asyncTaskManager.updateTaskProgress(taskId, 20);
+            // 1. 初始化任务
+            initializeTask(taskId, wrapper, joinPoint);
 
-            // 执行被拦截的方法获取数据
-            Object data = joinPoint.proceed();
-            asyncTaskManager.updateTaskProgress(taskId, 40);
+            // 2. 执行业务逻辑获取数据
+            Object data = executeBusinessLogic(taskId, joinPoint);
 
-            // 获取文件输出流
-            String type = wrapper.getFileType().getCode();
-            String filePath = fileManager.generateFilePath(type, filename);
-            asyncTaskManager.updateTaskProgress(taskId, 60);
+            // 3. 生成文件
+            String filePath = generateFile(taskId, wrapper, data);
 
-            // 生成文件
-            try (OutputStream outputStream = fileManager.getFileOutputStream(filePath)) {
-                generators.stream()
-                        .filter(generator -> generator.supports(wrapper.getResponse()))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException("不支持的文件类型: " + wrapper.getFileType().getExtension()))
-                        .generate(data, wrapper.getResponse(), outputStream);
-                asyncTaskManager.updateTaskProgress(taskId, 80);
-            }
+            // 4. 完成任务
+            completeTask(taskId, filePath);
 
-            // 验证文件是否生成成功
-            if (fileManager.exists(filePath) && fileManager.getFileSize(filePath) > 0) {
-                asyncTaskManager.completeTask(taskId, Map.of("filePath", filePath));
-                log.info("异步文件导出完成: taskId={}, filePath={}", taskId, filePath);
-            } else {
-                asyncTaskManager.failTask(taskId, "文件生成失败或文件为空");
-            }
         } catch (Throwable e) {
-            log.error("异步文件导出失败: taskId={}", taskId, e);
-            asyncTaskManager.failTask(taskId, e.getMessage());
+            // 处理异步任务执行过程中的异常
+            handleAsyncException(taskId, e);
         }
     }
 
     /**
-     * 获取响应包装器实例，用于解析响应注解中的配置信息
+     * 初始化异步任务
      *
-     * @param response 响应注解对象
-     * @return 对应的响应包装器实例
+     * @param taskId    任务ID
+     * @param wrapper   文件响应包装器
+     * @param joinPoint 切入点对象
      */
-    private FileResponseWrapper<Response> getResponseWrapper(Response response) {
-        return new FileResponseWrapper<>(response);
+    private void initializeTask(String taskId, FileResponseWrapper<Response> wrapper, ProceedingJoinPoint joinPoint) {
+        // 获取切入点参数并添加文件名
+        Map<String, Object> params = AopUtil.getParams(joinPoint);
+        params.put("filename", wrapper.getFilename());
+
+        // 创建异步任务并更新任务状态和进度
+        asyncTaskManager.createTask(taskId, wrapper.getCode(), wrapper.getName(), wrapper.getDescription(), params);
+        asyncTaskManager.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
+        asyncTaskManager.updateTaskProgress(taskId, PROGRESS_TASK_CREATED);
+    }
+
+    /**
+     * 执行业务逻辑获取数据
+     *
+     * @param taskId    任务ID，用于标识和更新任务进度
+     * @param joinPoint 连接点对象，用于执行目标方法获取业务数据
+     * @return 业务逻辑执行返回的数据对象
+     * @throws Throwable 业务逻辑执行过程中可能抛出的异常
+     */
+    private Object executeBusinessLogic(String taskId, ProceedingJoinPoint joinPoint) throws Throwable {
+        // 执行目标方法获取业务数据
+        Object data = joinPoint.proceed();
+        // 更新任务进度为数据已获取状态
+        asyncTaskManager.updateTaskProgress(taskId, PROGRESS_DATA_RETRIEVED);
+        return data;
+    }
+
+    /**
+     * 生成文件
+     *
+     * @param taskId  任务ID，用于跟踪和更新任务进度
+     * @param wrapper 文件响应包装器，包含文件类型、文件名和响应信息
+     * @param data    文件生成所需的数据对象
+     * @return 生成文件的完整路径
+     * @throws Exception 文件生成过程中可能抛出的异常
+     */
+    private String generateFile(String taskId, FileResponseWrapper<Response> wrapper, Object data) throws Exception {
+        // 获取文件类型和文件名，生成文件路径
+        String type = wrapper.getFileType().getCode();
+        String filename = wrapper.getFilename();
+        String filePath = fileManager.generateFilePath(type, filename);
+        asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_PATH_PREPARED);
+
+        // 查找支持的文件生成器并执行文件生成
+        Generator generator = findSupportedGenerator(wrapper.getResponse());
+
+        try (OutputStream outputStream = fileManager.getFileOutputStream(filePath)) {
+            generator.generate(data, wrapper.getResponse(), outputStream);
+            asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_GENERATED);
+        }
+
+        // 验证生成的文件并返回文件路径
+        validateGeneratedFile(filePath);
+        return filePath;
+    }
+
+    /**
+     * 查找支持的文件生成器
+     *
+     * @param response 响应对象，用于判断支持的生成器类型
+     * @return 支持该响应的生成器实例
+     * @throws IllegalArgumentException 当找不到支持的生成器时抛出异常
+     */
+    private Generator findSupportedGenerator(Response response) {
+        // 从生成器列表中查找第一个支持该响应的生成器，如果找不到则抛出异常
+        return generators.stream()
+                .filter(generator -> generator.supports(response))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("不支持的文件类型，无可用的生成器"));
+    }
+
+    /**
+     * 验证生成的文件
+     *
+     * @param filePath 文件路径
+     * @throws IOException 当文件不存在或文件为空时抛出异常
+     */
+    private void validateGeneratedFile(String filePath) throws IOException {
+        // 验证文件是否存在
+        if (!fileManager.exists(filePath)) {
+            throw new IOException("文件生成失败：文件不存在");
+        }
+        // 验证文件是否为空
+        if (fileManager.getFileSize(filePath) <= 0) {
+            throw new IOException("文件生成失败：文件为空");
+        }
+    }
+
+    /**
+     * 完成任务
+     *
+     * @param taskId   任务ID
+     * @param filePath 文件路径
+     */
+    private void completeTask(String taskId, String filePath) {
+        // 通知任务管理器任务完成并更新任务进度
+        asyncTaskManager.completeTask(taskId, Map.of("filePath", filePath));
+        asyncTaskManager.updateTaskProgress(taskId, PROGRESS_COMPLETED);
+        log.info("异步文件导出完成: taskId={}, filePath={}", taskId, filePath);
+    }
+
+    /**
+     * 处理异步执行过程中的异常
+     * <p>
+     * 当异步任务执行过程中发生异常时，该方法负责记录错误日志并更新任务状态为失败状态。
+     *
+     * @param taskId 异步任务的唯一标识符
+     * @param e      异常对象，包含异常信息和堆栈跟踪
+     */
+    private void handleAsyncException(String taskId, Throwable e) {
+        // 提取异常信息用于任务状态更新
+        String errorMessage = e.getMessage();
+        // 记录详细的错误日志，包含任务ID和异常信息
+        log.error("异步文件导出失败: taskId={}, error={}", taskId, errorMessage, e);
+        // 更新任务管理器中的任务状态为失败，并保存错误信息
+        asyncTaskManager.failTask(taskId, errorMessage);
+    }
+
+    /**
+     * 创建异步请求对象
+     *
+     * @param taskId          任务ID，用于标识异步请求的任务
+     * @param responseWrapper 响应包装器，包含文件响应信息
+     * @param joinPoint       连接点对象，包含方法执行的相关信息
+     * @return 返回创建的文件异步请求对象
+     */
+    private FileAsyncRequest<Response> createAsyncRequest(String taskId, FileResponseWrapper<Response> responseWrapper, ProceedingJoinPoint joinPoint) {
+        // 创建异步请求对象并设置相关属性
+        FileAsyncRequest<Response> fileAsyncRequest = new FileAsyncRequest<>();
+        fileAsyncRequest.setTaskId(taskId);
+        fileAsyncRequest.setResponse(responseWrapper);
+        fileAsyncRequest.setJoinPoint(joinPoint);
+        return fileAsyncRequest;
+    }
+
+    /**
+     * 写入成功响应
+     *
+     * @param taskId 任务ID，用于标识已提交的任务
+     */
+    private void writeSuccessResponse(String taskId) {
+        // 构造成功响应结果，包含提示信息和任务ID
+        Result<String> result = Result.success("任务已提交，请稍后查看", taskId);
+        // 将结果以JSON格式写入响应
+        WebUtil.writeJson(result);
     }
 
 }

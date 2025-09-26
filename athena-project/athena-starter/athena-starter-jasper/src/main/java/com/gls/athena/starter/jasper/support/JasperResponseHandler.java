@@ -24,15 +24,5 @@ public class JasperResponseHandler extends BaseFileResponseHandler<JasperGenerat
         super(jasperGenerators);
     }
 
-    /**
-     * 获取响应注解的类类型
-     *
-     * @return JasperResponse类对象
-     */
-    @Override
-    protected Class<JasperResponse> getResponseClass() {
-        return JasperResponse.class;
-    }
-
 }
 

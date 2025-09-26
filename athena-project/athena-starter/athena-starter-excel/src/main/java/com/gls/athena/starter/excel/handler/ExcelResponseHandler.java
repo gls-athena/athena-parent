@@ -17,15 +17,5 @@ public class ExcelResponseHandler extends BaseFileResponseHandler<ExcelGenerator
         super(excelGenerators);
     }
 
-    /**
-     * 获取响应注解的类型
-     *
-     * @return ExcelResponse注解类的Class对象
-     */
-    @Override
-    protected Class<ExcelResponse> getResponseClass() {
-        return ExcelResponse.class;
-    }
-
 }
 
