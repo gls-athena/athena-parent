@@ -1,8 +1,8 @@
 package com.gls.athena.starter.word.support;
 
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
-import com.gls.athena.starter.file.base.FileAsyncAspect;
 import com.gls.athena.starter.file.manager.IFileManager;
+import com.gls.athena.starter.file.support.FileAsyncAspect;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.generator.WordGenerator;
 import org.aspectj.lang.ProceedingJoinPoint;

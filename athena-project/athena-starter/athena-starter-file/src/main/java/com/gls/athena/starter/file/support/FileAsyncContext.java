@@ -1,20 +1,25 @@
-package com.gls.athena.starter.file.domain;
+package com.gls.athena.starter.file.support;
 
-import com.gls.athena.starter.file.base.FileResponseWrapper;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 
 import java.lang.annotation.Annotation;
 
 /**
- * 文件异步请求封装类
- * 用于封装文件异步处理相关的请求信息，包括任务ID、响应注解和连接点信息
+ * 文件异步处理上下文类
+ * <p>
+ * 该类用于封装文件异步处理过程中的上下文信息，包括任务标识、响应处理逻辑和方法执行信息
+ * </p>
  *
  * @param <Response> 响应注解类型，必须继承自Annotation
  * @author george
  */
 @Data
-public class FileAsyncRequest<Response extends Annotation> {
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileAsyncContext<Response extends Annotation> {
 
     /**
      * 任务ID，用于标识唯一的异步任务
@@ -31,4 +36,3 @@ public class FileAsyncRequest<Response extends Annotation> {
      */
     private ProceedingJoinPoint joinPoint;
 }
-

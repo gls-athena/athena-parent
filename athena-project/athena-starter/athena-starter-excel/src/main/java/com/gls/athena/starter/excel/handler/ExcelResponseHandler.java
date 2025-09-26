@@ -2,7 +2,7 @@ package com.gls.athena.starter.excel.handler;
 
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.generator.ExcelGenerator;
-import com.gls.athena.starter.file.base.FileResponseHandler;
+import com.gls.athena.starter.file.support.FileResponseHandler;
 
 import java.util.List;
 

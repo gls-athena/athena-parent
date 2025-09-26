@@ -1,11 +1,10 @@
-package com.gls.athena.starter.file.base;
+package com.gls.athena.starter.file.support;
 
 import cn.hutool.core.util.IdUtil;
 import com.gls.athena.common.bean.result.Result;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.async.util.AopUtil;
-import com.gls.athena.starter.file.domain.FileAsyncRequest;
 import com.gls.athena.starter.file.generator.FileGenerator;
 import com.gls.athena.starter.file.manager.IFileManager;
 import com.gls.athena.starter.web.util.WebUtil;
@@ -69,10 +68,10 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
 
         // 异步处理逻辑
         String taskId = IdUtil.randomUUID();
-        FileAsyncRequest<Response> fileAsyncRequest = createAsyncRequest(taskId, responseWrapper, joinPoint);
+        FileAsyncContext<Response> fileAsyncContext = new FileAsyncContext<>(taskId, responseWrapper, joinPoint);
 
         // 提交异步任务
-        CompletableFuture.runAsync(() -> handleFileAsync(fileAsyncRequest), executor)
+        CompletableFuture.runAsync(() -> handleFileAsync(fileAsyncContext), executor)
                 .exceptionally(throwable -> {
                     log.error("异步任务提交失败: taskId={}", taskId, throwable);
                     asyncTaskManager.failTask(taskId, "任务提交失败: " + throwable.getMessage());
@@ -90,12 +89,12 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      * 异步处理文件导出任务的核心逻辑。
      * 包括创建任务、调用业务方法获取数据、生成文件以及更新任务状态等操作。
      *
-     * @param request 包含任务信息的异步请求对象
+     * @param context 包含任务信息的异步请求对象
      */
-    private void handleFileAsync(FileAsyncRequest<Response> request) {
-        String taskId = request.getTaskId();
-        FileResponseWrapper<Response> wrapper = request.getResponseWrapper();
-        ProceedingJoinPoint joinPoint = request.getJoinPoint();
+    private void handleFileAsync(FileAsyncContext<Response> context) {
+        String taskId = context.getTaskId();
+        FileResponseWrapper<Response> wrapper = context.getResponseWrapper();
+        ProceedingJoinPoint joinPoint = context.getJoinPoint();
 
         try {
             // 1. 初始化任务
@@ -239,23 +238,6 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         log.error("异步文件导出失败: taskId={}, error={}", taskId, errorMessage, e);
         // 更新任务管理器中的任务状态为失败，并保存错误信息
         asyncTaskManager.failTask(taskId, errorMessage);
-    }
-
-    /**
-     * 创建异步请求对象
-     *
-     * @param taskId          任务ID，用于标识异步请求的任务
-     * @param responseWrapper 响应包装器，包含文件响应信息
-     * @param joinPoint       连接点对象，包含方法执行的相关信息
-     * @return 返回创建的文件异步请求对象
-     */
-    private FileAsyncRequest<Response> createAsyncRequest(String taskId, FileResponseWrapper<Response> responseWrapper, ProceedingJoinPoint joinPoint) {
-        // 创建异步请求对象并设置相关属性
-        FileAsyncRequest<Response> fileAsyncRequest = new FileAsyncRequest<>();
-        fileAsyncRequest.setTaskId(taskId);
-        fileAsyncRequest.setResponseWrapper(responseWrapper);
-        fileAsyncRequest.setJoinPoint(joinPoint);
-        return fileAsyncRequest;
     }
 
     /**

@@ -1,8 +1,8 @@
 package com.gls.athena.starter.pdf.support;
 
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
-import com.gls.athena.starter.file.base.FileAsyncAspect;
 import com.gls.athena.starter.file.manager.IFileManager;
+import com.gls.athena.starter.file.support.FileAsyncAspect;
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import com.gls.athena.starter.pdf.generator.PdfGenerator;
 import lombok.extern.slf4j.Slf4j;

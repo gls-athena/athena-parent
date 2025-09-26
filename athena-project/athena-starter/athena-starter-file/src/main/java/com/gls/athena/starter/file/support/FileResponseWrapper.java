@@ -1,5 +1,6 @@
-package com.gls.athena.starter.file.base;
+package com.gls.athena.starter.file.support;
 
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.file.generator.FileGenerator;
@@ -84,7 +85,7 @@ public class FileResponseWrapper<Response extends Annotation> {
      * @return true 表示支持，false 表示不支持
      */
     public boolean isSupport(FileGenerator<Response> generator) {
-        return ReflectUtil.invoke(response, "generator").equals(generator.getClass());
+        return ObjUtil.equals(ReflectUtil.invoke(response, "generator"), generator.getClass());
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.gls.athena.starter.jasper.support;
 
-import com.gls.athena.starter.file.base.FileResponseHandler;
+import com.gls.athena.starter.file.support.FileResponseHandler;
 import com.gls.athena.starter.jasper.annotation.JasperResponse;
 import com.gls.athena.starter.jasper.generator.JasperGenerator;
 import lombok.extern.slf4j.Slf4j;
