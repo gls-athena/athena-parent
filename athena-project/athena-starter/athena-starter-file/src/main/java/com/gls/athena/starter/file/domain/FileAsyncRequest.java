@@ -24,7 +24,7 @@ public class FileAsyncRequest<Response extends Annotation> {
     /**
      * 响应注解，用于处理异步任务完成后的响应逻辑
      */
-    private FileResponseWrapper<Response> response;
+    private FileResponseWrapper<Response> responseWrapper;
 
     /**
      * 连接点对象，包含被拦截方法的执行信息

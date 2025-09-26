@@ -94,7 +94,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      */
     private void handleFileAsync(FileAsyncRequest<Response> request) {
         String taskId = request.getTaskId();
-        FileResponseWrapper<Response> wrapper = request.getResponse();
+        FileResponseWrapper<Response> wrapper = request.getResponseWrapper();
         ProceedingJoinPoint joinPoint = request.getJoinPoint();
 
         try {
@@ -253,7 +253,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         // 创建异步请求对象并设置相关属性
         FileAsyncRequest<Response> fileAsyncRequest = new FileAsyncRequest<>();
         fileAsyncRequest.setTaskId(taskId);
-        fileAsyncRequest.setResponse(responseWrapper);
+        fileAsyncRequest.setResponseWrapper(responseWrapper);
         fileAsyncRequest.setJoinPoint(joinPoint);
         return fileAsyncRequest;
     }
