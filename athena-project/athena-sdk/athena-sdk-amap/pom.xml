@@ -40,5 +40,9 @@
             <!-- 依赖作用域，仅在测试时使用 -->
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

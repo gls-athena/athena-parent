@@ -20,6 +20,14 @@
             <artifactId>aliyun-sdk-oss</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.github.gls-athena.starter.async</groupId>
+            <artifactId>athena-starter-async</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.gls-athena.starter.file</groupId>
+            <artifactId>athena-starter-file</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-actuator-autoconfigure</artifactId>
             <scope>provided</scope>

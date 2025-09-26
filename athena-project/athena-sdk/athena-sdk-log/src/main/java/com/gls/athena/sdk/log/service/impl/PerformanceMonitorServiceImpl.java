@@ -20,6 +20,12 @@ public class PerformanceMonitorServiceImpl implements IPerformanceMonitorService
     @Resource
     private LogProperties logProperties;
 
+    /**
+     * 计算方法的执行时间
+     *
+     * @param methodLogDto 方法日志数据传输对象，包含开始时间和结束时间
+     * @return 方法执行时间（毫秒），如果时间信息不完整则返回0
+     */
     @Override
     public long calculateExecutionTime(MethodLogDto methodLogDto) {
         if (methodLogDto.getStartTime() == null || methodLogDto.getEndTime() == null) {
@@ -28,12 +34,25 @@ public class PerformanceMonitorServiceImpl implements IPerformanceMonitorService
         return methodLogDto.getEndTime().getTime() - methodLogDto.getStartTime().getTime();
     }
 
+    /**
+     * 判断方法是否超时
+     *
+     * @param methodLogDto     方法日志数据传输对象
+     * @param timeoutThreshold 超时阈值（毫秒）
+     * @return 如果执行时间超过阈值返回true，否则返回false
+     */
     @Override
     public boolean isTimeout(MethodLogDto methodLogDto, long timeoutThreshold) {
         long executionTime = calculateExecutionTime(methodLogDto);
         return executionTime > timeoutThreshold;
     }
 
+    /**
+     * 记录方法的性能指标
+     * 包括执行时间、超时警告等信息
+     *
+     * @param methodLogDto 方法日志数据传输对象
+     */
     @Override
     public void recordPerformanceMetrics(MethodLogDto methodLogDto) {
         // 检查是否启用性能监控

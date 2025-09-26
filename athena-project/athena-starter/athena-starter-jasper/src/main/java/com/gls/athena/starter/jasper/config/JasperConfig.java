@@ -1,7 +1,7 @@
 package com.gls.athena.starter.jasper.config;
 
-import com.gls.athena.starter.jasper.generator.JasperGeneratorManager;
-import com.gls.athena.starter.jasper.handler.JasperResponseHandler;
+import com.gls.athena.starter.jasper.generator.JasperGenerator;
+import com.gls.athena.starter.jasper.support.JasperResponseHandler;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -28,11 +28,8 @@ public class JasperConfig {
     @Resource
     private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
 
-    /**
-     * 注入JasperGeneratorManager用于管理Jasper报告生成
-     */
     @Resource
-    private JasperGeneratorManager jasperGeneratorManager;
+    private List<JasperGenerator> jasperGenerators;
 
     /**
      * 在Bean初始化完成后执行的方法
@@ -45,7 +42,7 @@ public class JasperConfig {
 
         // 创建新的处理器列表，首先添加JasperResponseHandler
         List<HandlerMethodReturnValueHandler> newHandlers = new ArrayList<>();
-        newHandlers.add(new JasperResponseHandler(jasperGeneratorManager));
+        newHandlers.add(new JasperResponseHandler(jasperGenerators));
 
         // 如果存在原有处理器列表，则将其全部添加到新列表中
         if (returnValueHandlers != null) {

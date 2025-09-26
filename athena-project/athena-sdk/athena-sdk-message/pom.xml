@@ -36,6 +36,10 @@
             <artifactId>spring-kafka</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.gls-athena.starter.async</groupId>
+            <artifactId>athena-starter-async</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

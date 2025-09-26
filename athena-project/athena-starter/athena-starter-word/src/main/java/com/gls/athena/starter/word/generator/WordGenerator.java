@@ -1,8 +1,7 @@
 package com.gls.athena.starter.word.generator;
 
+import com.gls.athena.starter.file.generator.FileGenerator;
 import com.gls.athena.starter.word.annotation.WordResponse;
-
-import java.io.OutputStream;
 
 /**
  * Word文档生成器接口，定义了Word导出功能的标准。
@@ -13,31 +12,6 @@ import java.io.OutputStream;
  *
  * @author george
  */
-public interface WordGenerator {
+public interface WordGenerator extends FileGenerator<WordResponse> {
 
-    /**
-     * 生成Word文档。
-     * <p>
-     * 根据注解配置和数据对象，将内容导出为Word文档并写入输出流。
-     * </p>
-     *
-     * @param data         需要导出的数据对象
-     * @param wordResponse Word导出注解信息（如模板路径、文件名等）
-     * @param outputStream Word文档输出流
-     * @throws Exception 生成或导出过程中发生的异常
-     */
-    void generate(Object data, WordResponse wordResponse, OutputStream outputStream) throws Exception;
-
-    /**
-     * 判断是否支持当前注解配置。
-     * <p>
-     * 用于适配不同的生成器实现（如模板导出、无模板导出等）。
-     * </p>
-     *
-     * @param wordResponse Word导出注解信息
-     * @return 是否支持该配置
-     */
-    default boolean supports(WordResponse wordResponse) {
-        return wordResponse.generator().equals(this.getClass());
-    }
 }

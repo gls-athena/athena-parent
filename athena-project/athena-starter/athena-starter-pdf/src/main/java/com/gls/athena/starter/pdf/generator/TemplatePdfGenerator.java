@@ -50,7 +50,7 @@ public class TemplatePdfGenerator implements PdfGenerator {
             String html = TemplateUtil.createEngine(templateConfig)
                     .getTemplate(template)
                     .render(BeanUtil.beanToMap(data));
-
+            log.info("HTML模板内容: \n{}", html);
             // HTML转PDF
             ITextRenderer renderer = new ITextRenderer();
             // 设置字体解析器，添加所需的字体文件

@@ -1,26 +1,24 @@
 package com.gls.athena.starter.excel.async;
 
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import com.gls.athena.common.bean.result.Result;
+import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
-import com.gls.athena.starter.excel.web.domain.ExcelAsyncRequest;
-import com.gls.athena.starter.web.util.WebUtil;
+import com.gls.athena.starter.excel.generator.ExcelGenerator;
+import com.gls.athena.starter.file.manager.IFileManager;
+import com.gls.athena.starter.file.support.FileAsyncAspect;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Method;
+import java.util.List;
+import java.util.concurrent.Executor;
 
 /**
  * Excel异步处理切面
  * <p>
- * 在Controller方法执行前判断是否需要异步处理Excel导出
- * 如果需要异步处理，则立即返回任务ID，然后在后台异步执行Controller方法获取数据并生成Excel
+ * 在Controller方法执行前判断是否需要异步处理Excel导出。
+ * 如果需要异步处理，则立即返回任务ID，然后在后台异步执行Controller方法获取数据并生成Excel文件。
  * </p>
  *
  * @author george
@@ -28,40 +26,32 @@ import java.lang.reflect.Method;
 @Slf4j
 @Aspect
 @Component
-public class ExcelAsyncAspect {
+public class ExcelAsyncAspect extends FileAsyncAspect<ExcelGenerator, ExcelResponse> {
+
+    public ExcelAsyncAspect(List<ExcelGenerator> excelGenerators,
+                            IAsyncTaskManager<?> asyncTaskManager,
+                            IFileManager fileManager,
+                            Executor executor) {
+        super(excelGenerators, asyncTaskManager, fileManager, executor);
+    }
 
     /**
-     * 环绕通知：拦截标注了@ExcelResponse的方法
+     * 环绕通知方法，拦截带有@ExcelResponse注解的方法调用
+     * <p>
+     * 根据注解配置决定是同步还是异步执行导出逻辑。
+     * 若为异步模式，则提交任务到异步任务管理器，并返回任务ID；
+     * 否则直接执行原方法并返回结果。
+     * </p>
+     *
+     * @param joinPoint     连接点对象，代表被拦截的方法
+     * @param excelResponse Excel响应注解对象，包含导出相关配置信息
+     * @return 如果是异步导出则返回任务ID；否则返回实际导出结果
+     * @throws Throwable 方法执行过程中可能抛出的异常
      */
-    @Around("@annotation(com.gls.athena.starter.excel.annotation.ExcelResponse)")
-    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-
-        // 获取@ExcelResponse注解
-        ExcelResponse excelResponse = AnnotationUtils.findAnnotation(method, ExcelResponse.class);
-        if (excelResponse == null || !excelResponse.async()) {
-            return joinPoint.proceed();
-        }
-
-        // 异步模式：立即返回任务ID，后台执行数据查询和Excel生成
-        String taskId = IdUtil.randomUUID();
-
-        ExcelAsyncRequest excelAsyncRequest = new ExcelAsyncRequest()
-                .setTaskId(taskId)
-                .setExcelResponse(excelResponse)
-                .setJoinPoint(joinPoint);
-
-        SpringUtil.publishEvent(excelAsyncRequest);
-
-        log.info("异步Excel导出任务已提交，任务ID: {}, 方法: {}", taskId, method.getName());
-
-        // 立即响应客户端任务ID
-        Result<String> result = Result.success("任务已提交，请稍后查看", taskId);
-        WebUtil.writeJson(result);
-
-        // 返回null，表示响应已经处理完成
-        return null;
+    @Override
+    @Around("@annotation(excelResponse)")
+    public Object around(ProceedingJoinPoint joinPoint, ExcelResponse excelResponse) throws Throwable {
+        return super.around(joinPoint, excelResponse);
     }
 
 }

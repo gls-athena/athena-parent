@@ -4,8 +4,8 @@
  */
 package com.gls.athena.starter.jasper.generator;
 
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.jasper.annotation.JasperResponse;
-import com.gls.athena.starter.web.enums.FileEnums;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -43,7 +43,7 @@ public class PdfJasperGenerator implements JasperGenerator {
     @Override
     public boolean supports(JasperResponse jasperResponse) {
         // 判断文件类型是否为PDF且生成器类型是否为JasperGenerator
-        return FileEnums.PDF.equals(jasperResponse.fileType())
+        return FileTypeEnums.PDF.equals(jasperResponse.fileType())
                 && jasperResponse.generator() == JasperGenerator.class;
     }
 

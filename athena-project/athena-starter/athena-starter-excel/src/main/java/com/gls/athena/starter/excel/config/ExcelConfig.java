@@ -1,29 +1,19 @@
 package com.gls.athena.starter.excel.config;
 
-import com.gls.athena.starter.excel.generator.ExcelGeneratorManager;
+import com.gls.athena.starter.excel.generator.ExcelGenerator;
 import com.gls.athena.starter.excel.handler.ExcelRequestHandler;
 import com.gls.athena.starter.excel.handler.ExcelResponseHandler;
-import com.gls.athena.starter.excel.web.service.ExcelFileService;
-import com.gls.athena.starter.excel.web.service.ExcelTaskService;
-import com.gls.athena.starter.excel.web.service.impl.LocalExcelFileServiceImpl;
-import com.gls.athena.starter.excel.web.service.impl.MemoryExcelTaskServiceImpl;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 /**
  * Excel自动配置类
@@ -34,9 +24,7 @@ import java.util.concurrent.Executor;
  *
  * @author george
  */
-@AutoConfiguration
-@EnableAsync
-@EnableScheduling
+@Configuration
 @EnableConfigurationProperties(ExcelProperties.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class ExcelConfig {
@@ -44,60 +32,7 @@ public class ExcelConfig {
     @Resource
     private RequestMappingHandlerAdapter handlerAdapter;
     @Resource
-    private ExcelGeneratorManager excelGeneratorManager;
-
-    /**
-     * 提供默认的Excel任务服务实现（内存方式）
-     * 当容器中不存在ExcelTaskService类型的Bean时，创建并注册MemoryExcelTaskServiceImpl实例。
-     *
-     * @return ExcelTaskService 实例
-     */
-    @Bean
-    @ConditionalOnMissingBean(ExcelTaskService.class)
-    public ExcelTaskService excelTaskService() {
-        return new MemoryExcelTaskServiceImpl();
-    }
-
-    /**
-     * 提供默认的Excel文件服务实现（本地存储方式）
-     * 当容器中不存在ExcelFileService类型的Bean时，根据配置属性创建LocalExcelFileServiceImpl实例。
-     *
-     * @param excelProperties Excel配置属性对象
-     * @return ExcelFileService 实例
-     */
-    @Bean
-    @ConditionalOnMissingBean(ExcelFileService.class)
-    public ExcelFileService excelFileService(ExcelProperties excelProperties) {
-        return new LocalExcelFileServiceImpl(excelProperties);
-    }
-
-    /**
-     * 配置Excel异步导出专用线程池
-     *
-     * @param excelProperties Excel配置属性，包含线程池相关参数
-     * @return Executor 线程池执行器
-     */
-    @Bean("excelAsyncExecutor")
-    public Executor excelAsyncExecutor(ExcelProperties excelProperties) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        ExcelProperties.AsyncThreadPool config = excelProperties.getAsyncThreadPool();
-
-        executor.setCorePoolSize(config.getCorePoolSize());
-        executor.setMaxPoolSize(config.getMaxPoolSize());
-        executor.setQueueCapacity(config.getQueueCapacity());
-        executor.setKeepAliveSeconds(config.getKeepAliveSeconds());
-        executor.setThreadNamePrefix(config.getThreadNamePrefix());
-
-        // 设置拒绝策略为调用者运行
-        executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
-
-        // 等待所有任务结束后再关闭线程池
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(60);
-
-        executor.initialize();
-        return executor;
-    }
+    private List<ExcelGenerator> excelGenerators;
 
     /**
      * 初始化Excel处理器配置
@@ -149,7 +84,7 @@ public class ExcelConfig {
     private void initReturnValueHandlers() {
         // 创建一个新的返回值处理器列表，并添加默认的ExcelResponseHandler
         List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
-        handlers.add(new ExcelResponseHandler(excelGeneratorManager));
+        handlers.add(new ExcelResponseHandler(excelGenerators));
 
         // 如果handlerAdapter中已经存在返回值处理器，则将其添加到列表中
         if (handlerAdapter.getReturnValueHandlers() != null) {

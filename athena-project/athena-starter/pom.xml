@@ -32,11 +32,13 @@
         <module>athena-starter-aliyun-core</module>
         <module>athena-starter-aliyun-oss</module>
         <module>athena-starter-aliyun-sms</module>
+        <module>athena-starter-async</module>
         <module>athena-starter-core</module>
         <module>athena-starter-data-jpa</module>
         <module>athena-starter-data-redis</module>
         <module>athena-starter-dynamic-datasource</module>
         <module>athena-starter-excel</module>
+        <module>athena-starter-file</module>
         <module>athena-starter-jasper</module>
         <module>athena-starter-json</module>
         <module>athena-starter-mybatis</module>

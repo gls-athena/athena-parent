@@ -1,6 +1,7 @@
 package com.gls.athena.sdk.log.method;
 
 import com.gls.athena.sdk.log.domain.MethodDto;
+import com.gls.athena.starter.async.config.AsyncConstants;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 
@@ -20,7 +21,7 @@ public interface IMethodEventListener {
      * @param methodDto 方法事件数据传输对象
      *                  包含方法执行的元数据信息，如方法签名、执行耗时、入参值、返回结果、异常信息等核心日志属性
      */
-    @Async
+    @Async(AsyncConstants.DEFAULT_THREAD_POOL_NAME)
     @EventListener(MethodDto.class)
     void onMethodEvent(MethodDto methodDto);
 

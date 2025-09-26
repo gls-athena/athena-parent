@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 高德地图API请求拦截器
@@ -178,19 +177,31 @@ public class AmapRequestInterceptor implements RequestInterceptor {
      * @return MD5加密后的签名，作为字符串返回
      */
     private String getSig(Map<String, Collection<String>> queries, String privateKey) {
-        // 将请求参数按照key升序排序，并对每个value进行URL解码，然后拼接成key=value的形式，最后用&连接所有参数
-        String params = queries.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .flatMap(entry -> entry.getValue().stream()
-                        .sorted()
-                        .map(value -> entry.getKey() + "=" + URLDecoder.decode(value, StandardCharsets.UTF_8)))
-                .collect(Collectors.joining("&"));
+        // 使用StringBuilder提高字符串拼接性能，预估容量减少扩容
+        StringBuilder paramBuilder = new StringBuilder(256);
 
-        // 将拼接后的参数字符串与私钥拼接，生成最终的签名字符串
-        String signStr = params + privateKey;
+        // 将请求参数按照key升序排序，并对每个value进行URL解码，然后拼接成key=value的形式
+        queries.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> {
+                    String key = entry.getKey();
+                    entry.getValue().stream()
+                            .sorted()
+                            .forEach(value -> {
+                                if (!paramBuilder.isEmpty()) {
+                                    paramBuilder.append("&");
+                                }
+                                paramBuilder.append(key)
+                                        .append("=")
+                                        .append(URLDecoder.decode(value, StandardCharsets.UTF_8));
+                            });
+                });
+
+        // 将拼接后的参数字符串与私钥拼接，生成最终地签名字符串
+        String signStr = paramBuilder.append(privateKey).toString();
         log.debug("AmapRequestInterceptor params: {}", signStr);
 
-        // 对最终的签名字符串进行MD5加密，并返回加密后的结果
+        // 对最终地签名字符串进行MD5加密，并返回加密后的结果
         return SecureUtil.md5(signStr);
     }
 

@@ -10,7 +10,7 @@ import cn.idev.excel.metadata.data.ReadCellData;
 import cn.idev.excel.util.ConverterUtils;
 import com.gls.athena.starter.excel.annotation.ExcelLine;
 import com.gls.athena.starter.excel.annotation.ExcelMultiColumn;
-import com.gls.athena.starter.excel.web.domain.ExcelErrorMessage;
+import com.gls.athena.starter.excel.support.ExcelErrorMessage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

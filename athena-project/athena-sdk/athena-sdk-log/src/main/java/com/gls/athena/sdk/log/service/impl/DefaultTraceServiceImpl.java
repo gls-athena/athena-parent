@@ -18,9 +18,16 @@ import java.util.UUID;
 @ConditionalOnMissingBean(ITraceService.class)
 public class DefaultTraceServiceImpl implements ITraceService {
 
+    /**
+     * 获取当前跟踪ID
+     * 当系统中没有配置其他ITraceService实现时，生成一个默认的UUID作为跟踪ID
+     *
+     * @return String 跟踪ID，格式为去除横线的UUID字符串
+     */
     @Override
     public String getCurrentTraceId() {
         // 生成简单的UUID作为跟踪ID
         return UUID.randomUUID().toString().replace("-", "");
     }
 }
+
