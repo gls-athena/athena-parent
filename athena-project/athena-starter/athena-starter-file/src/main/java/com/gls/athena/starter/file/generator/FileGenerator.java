@@ -28,5 +28,7 @@ public interface FileGenerator<Response extends Annotation> {
      * @param response 文件响应对象
      * @return 如果支持则返回true，否则返回false
      */
-    boolean supports(Response response);
+    default boolean supports(Response response) {
+        return false;
+    }
 }

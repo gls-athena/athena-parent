@@ -14,17 +14,4 @@ import com.gls.athena.starter.word.annotation.WordResponse;
  */
 public interface WordGenerator extends FileGenerator<WordResponse> {
 
-    /**
-     * 判断是否支持当前注解配置。
-     * <p>
-     * 用于适配不同的生成器实现（如模板导出、无模板导出等）。
-     * </p>
-     *
-     * @param wordResponse Word导出注解信息
-     * @return 是否支持该配置
-     */
-    @Override
-    default boolean supports(WordResponse wordResponse) {
-        return wordResponse.generator().equals(this.getClass());
-    }
 }

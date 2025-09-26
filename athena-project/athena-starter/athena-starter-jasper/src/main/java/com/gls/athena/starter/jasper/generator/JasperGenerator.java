@@ -58,16 +58,4 @@ public interface JasperGenerator extends FileGenerator<JasperResponse> {
      */
     void exportReport(JasperPrint jasperPrint, OutputStream outputStream) throws JRException;
 
-    /**
-     * 检查当前生成器是否支持给定的Jasper报告响应
-     *
-     * @param jasperResponse Jasper报告响应注解，用于检查是否支持
-     * @return boolean 如果当前生成器的类与jasperResponse中指定的生成器类匹配，则返回true，否则返回false
-     */
-    @Override
-    default boolean supports(JasperResponse jasperResponse) {
-        // 比较当前生成器类与注解中指定的生成器类是否相同
-        return jasperResponse.generator().equals(this.getClass());
-    }
-
 }

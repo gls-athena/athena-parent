@@ -167,7 +167,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_PATH_PREPARED);
 
         // 查找支持的文件生成器并执行文件生成
-        Generator generator = findSupportedGenerator(wrapper.getResponse());
+        Generator generator = findSupportedGenerator(wrapper);
 
         try (OutputStream outputStream = fileManager.getFileOutputStream(filePath)) {
             generator.generate(data, wrapper.getResponse(), outputStream);
@@ -182,14 +182,14 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
     /**
      * 查找支持的文件生成器
      *
-     * @param response 响应对象，用于判断支持的生成器类型
+     * @param wrapper 响应对象，用于判断支持的生成器类型
      * @return 支持该响应的生成器实例
      * @throws IllegalArgumentException 当找不到支持的生成器时抛出异常
      */
-    private Generator findSupportedGenerator(Response response) {
+    private Generator findSupportedGenerator(FileResponseWrapper<Response> wrapper) {
         // 从生成器列表中查找第一个支持该响应的生成器，如果找不到则抛出异常
         return generators.stream()
-                .filter(generator -> generator.supports(response))
+                .filter(generator -> wrapper.isSupport(generator) || generator.supports(wrapper.getResponse()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("不支持的文件类型，无可用的生成器"));
     }

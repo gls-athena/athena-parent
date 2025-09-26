@@ -2,6 +2,7 @@ package com.gls.athena.starter.file.base;
 
 import cn.hutool.core.util.ReflectUtil;
 import com.gls.athena.common.core.constant.FileTypeEnums;
+import com.gls.athena.starter.file.generator.FileGenerator;
 import com.gls.athena.starter.web.util.WebUtil;
 import lombok.Data;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -74,6 +75,16 @@ public class FileResponseWrapper<Response extends Annotation> {
      */
     public boolean isAsync() {
         return ReflectUtil.invoke(response, "async");
+    }
+
+    /**
+     * 判断当前响应是否支持指定文件生成器
+     *
+     * @param generator 文件生成器对象
+     * @return true 表示支持，false 表示不支持
+     */
+    public boolean isSupport(FileGenerator<Response> generator) {
+        return ReflectUtil.invoke(response, "generator").equals(generator.getClass());
     }
 
     /**

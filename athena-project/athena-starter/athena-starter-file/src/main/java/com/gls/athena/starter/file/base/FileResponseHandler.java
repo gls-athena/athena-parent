@@ -69,7 +69,7 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
         // 创建文件输出流并生成文件
         try (OutputStream outputStream = wrapper.createOutputStream(webRequest)) {
             generators.stream()
-                    .filter(generator -> generator.supports(response))
+                    .filter(generator -> wrapper.isSupport(generator) || generator.supports(response))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("未找到适配的Generator实现"))
                     .generate(returnValue, response, outputStream);
