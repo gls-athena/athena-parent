@@ -18,15 +18,17 @@ public interface IAsyncTaskManager {
      * 创建一个新的异步任务。
      *
      * @param taskId      任务ID，唯一标识一个任务
+     * @param type        任务类型
      * @param code        任务编码，用于区分任务类型
      * @param name        任务名称
      * @param description 任务描述
      * @param params      任务参数，以键值对形式存储
      * @return 创建后的异步任务对象
      */
-    default AsyncTask createTask(String taskId, String code, String name, String description, Map<String, Object> params) {
+    default AsyncTask createTask(String taskId, String type, String code, String name, String description, Map<String, Object> params) {
         AsyncTask task = new AsyncTask();
         task.setTaskId(taskId);
+        task.setType(type);
         task.setCode(code);
         task.setName(name);
         task.setDescription(description);

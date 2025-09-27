@@ -128,7 +128,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         params.put("filename", wrapper.getFilename());
 
         // 创建异步任务并更新任务状态和进度
-        asyncTaskManager.createTask(taskId, wrapper.getCode(), wrapper.getName(), wrapper.getDescription(), params);
+        asyncTaskManager.createTask(taskId, "file_export", wrapper.getCode(), wrapper.getName(), wrapper.getDescription(), params);
         asyncTaskManager.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_TASK_CREATED);
     }
