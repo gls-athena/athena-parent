@@ -36,7 +36,7 @@ public class JasperAsyncAspect extends FileAsyncAspect<JasperGenerator, JasperRe
      * @param fileManager      文件管理器，用于处理生成后的文件操作
      * @param executor         线程池执行器，用于执行异步任务
      */
-    public JasperAsyncAspect(List<JasperGenerator> jasperGenerators, IAsyncTaskManager<?> asyncTaskManager, IFileManager fileManager, Executor executor) {
+    public JasperAsyncAspect(List<JasperGenerator> jasperGenerators, IAsyncTaskManager asyncTaskManager, IFileManager fileManager, Executor executor) {
         super(jasperGenerators, asyncTaskManager, fileManager, executor);
     }
 

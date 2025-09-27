@@ -20,6 +20,7 @@ public class AsyncTask implements Serializable {
      * 任务ID
      */
     private String taskId;
+
     /**
      * 任务类型
      */

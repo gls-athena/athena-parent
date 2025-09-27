@@ -40,7 +40,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
     private static final int PROGRESS_COMPLETED = 100;
 
     private final List<Generator> generators;
-    private final IAsyncTaskManager<?> asyncTaskManager;
+    private final IAsyncTaskManager asyncTaskManager;
     private final IFileManager fileManager;
     private final Executor executor;
 

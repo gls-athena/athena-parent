@@ -33,7 +33,7 @@ public class PdfAsyncAspect extends FileAsyncAspect<PdfGenerator, PdfResponse> {
      * @param fileManager      文件管理器，用于处理文件相关的操作
      * @param executor         线程池执行器，用于执行异步任务
      */
-    public PdfAsyncAspect(List<PdfGenerator> pdfGenerators, IAsyncTaskManager<?> asyncTaskManager, IFileManager fileManager, Executor executor) {
+    public PdfAsyncAspect(List<PdfGenerator> pdfGenerators, IAsyncTaskManager asyncTaskManager, IFileManager fileManager, Executor executor) {
         super(pdfGenerators, asyncTaskManager, fileManager, executor);
     }
 

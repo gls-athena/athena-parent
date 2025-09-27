@@ -33,7 +33,7 @@ public class WordAsyncAspect extends FileAsyncAspect<WordGenerator, WordResponse
      * @param fileManager      文件管理器，用于文件的存储和管理
      * @param executor         线程池执行器，用于执行异步任务
      */
-    public WordAsyncAspect(List<WordGenerator> wordGenerators, IAsyncTaskManager<?> asyncTaskManager, IFileManager fileManager, Executor executor) {
+    public WordAsyncAspect(List<WordGenerator> wordGenerators, IAsyncTaskManager asyncTaskManager, IFileManager fileManager, Executor executor) {
         super(wordGenerators, asyncTaskManager, fileManager, executor);
     }
 

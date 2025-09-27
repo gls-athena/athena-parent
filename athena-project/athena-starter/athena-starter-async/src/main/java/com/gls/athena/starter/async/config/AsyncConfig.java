@@ -1,6 +1,5 @@
 package com.gls.athena.starter.async.config;
 
-import com.gls.athena.starter.async.domain.AsyncTask;
 import com.gls.athena.starter.async.manager.DefaultAsyncTaskManager;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -61,7 +60,7 @@ public class AsyncConfig {
      */
     @Bean
     @ConditionalOnMissingBean(IAsyncTaskManager.class)
-    public IAsyncTaskManager<AsyncTask> asyncTaskManager() {
+    public IAsyncTaskManager asyncTaskManager() {
         return new DefaultAsyncTaskManager();
     }
 }

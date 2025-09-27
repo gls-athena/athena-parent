@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author george
  */
 @Slf4j
-public class DefaultAsyncTaskManager implements IAsyncTaskManager<AsyncTask> {
+public class DefaultAsyncTaskManager implements IAsyncTaskManager {
 
     /**
      * 内存存储，使用ConcurrentHashMap保证线程安全
@@ -40,16 +40,6 @@ public class DefaultAsyncTaskManager implements IAsyncTaskManager<AsyncTask> {
         taskStorage.put(task.getTaskId(), task);
         log.debug("异步任务已创建: taskId={}, name={}", task.getTaskId(), task.getName());
         return task;
-    }
-
-    /**
-     * 获取任务对象的类类型
-     *
-     * @return AsyncTask类类型
-     */
-    @Override
-    public Class<AsyncTask> getClassType() {
-        return AsyncTask.class;
     }
 
     /**

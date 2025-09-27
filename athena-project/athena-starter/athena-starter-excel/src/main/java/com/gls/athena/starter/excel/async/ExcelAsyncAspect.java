@@ -29,7 +29,7 @@ import java.util.concurrent.Executor;
 public class ExcelAsyncAspect extends FileAsyncAspect<ExcelGenerator, ExcelResponse> {
 
     public ExcelAsyncAspect(List<ExcelGenerator> excelGenerators,
-                            IAsyncTaskManager<?> asyncTaskManager,
+                            IAsyncTaskManager asyncTaskManager,
                             IFileManager fileManager,
                             Executor executor) {
         super(excelGenerators, asyncTaskManager, fileManager, executor);
