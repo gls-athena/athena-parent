@@ -16,7 +16,7 @@ import java.util.List;
 @Slf4j
 public class RedisAsyncTaskManager implements IAsyncTaskManager {
 
-    private static final String ASYNC_TASK_KEY_PREFIX = "async_task:";
+    private static final String ASYNC_TASK = "async:task";
 
     /**
      * 插入异步任务到Redis中
@@ -26,7 +26,7 @@ public class RedisAsyncTaskManager implements IAsyncTaskManager {
      */
     @Override
     public AsyncTask insert(AsyncTask task) {
-        RedisUtil.setCacheTableRow(ASYNC_TASK_KEY_PREFIX, task.getTaskId(), task);
+        RedisUtil.setCacheTableRow(ASYNC_TASK, task.getTaskId(), task);
         return task;
     }
 
@@ -38,7 +38,7 @@ public class RedisAsyncTaskManager implements IAsyncTaskManager {
      */
     @Override
     public AsyncTask getTask(String taskId) {
-        return RedisUtil.getCacheTableRow(ASYNC_TASK_KEY_PREFIX, taskId, AsyncTask.class);
+        return RedisUtil.getCacheTableRow(ASYNC_TASK, taskId, AsyncTask.class);
     }
 
     /**
@@ -48,7 +48,7 @@ public class RedisAsyncTaskManager implements IAsyncTaskManager {
      */
     @Override
     public void update(AsyncTask task) {
-        RedisUtil.setCacheTableRow(ASYNC_TASK_KEY_PREFIX, task.getTaskId(), task);
+        RedisUtil.setCacheTableRow(ASYNC_TASK, task.getTaskId(), task);
     }
 
     /**
@@ -58,7 +58,7 @@ public class RedisAsyncTaskManager implements IAsyncTaskManager {
      */
     @Override
     public void delete(String taskId) {
-        RedisUtil.deleteCacheTableRow(ASYNC_TASK_KEY_PREFIX, taskId);
+        RedisUtil.deleteCacheTableRow(ASYNC_TASK, taskId);
     }
 
     /**
@@ -70,7 +70,7 @@ public class RedisAsyncTaskManager implements IAsyncTaskManager {
     @Override
     public List<AsyncTask> getAllTasksBeforeStartTime(Date startTime) {
         // 获取所有异步任务
-        List<AsyncTask> tasks = RedisUtil.getCacheTableRows(ASYNC_TASK_KEY_PREFIX, AsyncTask.class);
+        List<AsyncTask> tasks = RedisUtil.getCacheTableRows(ASYNC_TASK, AsyncTask.class);
         // 过滤出开始时间早于指定时间的任务
         return tasks.stream()
                 .filter(task -> task.getStartTime() != null && task.getStartTime().before(startTime))
