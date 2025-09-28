@@ -26,7 +26,7 @@ public class AsyncConfig {
      */
     @Bean
     @ConditionalOnMissingBean(IAsyncTaskManager.class)
-    @ConditionalOnProperty(name = "athena.async.manager.type", havingValue = "memory", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "athena.async.manager", name = "type", havingValue = "memory", matchIfMissing = true)
     public IAsyncTaskManager inMemoryAsyncTaskManager() {
         return new InMemoryAsyncTaskManager();
     }
@@ -41,7 +41,7 @@ public class AsyncConfig {
     @Bean
     @ConditionalOnMissingBean(IAsyncTaskManager.class)
     @ConditionalOnClass(RedisUtil.class)
-    @ConditionalOnProperty(name = "athena.async.manager.type", havingValue = "redis")
+    @ConditionalOnProperty(prefix = "athena.async.manager", name = "type", havingValue = "redis")
     public IAsyncTaskManager redisAsyncTaskManager() {
         return new RedisAsyncTaskManager();
     }

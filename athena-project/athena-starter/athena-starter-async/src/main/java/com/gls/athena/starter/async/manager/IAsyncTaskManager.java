@@ -4,6 +4,7 @@ import com.gls.athena.starter.async.domain.AsyncTask;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -143,4 +144,55 @@ public interface IAsyncTaskManager {
         task.setEndTime(new Date());
         this.update(task);
     }
+
+    /**
+     * 删除指定任务。
+     * 删除任务时，会删除该任务相关的所有数据。
+     *
+     * @param taskId 任务ID
+     * @throws IllegalArgumentException 当任务不存在时抛出异常
+     */
+    default void deleteTask(String taskId) {
+        AsyncTask task = this.getTask(taskId);
+        if (task == null) {
+            throw new IllegalArgumentException("任务不存在: " + taskId);
+        }
+        this.delete(taskId);
+    }
+
+    /**
+     * 删除指定任务。
+     * 删除任务时，会删除该任务相关的所有数据。
+     *
+     * @param taskId 删除的任务ID
+     */
+    void delete(String taskId);
+
+    /**
+     * 清理所有过期的任务。
+     * 过期任务是指已经完成、失败或取消的任务，且已经超过一定时间间隔。
+     * 默认的过期时间间隔为7天。
+     *
+     * @param expireTime 过期时间间隔（单位：天）
+     */
+    default void clearExpiredTasks(int expireTime) {
+        Date expireDate = new Date(System.currentTimeMillis() - expireTime * 24L * 60 * 60 * 1000);
+        List<AsyncTask> allTasks = this.getAllTasksBeforeStartTime(expireDate);
+        for (AsyncTask task : allTasks) {
+            if (task.getStatus() == AsyncTaskStatus.COMPLETED
+                    || task.getStatus() == AsyncTaskStatus.FAILED
+                    || task.getStatus() == AsyncTaskStatus.CANCELED) {
+                this.delete(task.getTaskId());
+            }
+        }
+    }
+
+    /**
+     * 获取指定开始时间之前的所有任务列表。
+     *
+     * @param startTime 指定的时间点
+     * @return 符合条件的任务列表
+     */
+    List<AsyncTask> getAllTasksBeforeStartTime(Date startTime);
+
 }
