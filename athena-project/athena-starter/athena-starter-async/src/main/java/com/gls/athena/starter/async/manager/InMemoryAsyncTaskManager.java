@@ -6,13 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 默认异步任务管理器实现类
- * 基于内存存储的异步任务管理器，提供任务的基本CRUD操作
+ * 内存异步任务管理器
  *
  * @author george
  */
 @Slf4j
-public class DefaultAsyncTaskManager implements IAsyncTaskManager {
+public class InMemoryAsyncTaskManager implements IAsyncTaskManager {
 
     /**
      * 内存存储，使用ConcurrentHashMap保证线程安全
