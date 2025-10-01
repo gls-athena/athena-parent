@@ -1,11 +1,13 @@
 package com.gls.athena.starter.aliyun.oss.manager;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.StrUtil;
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.aliyun.oss.config.AliyunOssProperties;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -89,39 +91,32 @@ public class OssFileManager {
 
     /**
      * 根据文件类型和文件名生成文件路径
-     * 路径格式为: [路径前缀]/[类型]/[日期]/[UUID_文件名] 或 [类型]/[日期]/[UUID_文件名]
+     * 路径格式为: {pathPrefix}/{fileType}/{yyyy-MM-dd}/{uuid}_{filename}.{extension}
      *
      * @param type     文件类型
      * @param filename 文件名
      * @return String 生成的文件路径
      */
-    public String generateFilePath(String type, String filename) {
+    public String generateFilePath(FileTypeEnums type, String filename) {
         // 获取路径前缀
-        String pathPrefix = properties.getPathPrefix();
+        String basePath = properties.getPathPrefix();
 
-        // 生成时间路径
+        String typePath = type.getCode();
         String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
         // 生成唯一文件名
         String uuid = IdUtil.fastSimpleUUID();
-        String uniqueFilename = uuid + "_" + filename;
-
-        if (StrUtil.isNotEmpty(pathPrefix)) {
-            return pathPrefix + "/" + type + "/" + datePath + "/" + uniqueFilename;
-        } else {
-            return type + "/" + datePath + "/" + uniqueFilename;
-        }
+        String uniqueFilename = uuid + "_" + filename + type.getExtension();
+        return FileUtil.normalize(basePath + File.separator + typePath + File.separator + datePath + File.separator + uniqueFilename);
     }
 
     /**
      * 生成指定路径文件的预签名URL
      *
-     * @param path             文件路径
-     * @param expiresInSeconds URL过期时间（秒）
+     * @param path        文件路径
+     * @param expiresTime 文件URL过期时间
      * @return String 文件的预签名URL
      */
-    public String generateFileUrl(String path, long expiresInSeconds) {
-        Date expiration = new Date(System.currentTimeMillis() + expiresInSeconds * 1000);
-        return ossManager.generatePresignedUrl(properties.getBucketName(), path, expiration);
+    public String generateFileUrl(String path, Date expiresTime) {
+        return ossManager.generatePresignedUrl(properties.getBucketName(), path, expiresTime);
     }
 }

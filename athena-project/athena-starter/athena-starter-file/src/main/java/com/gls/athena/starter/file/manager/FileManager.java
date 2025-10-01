@@ -6,6 +6,7 @@ import com.gls.athena.starter.file.domain.FileInfo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 
@@ -57,7 +58,7 @@ public class FileManager {
      * @param fileId 文件ID
      * @return 文件输出流，如果文件不存在则返回null
      */
-    public OutputStream getOutputStream(String fileId) {
+    public OutputStream getOutputStream(String fileId) throws IOException {
         FileInfo fileInfo = fileInfoManager.getFileInfo(fileId);
         if (fileInfo != null) {
             return fileStorageManager.getOutputStream(fileInfo.getFilePath());
