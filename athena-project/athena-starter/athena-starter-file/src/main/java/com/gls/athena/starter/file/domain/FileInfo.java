@@ -1,9 +1,11 @@
 package com.gls.athena.starter.file.domain;
 
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 文件信息实体类
@@ -32,6 +34,15 @@ public class FileInfo implements Serializable {
      * 文件存储路径
      */
     private String filePath;
+    /**
+     * 文件类型
+     */
+    private FileTypeEnums fileType;
+
+    /**
+     * 文件大小（字节）
+     */
+    private long fileSize;
 
     /**
      * 文件访问URL
@@ -39,13 +50,8 @@ public class FileInfo implements Serializable {
     private String fileUrl;
 
     /**
-     * 文件类型
+     * 文件访问URL过期时间
      */
-    private String fileType;
-
-    /**
-     * 文件大小（字节）
-     */
-    private long fileSize;
+    private Date fileUrlExpireTime;
 
 }

@@ -3,7 +3,7 @@ package com.gls.athena.starter.excel.async;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.excel.annotation.ExcelResponse;
 import com.gls.athena.starter.excel.generator.ExcelGenerator;
-import com.gls.athena.starter.file.manager.IFileManager;
+import com.gls.athena.starter.file.manager.FileManager;
 import com.gls.athena.starter.file.support.FileAsyncAspect;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -30,7 +30,7 @@ public class ExcelAsyncAspect extends FileAsyncAspect<ExcelGenerator, ExcelRespo
 
     public ExcelAsyncAspect(List<ExcelGenerator> excelGenerators,
                             IAsyncTaskManager asyncTaskManager,
-                            IFileManager fileManager,
+                            FileManager fileManager,
                             Executor executor) {
         super(excelGenerators, asyncTaskManager, fileManager, executor);
     }

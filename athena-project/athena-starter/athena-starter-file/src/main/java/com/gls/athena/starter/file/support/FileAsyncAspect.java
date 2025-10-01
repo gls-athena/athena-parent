@@ -2,17 +2,18 @@ package com.gls.athena.starter.file.support;
 
 import cn.hutool.core.util.IdUtil;
 import com.gls.athena.common.bean.result.Result;
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.async.util.AopUtil;
+import com.gls.athena.starter.file.domain.FileInfo;
 import com.gls.athena.starter.file.generator.FileGenerator;
-import com.gls.athena.starter.file.manager.IFileManager;
+import com.gls.athena.starter.file.manager.FileManager;
 import com.gls.athena.starter.web.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -41,7 +42,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
 
     private final List<Generator> generators;
     private final IAsyncTaskManager asyncTaskManager;
-    private final IFileManager fileManager;
+    private final FileManager fileManager;
     private final Executor executor;
 
     /**
@@ -104,10 +105,10 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
             Object data = executeBusinessLogic(taskId, joinPoint);
 
             // 3. 生成文件
-            String filePath = generateFile(taskId, wrapper, data);
+            FileInfo fileInfo = generateFile(taskId, wrapper, data);
 
             // 4. 完成任务
-            completeTask(taskId, filePath);
+            completeTask(taskId, fileInfo);
 
         } catch (Throwable e) {
             // 处理异步任务执行过程中的异常
@@ -158,24 +159,24 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      * @return 生成文件的完整路径
      * @throws Exception 文件生成过程中可能抛出的异常
      */
-    private String generateFile(String taskId, FileResponseWrapper<Response> wrapper, Object data) throws Exception {
+    private FileInfo generateFile(String taskId, FileResponseWrapper<Response> wrapper, Object data) throws Exception {
         // 获取文件类型和文件名，生成文件路径
-        String type = wrapper.getFileType().getCode();
+        FileTypeEnums type = wrapper.getFileType();
         String filename = wrapper.getFilename();
-        String filePath = fileManager.generateFilePath(type, filename);
+        FileInfo fileInfo = fileManager.generateFileInfo(type, filename);
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_PATH_PREPARED);
 
         // 查找支持的文件生成器并执行文件生成
         Generator generator = findSupportedGenerator(wrapper);
 
-        try (OutputStream outputStream = fileManager.getFileOutputStream(filePath)) {
+        try (OutputStream outputStream = fileManager.getOutputStream(fileInfo.getFileId())) {
             generator.generate(data, wrapper.getResponse(), outputStream);
             asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_GENERATED);
         }
 
         // 验证生成的文件并返回文件路径
-        validateGeneratedFile(filePath);
-        return filePath;
+        fileManager.validateGeneratedFile(fileInfo.getFileId());
+        return fileInfo;
     }
 
     /**
@@ -194,33 +195,16 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
     }
 
     /**
-     * 验证生成的文件
-     *
-     * @param filePath 文件路径
-     * @throws IOException 当文件不存在或文件为空时抛出异常
-     */
-    private void validateGeneratedFile(String filePath) throws IOException {
-        // 验证文件是否存在
-        if (!fileManager.exists(filePath)) {
-            throw new IOException("文件生成失败：文件不存在");
-        }
-        // 验证文件是否为空
-        if (fileManager.getFileSize(filePath) <= 0) {
-            throw new IOException("文件生成失败：文件为空");
-        }
-    }
-
-    /**
      * 完成任务
      *
      * @param taskId   任务ID
-     * @param filePath 文件路径
+     * @param fileInfo 生成的文件信息
      */
-    private void completeTask(String taskId, String filePath) {
+    private void completeTask(String taskId, FileInfo fileInfo) {
         // 通知任务管理器任务完成并更新任务进度
-        asyncTaskManager.completeTask(taskId, Map.of("filePath", filePath));
+        asyncTaskManager.completeTask(taskId, Map.of("fileInfo", fileInfo));
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_COMPLETED);
-        log.info("异步文件导出完成: taskId={}, filePath={}", taskId, filePath);
+        log.info("异步文件导出完成: taskId={}, fileInfo={}", taskId, fileInfo);
     }
 
     /**
