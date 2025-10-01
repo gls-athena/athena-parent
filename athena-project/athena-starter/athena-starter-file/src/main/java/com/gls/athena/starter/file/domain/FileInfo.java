@@ -14,7 +14,7 @@ import java.util.Date;
  * 实现了Serializable接口，支持序列化操作。
  * </p>
  *
- * @author lizy19
+ * @author george
  */
 @Data
 @Accessors(chain = true)

@@ -10,7 +10,7 @@ import java.util.Date;
  * 文件存储管理器接口
  * 定义了文件存储相关的基本操作，包括文件URL生成、输出流获取和文件大小获取等功能
  *
- * @author lizy19
+ * @author george
  */
 public interface IFileStorageManager {
 

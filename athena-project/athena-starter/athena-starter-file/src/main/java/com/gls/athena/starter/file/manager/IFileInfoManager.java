@@ -6,7 +6,7 @@ import com.gls.athena.starter.file.domain.FileInfo;
  * 文件信息管理接口
  * 定义了文件信息的基本操作方法，包括保存、获取和更新文件信息
  *
- * @author lizy19
+ * @author george
  */
 public interface IFileInfoManager {
     /**
