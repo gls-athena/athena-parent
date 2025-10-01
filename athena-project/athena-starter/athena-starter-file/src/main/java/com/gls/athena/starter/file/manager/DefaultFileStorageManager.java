@@ -1,16 +1,12 @@
 package com.gls.athena.starter.file.manager;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.IdUtil;
-import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.file.config.FileProperties;
 import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -87,24 +83,6 @@ public class DefaultFileStorageManager implements IFileStorageManager {
     @Override
     public OutputStream getOutputStream(String filePath) {
         return FileUtil.getOutputStream(filePath);
-    }
-
-    /**
-     * 根据文件名和类型生成唯一的文件存储路径
-     *
-     * @param filename 原始文件名
-     * @param type     文件类型枚举
-     * @return 生成的完整文件路径
-     */
-    @Override
-    public String generateFilePath(String filename, FileTypeEnums type) {
-        String basePath = fileProperties.getPath();
-        String typePath = type.getCode();
-        String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        // 生成唯一文件名
-        String uuid = IdUtil.fastSimpleUUID();
-        String uniqueFilename = uuid + "_" + filename + type.getExtension();
-        return FileUtil.normalize(basePath + File.separator + typePath + File.separator + datePath + File.separator + uniqueFilename);
     }
 
     /**

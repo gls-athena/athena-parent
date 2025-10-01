@@ -1,18 +1,12 @@
 package com.gls.athena.starter.aliyun.oss.manager;
 
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.IdUtil;
-import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.aliyun.oss.config.AliyunOssProperties;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -87,26 +81,6 @@ public class OssFileManager {
      */
     public OutputStream getFileOutputStream(String path) throws IOException {
         return ossManager.getOutputStream(properties.getBucketName(), path);
-    }
-
-    /**
-     * 根据文件类型和文件名生成文件路径
-     * 路径格式为: {pathPrefix}/{fileType}/{yyyy-MM-dd}/{uuid}_{filename}.{extension}
-     *
-     * @param type     文件类型
-     * @param filename 文件名
-     * @return String 生成的文件路径
-     */
-    public String generateFilePath(FileTypeEnums type, String filename) {
-        // 获取路径前缀
-        String basePath = properties.getPathPrefix();
-
-        String typePath = type.getCode();
-        String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        // 生成唯一文件名
-        String uuid = IdUtil.fastSimpleUUID();
-        String uniqueFilename = uuid + "_" + filename + type.getExtension();
-        return FileUtil.normalize(basePath + File.separator + typePath + File.separator + datePath + File.separator + uniqueFilename);
     }
 
     /**

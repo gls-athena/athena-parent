@@ -11,6 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author george
  */
 public class InMemoryFileInfoManager implements IFileInfoManager {
+    /**
+     * 内存存储的ConcurrentHashMap
+     */
     private final ConcurrentHashMap<String, FileInfo> fileInfoStorage = new ConcurrentHashMap<>();
 
     /**

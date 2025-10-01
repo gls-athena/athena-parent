@@ -1,13 +1,18 @@
 package com.gls.athena.starter.file.manager;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import com.gls.athena.common.core.constant.FileTypeEnums;
+import com.gls.athena.starter.file.config.FileProperties;
 import com.gls.athena.starter.file.domain.FileInfo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -21,22 +26,24 @@ public class FileManager {
     private IFileInfoManager fileInfoManager;
     @Resource
     private IFileStorageManager fileStorageManager;
+    @Resource
+    private FileProperties fileProperties;
 
     /**
      * 生成文件信息并保存
      *
-     * @param type     文件类型枚举
-     * @param filename 文件名
-     * @return 生成的文件信息对象
+     * @param type     文件类型枚举，用于确定文件分类及存储目录
+     * @param filename 原始文件名称，用于构建最终存储文件名
+     * @return 生成的文件信息对象，包含文件ID、路径、URL等元数据
      */
     public FileInfo generateFileInfo(FileTypeEnums type, String filename) {
         // 生成唯一文件ID
         String fileId = IdUtil.fastSimpleUUID();
         // 生成文件存储路径
-        String filePath = fileStorageManager.generateFilePath(filename, type);
-        // 计算文件访问URL的过期时间
+        String filePath = generateFilePath(filename, type);
+        // 计算文件访问URL的过期时间（当前时间+1小时）
         Date expireTime = new Date(System.currentTimeMillis() + 60 * 60 * 1000);
-        // 生成文件访问URL
+        // 生成临时可访问的文件URL
         String fileUrl = fileStorageManager.generateFileUrl(filePath, expireTime);
         // 构建文件信息对象
         FileInfo fileInfo = new FileInfo()
@@ -47,16 +54,35 @@ public class FileManager {
                 .setFileSize(0)
                 .setFileUrl(fileUrl)
                 .setFileUrlExpireTime(expireTime);
-        // 保存文件信息
+        // 保存文件信息到数据库
         fileInfoManager.saveFileInfo(fileInfo);
         return fileInfo;
     }
 
     /**
+     * 根据原始文件名和类型生成实际存储路径
+     * 格式：{basePath}/{type}/{yyyy-MM-dd}/{uuid}_{filename}.{extension}
+     *
+     * @param filename 原始文件名
+     * @param type     文件类型枚举，决定子目录结构
+     * @return 完整的标准化文件存储路径
+     */
+    private String generateFilePath(String filename, FileTypeEnums type) {
+        String basePath = fileProperties.getPath();
+        String typePath = type.getCode();
+        String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        // 使用UUID避免重名，并保留原扩展名
+        String uuid = IdUtil.fastSimpleUUID();
+        String uniqueFilename = uuid + "_" + filename + type.getExtension();
+        return FileUtil.normalize(basePath + File.separator + typePath + File.separator + datePath + File.separator + uniqueFilename);
+    }
+
+    /**
      * 根据文件ID获取输出流
      *
-     * @param fileId 文件ID
-     * @return 文件输出流，如果文件不存在则返回null
+     * @param fileId 文件唯一标识符
+     * @return 对应文件的输出流；若文件信息不存在则返回null
+     * @throws IOException 当底层IO操作发生错误时抛出
      */
     public OutputStream getOutputStream(String fileId) throws IOException {
         FileInfo fileInfo = fileInfoManager.getFileInfo(fileId);
@@ -67,10 +93,10 @@ public class FileManager {
     }
 
     /**
-     * 验证生成的文件是否有效
+     * 验证指定ID对应的文件是否有效存在且合法
      *
-     * @param fileId 文件ID
-     * @throws RuntimeException 当文件不存在、大小为0或文件信息不存在时抛出异常
+     * @param fileId 待验证的文件ID
+     * @throws RuntimeException 若文件不存在、大小为0或无法读取相关信息时抛出运行时异常
      */
     public void validateGeneratedFile(String fileId) {
         FileInfo fileInfo = fileInfoManager.getFileInfo(fileId);
@@ -80,7 +106,7 @@ public class FileManager {
 
         String filePath = fileInfo.getFilePath();
         try {
-            // 检查文件是否存在且大小大于0
+            // 检查物理文件是否存在以及其大小是否大于0
             boolean exists = fileStorageManager.exists(filePath);
             long fileSize = exists ? fileStorageManager.getFileSize(filePath) : 0;
 
@@ -88,11 +114,11 @@ public class FileManager {
                 throw new RuntimeException("文件不存在或大小为0");
             }
 
-            // 更新文件大小信息
+            // 更新文件的实际大小至数据库记录中
             fileInfo.setFileSize(fileSize);
             fileInfoManager.updateFileInfo(fileInfo);
         } catch (Exception e) {
-            // 处理fileStorageManager可能抛出的异常
+            // 统一处理所有可能发生的异常情况
             throw new RuntimeException("文件验证失败");
         }
     }

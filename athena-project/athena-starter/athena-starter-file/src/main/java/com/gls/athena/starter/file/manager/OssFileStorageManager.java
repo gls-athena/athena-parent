@@ -1,6 +1,5 @@
 package com.gls.athena.starter.file.manager;
 
-import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.aliyun.oss.manager.OssFileManager;
 import lombok.AllArgsConstructor;
 
@@ -84,18 +83,6 @@ public class OssFileStorageManager implements IFileStorageManager {
     @Override
     public OutputStream getOutputStream(String filePath) throws IOException {
         return ossFileManager.getFileOutputStream(filePath);
-    }
-
-    /**
-     * 生成文件存储路径
-     *
-     * @param filename 文件名
-     * @param type     文件类型枚举
-     * @return 生成的文件路径
-     */
-    @Override
-    public String generateFilePath(String filename, FileTypeEnums type) {
-        return ossFileManager.generateFilePath(type, filename);
     }
 
     /**

@@ -1,7 +1,5 @@
 package com.gls.athena.starter.file.manager;
 
-import com.gls.athena.common.core.constant.FileTypeEnums;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -59,17 +57,9 @@ public interface IFileStorageManager {
      *
      * @param filePath 文件路径
      * @return 文件输出流对象
+     * @throws IOException 如果无法创建输出流则抛出异常
      */
     OutputStream getOutputStream(String filePath) throws IOException;
-
-    /**
-     * 根据文件名和文件类型生成文件路径
-     *
-     * @param filename 文件名
-     * @param type     文件类型枚举
-     * @return 生成的文件路径字符串
-     */
-    String generateFilePath(String filename, FileTypeEnums type);
 
     /**
      * 根据文件路径生成文件访问URL
