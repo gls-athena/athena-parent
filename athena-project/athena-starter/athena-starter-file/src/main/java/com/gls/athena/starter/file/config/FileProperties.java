@@ -18,10 +18,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class FileProperties extends BaseProperties {
 
     /**
+     * 文件信息管理器类型
+     * 默认为memory(内存存储)
+     */
+    private String info = "memory";
+
+    /**
      * 文件存储类型
      * 默认为local(本地存储)
      */
-    private String type = "local";
+    private String storage = "local";
 
     /**
      * 文件存储路径
@@ -35,3 +41,4 @@ public class FileProperties extends BaseProperties {
      */
     private String urlPrefix = "/files/";
 }
+

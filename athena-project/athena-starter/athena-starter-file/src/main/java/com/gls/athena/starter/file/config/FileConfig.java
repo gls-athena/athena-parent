@@ -1,6 +1,7 @@
 package com.gls.athena.starter.file.config;
 
 import com.gls.athena.starter.aliyun.oss.manager.OssFileManager;
+import com.gls.athena.starter.data.redis.support.RedisUtil;
 import com.gls.athena.starter.file.manager.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -20,15 +21,32 @@ import org.springframework.context.annotation.Configuration;
 public class FileConfig {
 
     /**
-     * 创建文件信息管理器Bean
-     * 当容器中不存在IFileInfoManager类型的Bean时，创建并注册一个基于内存的文件信息管理器
+     * 创建基于内存的文件信息管理器Bean
+     * 当容器中不存在IFileInfoManager类型的Bean且文件信息存储类型配置为memory时（默认值），
+     * 创建并注册InMemoryFileInfoManager实例
      *
      * @return IFileInfoManager 文件信息管理器实例
      */
     @Bean
     @ConditionalOnMissingBean(IFileInfoManager.class)
-    public IFileInfoManager fileInfoManager() {
+    @ConditionalOnProperty(prefix = "athena.file", name = "info", havingValue = "memory", matchIfMissing = true)
+    public IFileInfoManager inMemoryFileInfoManager() {
         return new InMemoryFileInfoManager();
+    }
+
+    /**
+     * 创建基于Redis的文件信息管理器Bean
+     * 当容器中不存在IFileInfoManager类型的Bean、RedisUtil类存在于classpath中，
+     * 且文件信息存储类型配置为redis时，创建并注册RedisFileInfoManager实例
+     *
+     * @return IFileInfoManager 文件信息管理器实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(IFileInfoManager.class)
+    @ConditionalOnClass(RedisUtil.class)
+    @ConditionalOnProperty(prefix = "athena.file", name = "info", havingValue = "redis")
+    public IFileInfoManager redisFileInfoManager() {
+        return new RedisFileInfoManager();
     }
 
     /**
@@ -41,7 +59,7 @@ public class FileConfig {
      */
     @Bean
     @ConditionalOnMissingBean(IFileStorageManager.class)
-    @ConditionalOnProperty(prefix = "athena.file", name = "type", havingValue = "local", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "athena.file", name = "storage", havingValue = "local", matchIfMissing = true)
     public IFileStorageManager fileStorageManager(FileProperties fileProperties) {
         return new DefaultFileStorageManager(fileProperties);
     }
@@ -57,9 +75,8 @@ public class FileConfig {
     @Bean
     @ConditionalOnMissingBean(IFileStorageManager.class)
     @ConditionalOnClass(OssFileManager.class)
-    @ConditionalOnProperty(prefix = "athena.file", name = "type", havingValue = "oss")
+    @ConditionalOnProperty(prefix = "athena.file", name = "storage", havingValue = "oss")
     public IFileStorageManager fileStorageManager(OssFileManager ossFileManager) {
         return new OssFileStorageManager(ossFileManager);
     }
 }
-
