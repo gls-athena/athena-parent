@@ -22,60 +22,60 @@ import java.lang.annotation.Annotation;
 @Data
 public class FileResponseWrapper<Response extends Annotation> {
 
+    /**
+     * 响应码
+     */
+    private final String code;
+
+    /**
+     * 名称
+     */
+    private final String name;
+
+    /**
+     * 描述信息
+     */
+    private final String description;
+
+    /**
+     * 文件名
+     */
+    private final String filename;
+
+    /**
+     * 文件类型枚举
+     */
+    private final FileTypeEnums fileType;
+
+    /**
+     * 是否异步处理
+     */
+    private final boolean async;
+
+    /**
+     * 响应注解对象
+     */
     private final Response response;
 
     /**
-     * 获取任务编码
-     *
-     * @return 任务编码字符串
+     * 文件生成器类
      */
-    public String getCode() {
-        return ReflectUtil.invoke(response, "code");
-    }
+    private final Class<? extends FileGenerator<Response>> generator;
 
     /**
-     * 获取任务名称
+     * 构造函数：通过反射方式从响应注解中提取相关属性并初始化包装器
      *
-     * @return 任务名称字符串
+     * @param response 响应注解对象
      */
-    public String getName() {
-        return ReflectUtil.invoke(response, "name");
-    }
-
-    /**
-     * 获取任务描述
-     *
-     * @return 任务描述字符串
-     */
-    public String getDescription() {
-        return ReflectUtil.invoke(response, "description");
-    }
-
-    /**
-     * 根据响应注解获取文件名
-     *
-     * @return 文件名字符串
-     */
-    public String getFilename() {
-        return ReflectUtil.invoke(response, "filename");
-    }
-
-    /**
-     * 根据响应注解获取文件类型枚举
-     *
-     * @return 文件类型枚举
-     */
-    public FileTypeEnums getFileType() {
-        return ReflectUtil.invoke(response, "fileType");
-    }
-
-    /**
-     * 判断当前响应是否为异步处理模式
-     *
-     * @return true 表示需要异步处理，false 表示同步处理
-     */
-    public boolean isAsync() {
-        return ReflectUtil.invoke(response, "async");
+    public FileResponseWrapper(Response response) {
+        this.response = response;
+        this.code = ReflectUtil.invoke(response, "code");
+        this.name = ReflectUtil.invoke(response, "name");
+        this.description = ReflectUtil.invoke(response, "description");
+        this.filename = ReflectUtil.invoke(response, "filename");
+        this.fileType = ReflectUtil.invoke(response, "fileType");
+        this.async = ReflectUtil.invoke(response, "async");
+        this.generator = ReflectUtil.invoke(response, "generator");
     }
 
     /**
@@ -85,7 +85,7 @@ public class FileResponseWrapper<Response extends Annotation> {
      * @return true 表示支持，false 表示不支持
      */
     public boolean isSupport(FileGenerator<Response> generator) {
-        return ObjUtil.equals(ReflectUtil.invoke(response, "generator"), generator.getClass());
+        return ObjUtil.equal(generator.getClass(), this.generator);
     }
 
     /**
@@ -97,7 +97,6 @@ public class FileResponseWrapper<Response extends Annotation> {
      * @throws IOException IO异常
      */
     public OutputStream createOutputStream(NativeWebRequest webRequest) throws IOException {
-        return WebUtil.createOutputStream(webRequest, getFilename(), getFileType());
+        return WebUtil.createOutputStream(webRequest, filename, fileType);
     }
 }
-
