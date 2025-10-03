@@ -67,7 +67,8 @@ public class FileResponseWrapper<Response extends Annotation> {
      *
      * @param response 响应注解对象
      */
-    public FileResponseWrapper(Response response) {
+    private FileResponseWrapper(Response response) {
+        // 使用反射获取注解中的各个字段值，并赋值给当前实例变量
         this.response = response;
         this.code = ReflectUtil.invoke(response, "code");
         this.name = ReflectUtil.invoke(response, "name");
@@ -79,10 +80,24 @@ public class FileResponseWrapper<Response extends Annotation> {
     }
 
     /**
+     * 静态工厂方法：根据传入的响应注解创建一个 FileResponseWrapper 实例
+     *
+     * @param response   响应注解对象
+     * @param <Response> 注解类型，必须是 Annotation 的子类
+     * @return 返回一个新的 FileResponseWrapper 实例；如果输入为 null，则返回 null
+     */
+    public static <Response extends Annotation> FileResponseWrapper<Response> of(Response response) {
+        if (response == null) {
+            return null;
+        }
+        return new FileResponseWrapper<>(response);
+    }
+
+    /**
      * 判断当前响应是否支持指定文件生成器
      *
      * @param generator 文件生成器对象
-     * @return true 表示支持，false 表示不支持
+     * @return true 表示支持该生成器，false 表示不支持
      */
     public boolean isSupport(FileGenerator<Response> generator) {
         return ObjUtil.equal(generator.getClass(), this.generator);

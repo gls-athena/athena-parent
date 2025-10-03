@@ -61,7 +61,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
             return joinPoint.proceed();
         }
 
-        FileResponseWrapper<Response> responseWrapper = new FileResponseWrapper<>(response);
+        FileResponseWrapper<Response> responseWrapper = FileResponseWrapper.of(response);
         // 早期返回：如果不是异步响应，直接执行原方法
         if (!responseWrapper.isAsync()) {
             return joinPoint.proceed();

@@ -90,11 +90,7 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
         }
         // 从方法参数中获取指定类型的注解
         Response response = parameter.getMethodAnnotation(responseClass);
-        if (response == null) {
-            return null;
-        }
-        // 创建并返回文件响应包装器
-        return new FileResponseWrapper<>(response);
+        return FileResponseWrapper.of(response);
     }
 }
 
