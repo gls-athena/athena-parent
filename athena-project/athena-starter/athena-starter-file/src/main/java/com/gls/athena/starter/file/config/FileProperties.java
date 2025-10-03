@@ -40,5 +40,32 @@ public class FileProperties extends BaseProperties {
      * 默认为/files/
      */
     private String urlPrefix = "/files/";
-}
 
+    /**
+     * 文件清理配置
+     */
+    private Cleanup cleanup = new Cleanup();
+
+    /**
+     * 文件清理配置类
+     */
+    @Data
+    public static class Cleanup {
+        /**
+         * 是否启用文件清理任务
+         */
+        private boolean enabled = false;
+
+        /**
+         * 清理任务执行的cron表达式
+         * 默认每天凌晨2点执行
+         */
+        private String cron = "0 0 2 * * ?";
+
+        /**
+         * 文件保留天数
+         * 默认7天
+         */
+        private int retentionDays = 7;
+    }
+}

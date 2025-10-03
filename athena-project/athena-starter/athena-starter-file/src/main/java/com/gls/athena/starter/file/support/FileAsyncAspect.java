@@ -7,6 +7,7 @@ import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.async.util.AopUtil;
 import com.gls.athena.starter.file.domain.FileInfo;
+import com.gls.athena.starter.file.exception.FileException;
 import com.gls.athena.starter.file.generator.FileGenerator;
 import com.gls.athena.starter.file.manager.FileManager;
 import com.gls.athena.starter.web.util.WebUtil;
@@ -132,6 +133,8 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         asyncTaskManager.createTask(taskId, "file_export", wrapper.getCode(), wrapper.getName(), wrapper.getDescription(), params);
         asyncTaskManager.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_TASK_CREATED);
+
+        log.debug("异步任务已初始化: taskId={}, filename={}", taskId, wrapper.getFilename());
     }
 
     /**
@@ -147,6 +150,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         Object data = joinPoint.proceed();
         // 更新任务进度为数据已获取状态
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_DATA_RETRIEVED);
+        log.debug("业务数据已获取: taskId={}", taskId);
         return data;
     }
 
@@ -172,6 +176,10 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         try (OutputStream outputStream = fileManager.getOutputStream(fileInfo.getFileId())) {
             generator.generate(data, wrapper.getResponse(), outputStream);
             asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_GENERATED);
+            log.debug("文件已生成: taskId={}, fileId={}", taskId, fileInfo.getFileId());
+        } catch (Exception e) {
+            log.error("文件生成失败: taskId={}, fileId={}", taskId, fileInfo.getFileId(), e);
+            throw new FileException.FileWriteException("文件生成失败", e);
         }
 
         // 验证生成的文件并返回文件路径
@@ -184,14 +192,15 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      *
      * @param wrapper 响应对象，用于判断支持的生成器类型
      * @return 支持该响应的生成器实例
-     * @throws IllegalArgumentException 当找不到支持的生成器时抛出异常
+     * @throws FileException.GeneratorNotFoundException 当找不到支持的生成器时抛出异常
      */
     private Generator findSupportedGenerator(FileResponseWrapper<Response> wrapper) {
         // 从生成器列表中查找第一个支持该响应的生成器，如果找不到则抛出异常
         return generators.stream()
                 .filter(generator -> wrapper.isSupport(generator) || generator.supports(wrapper.getResponse()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("不支持的文件类型，无可用的生成器"));
+                .orElseThrow(() -> new FileException.GeneratorNotFoundException(
+                        "不支持的文件类型，无可用的生成器: " + wrapper.getGenerator().getName()));
     }
 
     /**
@@ -218,6 +227,9 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
     private void handleAsyncException(String taskId, Throwable e) {
         // 提取异常信息用于任务状态更新
         String errorMessage = e.getMessage();
+        if (errorMessage == null || errorMessage.isEmpty()) {
+            errorMessage = e.getClass().getSimpleName();
+        }
         // 记录详细的错误日志，包含任务ID和异常信息
         log.error("异步文件导出失败: taskId={}, error={}", taskId, errorMessage, e);
         // 更新任务管理器中的任务状态为失败，并保存错误信息

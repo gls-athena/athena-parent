@@ -3,6 +3,7 @@ package com.gls.athena.starter.file.manager;
 import cn.hutool.core.io.FileUtil;
 import com.gls.athena.starter.file.config.FileProperties;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.InputStream;
@@ -15,6 +16,7 @@ import java.util.Date;
  *
  * @author george
  */
+@Slf4j
 @RequiredArgsConstructor
 public class DefaultFileStorageManager implements IFileStorageManager {
 
@@ -28,7 +30,13 @@ public class DefaultFileStorageManager implements IFileStorageManager {
      */
     @Override
     public void saveFile(String filePath, InputStream inputStream) {
-        FileUtil.writeFromStream(inputStream, filePath);
+        try {
+            FileUtil.writeFromStream(inputStream, filePath);
+            log.debug("文件保存成功: {}", filePath);
+        } catch (Exception e) {
+            log.error("文件保存失败: {}", filePath, e);
+            throw new RuntimeException("文件保存失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -38,7 +46,13 @@ public class DefaultFileStorageManager implements IFileStorageManager {
      */
     @Override
     public void deleteFile(String filePath) {
-        FileUtil.del(filePath);
+        try {
+            FileUtil.del(filePath);
+            log.debug("文件删除成功: {}", filePath);
+        } catch (Exception e) {
+            log.error("文件删除失败: {}", filePath, e);
+            throw new RuntimeException("文件删除失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -60,7 +74,8 @@ public class DefaultFileStorageManager implements IFileStorageManager {
      */
     @Override
     public long getFileSize(String filePath) {
-        return FileUtil.file(filePath).length();
+        File file = FileUtil.file(filePath);
+        return file.exists() ? file.length() : 0;
     }
 
     /**
@@ -71,7 +86,12 @@ public class DefaultFileStorageManager implements IFileStorageManager {
      */
     @Override
     public InputStream getInputStream(String filePath) {
-        return FileUtil.getInputStream(filePath);
+        try {
+            return FileUtil.getInputStream(filePath);
+        } catch (Exception e) {
+            log.error("获取文件输入流失败: {}", filePath, e);
+            throw new RuntimeException("获取文件输入流失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -82,7 +102,12 @@ public class DefaultFileStorageManager implements IFileStorageManager {
      */
     @Override
     public OutputStream getOutputStream(String filePath) {
-        return FileUtil.getOutputStream(filePath);
+        try {
+            return FileUtil.getOutputStream(filePath);
+        } catch (Exception e) {
+            log.error("获取文件输出流失败: {}", filePath, e);
+            throw new RuntimeException("获取文件输出流失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -95,9 +120,18 @@ public class DefaultFileStorageManager implements IFileStorageManager {
     @Override
     public String generateFileUrl(String filePath, Date expiresTime) {
         String urlPrefix = fileProperties.getUrlPrefix();
-        if (urlPrefix != null) {
-            return urlPrefix + "/" + filePath.replace(File.separator, "/");
+        if (urlPrefix == null || urlPrefix.isEmpty()) {
+            log.warn("URL前缀未配置，返回空字符串");
+            return "";
         }
-        return "";
+
+        // 规范化URL路径
+        String normalizedPath = filePath.replace(File.separator, "/");
+        String url = urlPrefix.endsWith("/")
+                ? urlPrefix + normalizedPath
+                : urlPrefix + "/" + normalizedPath;
+
+        log.debug("生成文件URL: {}", url);
+        return url;
     }
 }

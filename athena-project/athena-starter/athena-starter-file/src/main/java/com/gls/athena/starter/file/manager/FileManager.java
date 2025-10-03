@@ -6,6 +6,7 @@ import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.file.config.FileProperties;
 import com.gls.athena.starter.file.domain.FileInfo;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -20,6 +21,7 @@ import java.util.Date;
  *
  * @author george
  */
+@Slf4j
 @Component
 public class FileManager {
     @Resource
@@ -54,8 +56,16 @@ public class FileManager {
                 .setFileSize(0)
                 .setFileUrl(fileUrl)
                 .setFileUrlExpireTime(expireTime);
-        // 保存文件信息到数据库
-        fileInfoManager.saveFileInfo(fileInfo);
+
+        try {
+            // 保存文件信息到数据库
+            fileInfoManager.saveFileInfo(fileInfo);
+            log.debug("文件信息已生成并保存: fileId={}, filename={}", fileId, filename);
+        } catch (Exception e) {
+            log.error("保存文件信息失败: fileId={}, filename={}", fileId, filename, e);
+            throw new RuntimeException("保存文件信息失败: " + e.getMessage(), e);
+        }
+
         return fileInfo;
     }
 
@@ -86,10 +96,17 @@ public class FileManager {
      */
     public OutputStream getOutputStream(String fileId) throws IOException {
         FileInfo fileInfo = fileInfoManager.getFileInfo(fileId);
-        if (fileInfo != null) {
-            return fileStorageManager.getOutputStream(fileInfo.getFilePath());
+        if (fileInfo == null) {
+            log.warn("未找到文件信息: fileId={}", fileId);
+            throw new IllegalArgumentException("文件信息不存在: " + fileId);
         }
-        return null;
+
+        try {
+            return fileStorageManager.getOutputStream(fileInfo.getFilePath());
+        } catch (IOException e) {
+            log.error("获取文件输出流失败: fileId={}, filePath={}", fileId, fileInfo.getFilePath(), e);
+            throw new IOException("获取文件输出流失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -101,25 +118,57 @@ public class FileManager {
     public void validateGeneratedFile(String fileId) {
         FileInfo fileInfo = fileInfoManager.getFileInfo(fileId);
         if (fileInfo == null) {
-            throw new RuntimeException("文件信息不存在");
+            log.error("文件信息不存在: fileId={}", fileId);
+            throw new RuntimeException("文件信息不存在: " + fileId);
         }
 
         String filePath = fileInfo.getFilePath();
         try {
             // 检查物理文件是否存在以及其大小是否大于0
             boolean exists = fileStorageManager.exists(filePath);
-            long fileSize = exists ? fileStorageManager.getFileSize(filePath) : 0;
+            if (!exists) {
+                log.error("文件不存在: fileId={}, filePath={}", fileId, filePath);
+                throw new RuntimeException("文件不存在: " + filePath);
+            }
 
-            if (!exists || fileSize <= 0) {
-                throw new RuntimeException("文件不存在或大小为0");
+            long fileSize = fileStorageManager.getFileSize(filePath);
+            if (fileSize <= 0) {
+                log.error("文件大小为0: fileId={}, filePath={}", fileId, filePath);
+                throw new RuntimeException("文件大小为0: " + filePath);
             }
 
             // 更新文件的实际大小至数据库记录中
             fileInfo.setFileSize(fileSize);
             fileInfoManager.updateFileInfo(fileInfo);
+            log.info("文件验证成功: fileId={}, fileSize={}", fileId, fileSize);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            // 统一处理所有可能发生的异常情况
-            throw new RuntimeException("文件验证失败");
+            log.error("文件验证失败: fileId={}, filePath={}", fileId, filePath, e);
+            throw new RuntimeException("文件验证失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 删除文件及其信息
+     *
+     * @param fileId 文件ID
+     */
+    public void deleteFile(String fileId) {
+        FileInfo fileInfo = fileInfoManager.getFileInfo(fileId);
+        if (fileInfo == null) {
+            log.warn("文件信息不存在，无法删除: fileId={}", fileId);
+            return;
+        }
+
+        try {
+            // 删除物理文件
+            if (fileStorageManager.exists(fileInfo.getFilePath())) {
+                fileStorageManager.deleteFile(fileInfo.getFilePath());
+                log.info("文件已删除: fileId={}, filePath={}", fileId, fileInfo.getFilePath());
+            }
+        } catch (Exception e) {
+            log.error("删除物理文件失败: fileId={}, filePath={}", fileId, fileInfo.getFilePath(), e);
         }
     }
 }

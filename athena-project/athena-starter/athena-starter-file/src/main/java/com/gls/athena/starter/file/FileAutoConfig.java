@@ -2,6 +2,7 @@ package com.gls.athena.starter.file;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 文件自动配置类
@@ -14,6 +15,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan
+@EnableScheduling
 public class FileAutoConfig {
 }
-
