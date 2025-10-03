@@ -39,11 +39,10 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
      */
     @Override
     public boolean supportsReturnType(MethodParameter parameter) {
-        Response response = parameter.getMethodAnnotation(getResponseClass());
-        if (response == null) {
+        FileResponseWrapper<Response> wrapper = getResponseWrapper(parameter);
+        if (wrapper == null) {
             return false;
         }
-        FileResponseWrapper<Response> wrapper = getResponseWrapper(response);
         return !wrapper.isAsync();
     }
 
@@ -64,36 +63,37 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
         mavContainer.setRequestHandled(true);
 
         // 获取Response注解
-        Response response = returnType.getMethodAnnotation(getResponseClass());
-        FileResponseWrapper<Response> wrapper = getResponseWrapper(response);
+        FileResponseWrapper<Response> wrapper = getResponseWrapper(returnType);
         // 创建文件输出流并生成文件
         try (OutputStream outputStream = wrapper.createOutputStream(webRequest)) {
             generators.stream()
-                    .filter(generator -> wrapper.isSupport(generator) || generator.supports(response))
+                    .filter(generator -> wrapper.isSupport(generator) || generator.supports(wrapper.getResponse()))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("未找到适配的Generator实现"))
-                    .generate(returnValue, response, outputStream);
+                    .generate(returnValue, wrapper.getResponse(), outputStream);
         } catch (Exception e) {
             log.error("导出文件时发生错误 ：{}", e.getMessage(), e);
         }
     }
 
     /**
-     * 获取响应注解的类型Class
+     * 获取响应包装器
      *
-     * @return 响应注解的Class对象
+     * @param parameter 方法参数对象，用于获取方法上的注解信息
+     * @return FileResponseWrapper<Response> 响应包装器对象，如果无法获取到响应类或注解则返回null
      */
-    private Class<Response> getResponseClass() {
-        return (Class<Response>) TypeUtil.getTypeArgument(this.getClass(), 1);
-    }
-
-    /**
-     * 获取响应包装器实例，用于解析响应注解中的配置信息
-     *
-     * @param response 响应注解对象
-     * @return 对应的响应包装器实例
-     */
-    private FileResponseWrapper<Response> getResponseWrapper(Response response) {
+    private FileResponseWrapper<Response> getResponseWrapper(MethodParameter parameter) {
+        // 获取泛型参数中指定索引位置的类型参数
+        Class<Response> responseClass = (Class<Response>) TypeUtil.getTypeArgument(this.getClass(), 1);
+        if (responseClass == null) {
+            return null;
+        }
+        // 从方法参数中获取指定类型的注解
+        Response response = parameter.getMethodAnnotation(responseClass);
+        if (response == null) {
+            return null;
+        }
+        // 创建并返回文件响应包装器
         return new FileResponseWrapper<>(response);
     }
 }
