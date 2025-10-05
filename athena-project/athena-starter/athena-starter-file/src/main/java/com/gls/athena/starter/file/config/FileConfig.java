@@ -60,7 +60,7 @@ public class FileConfig {
     @Bean
     @ConditionalOnMissingBean(IFileStorageManager.class)
     @ConditionalOnProperty(prefix = "athena.file", name = "storage", havingValue = "local", matchIfMissing = true)
-    public IFileStorageManager fileStorageManager(FileProperties fileProperties) {
+    public IFileStorageManager localFileStorageManager(FileProperties fileProperties) {
         return new DefaultFileStorageManager(fileProperties);
     }
 
@@ -76,7 +76,7 @@ public class FileConfig {
     @ConditionalOnMissingBean(IFileStorageManager.class)
     @ConditionalOnClass(OssFileManager.class)
     @ConditionalOnProperty(prefix = "athena.file", name = "storage", havingValue = "oss")
-    public IFileStorageManager fileStorageManager(OssFileManager ossFileManager) {
+    public IFileStorageManager ossFileStorageManager(OssFileManager ossFileManager) {
         return new OssFileStorageManager(ossFileManager);
     }
 }
