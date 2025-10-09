@@ -7,6 +7,7 @@ import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.file.generator.FileGenerator;
 import com.gls.athena.starter.web.util.WebUtil;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.lang.annotation.Annotation;
  * @author george
  */
 @Data
+@Slf4j
 public class FileResponseWrapper<Response extends Annotation> {
 
     /**
@@ -76,13 +78,13 @@ public class FileResponseWrapper<Response extends Annotation> {
 
         // 使用反射获取注解中的各个字段值，并赋值给当前实例变量
         this.response = response;
-        this.code = getAnnotationValue(response, "code", String.class, "");
-        this.name = getAnnotationValue(response, "name", String.class, "");
-        this.description = getAnnotationValue(response, "description", String.class, "");
-        this.filename = getAnnotationValue(response, "filename", String.class, "");
-        this.fileType = getAnnotationValue(response, "fileType", FileTypeEnums.class, FileTypeEnums.XLSX);
-        this.async = getAnnotationValue(response, "async", Boolean.class, false);
-        this.generator = getAnnotationValueUnchecked(response, "generator");
+        this.code = getAnnotationValue(response, "code", "");
+        this.name = getAnnotationValue(response, "name", "");
+        this.description = getAnnotationValue(response, "description", "");
+        this.filename = getAnnotationValue(response, "filename", "");
+        this.fileType = getAnnotationValue(response, "fileType", FileTypeEnums.XLSX);
+        this.async = getAnnotationValue(response, "async", false);
+        this.generator = getAnnotationValue(response, "generator", null);
 
         // 验证必需的字段
         validateRequiredFields();
@@ -107,37 +109,20 @@ public class FileResponseWrapper<Response extends Annotation> {
      *
      * @param annotation   注解对象
      * @param methodName   方法名
-     * @param returnType   返回类型
      * @param defaultValue 默认值
      * @param <T>          返回值类型
      * @return 属性值或默认值
      */
-    private <T> T getAnnotationValue(Response annotation, String methodName, Class<T> returnType, T defaultValue) {
+    private <T> T getAnnotationValue(Response annotation, String methodName, T defaultValue) {
         try {
-            Object value = ReflectUtil.invoke(annotation, methodName);
+            T value = ReflectUtil.invoke(annotation, methodName);
             if (value == null) {
                 return defaultValue;
             }
-            return returnType.cast(value);
+            return value;
         } catch (Exception e) {
+            log.error("获取注解属性值失败：{}", e.getMessage(), e);
             return defaultValue;
-        }
-    }
-
-    /**
-     * 获取生成器类型（未检查的类型转换）
-     *
-     * @param annotation 注解对象
-     * @param methodName 方法名
-     * @return 生成器类型
-     */
-    @SuppressWarnings("unchecked")
-    private Class<? extends FileGenerator<Response>> getAnnotationValueUnchecked(Response annotation, String methodName) {
-        try {
-            Object value = ReflectUtil.invoke(annotation, methodName);
-            return (Class<? extends FileGenerator<Response>>) value;
-        } catch (Exception e) {
-            return null;
         }
     }
 
