@@ -168,7 +168,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         FileTypeEnums type = wrapper.getFileType();
         String filename = wrapper.getFilename();
         FileInfo fileInfo = fileManager.generateFileInfo(type, filename);
-        asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_PATH_PREPARED);
+        asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_PATH_PREPARED, fileInfo.getFileId());
 
         // 查找支持的文件生成器并执行文件生成
         Generator generator = findSupportedGenerator(wrapper);

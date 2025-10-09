@@ -92,6 +92,26 @@ public interface IAsyncTaskManager {
     void update(AsyncTask task);
 
     /**
+     * 更新任务进度
+     *
+     * @param taskId   任务ID，用于标识需要更新的任务
+     * @param progress 任务进度值，表示任务完成的百分比
+     * @param fileId   文件ID，与任务关联的文件标识
+     */
+    default void updateTaskProgress(String taskId, Integer progress, String fileId) {
+        // 获取指定ID的任务对象
+        AsyncTask task = this.getTask(taskId);
+        if (task == null) {
+            throw new IllegalArgumentException("任务不存在: " + taskId);
+        }
+        // 更新任务的进度和文件ID信息
+        task.setProgress(progress);
+        task.setFileId(fileId);
+        // 保存更新后的任务信息
+        this.update(task);
+    }
+
+    /**
      * 更新指定任务的进度。
      *
      * @param taskId   任务ID

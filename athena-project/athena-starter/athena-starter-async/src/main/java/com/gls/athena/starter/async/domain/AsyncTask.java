@@ -67,6 +67,11 @@ public class AsyncTask implements Serializable {
     private Map<String, Object> result = new HashMap<>();
 
     /**
+     * 文件ID
+     */
+    private String fileId;
+
+    /**
      * 开始时间
      */
     private Date startTime;
