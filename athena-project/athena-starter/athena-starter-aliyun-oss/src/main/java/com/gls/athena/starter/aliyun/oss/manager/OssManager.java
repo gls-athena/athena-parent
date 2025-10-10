@@ -1,7 +1,7 @@
 package com.gls.athena.starter.aliyun.oss.manager;
 
 import com.aliyun.oss.OSS;
-import com.gls.athena.starter.async.config.AsyncConstants;
+import com.gls.athena.common.core.constant.IConstants;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ import java.util.concurrent.Executor;
 public class OssManager {
     @Resource
     private OSS ossClient;
-    @Resource(name = AsyncConstants.DEFAULT_THREAD_POOL_NAME)
+    @Resource(name = IConstants.DEFAULT_THREAD_POOL_NAME)
     private Executor executor;
 
     /**

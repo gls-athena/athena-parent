@@ -2,17 +2,19 @@ package com.gls.athena.starter.file.support;
 
 import cn.hutool.core.util.IdUtil;
 import com.gls.athena.common.bean.result.Result;
+import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.async.util.AopUtil;
+import com.gls.athena.starter.file.domain.FileInfo;
+import com.gls.athena.starter.file.exception.FileException;
 import com.gls.athena.starter.file.generator.FileGenerator;
-import com.gls.athena.starter.file.manager.IFileManager;
+import com.gls.athena.starter.file.manager.FileManager;
 import com.gls.athena.starter.web.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -40,8 +42,8 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
     private static final int PROGRESS_COMPLETED = 100;
 
     private final List<Generator> generators;
-    private final IAsyncTaskManager<?> asyncTaskManager;
-    private final IFileManager fileManager;
+    private final IAsyncTaskManager asyncTaskManager;
+    private final FileManager fileManager;
     private final Executor executor;
 
     /**
@@ -60,7 +62,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
             return joinPoint.proceed();
         }
 
-        FileResponseWrapper<Response> responseWrapper = new FileResponseWrapper<>(response);
+        FileResponseWrapper<Response> responseWrapper = FileResponseWrapper.of(response);
         // 早期返回：如果不是异步响应，直接执行原方法
         if (!responseWrapper.isAsync()) {
             return joinPoint.proceed();
@@ -104,10 +106,10 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
             Object data = executeBusinessLogic(taskId, joinPoint);
 
             // 3. 生成文件
-            String filePath = generateFile(taskId, wrapper, data);
+            FileInfo fileInfo = generateFile(taskId, wrapper, data);
 
             // 4. 完成任务
-            completeTask(taskId, filePath);
+            completeTask(taskId, fileInfo);
 
         } catch (Throwable e) {
             // 处理异步任务执行过程中的异常
@@ -128,9 +130,11 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         params.put("filename", wrapper.getFilename());
 
         // 创建异步任务并更新任务状态和进度
-        asyncTaskManager.createTask(taskId, wrapper.getCode(), wrapper.getName(), wrapper.getDescription(), params);
+        asyncTaskManager.createTask(taskId, "file_export", wrapper.getCode(), wrapper.getName(), wrapper.getDescription(), params);
         asyncTaskManager.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_TASK_CREATED);
+
+        log.debug("异步任务已初始化: taskId={}, filename={}", taskId, wrapper.getFilename());
     }
 
     /**
@@ -146,6 +150,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         Object data = joinPoint.proceed();
         // 更新任务进度为数据已获取状态
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_DATA_RETRIEVED);
+        log.debug("业务数据已获取: taskId={}", taskId);
         return data;
     }
 
@@ -158,24 +163,28 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      * @return 生成文件的完整路径
      * @throws Exception 文件生成过程中可能抛出的异常
      */
-    private String generateFile(String taskId, FileResponseWrapper<Response> wrapper, Object data) throws Exception {
+    private FileInfo generateFile(String taskId, FileResponseWrapper<Response> wrapper, Object data) throws Exception {
         // 获取文件类型和文件名，生成文件路径
-        String type = wrapper.getFileType().getCode();
+        FileTypeEnums type = wrapper.getFileType();
         String filename = wrapper.getFilename();
-        String filePath = fileManager.generateFilePath(type, filename);
-        asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_PATH_PREPARED);
+        FileInfo fileInfo = fileManager.generateFileInfo(type, filename);
+        asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_PATH_PREPARED, fileInfo.getFileId());
 
         // 查找支持的文件生成器并执行文件生成
         Generator generator = findSupportedGenerator(wrapper);
 
-        try (OutputStream outputStream = fileManager.getFileOutputStream(filePath)) {
+        try (OutputStream outputStream = fileManager.getOutputStream(fileInfo.getFileId())) {
             generator.generate(data, wrapper.getResponse(), outputStream);
             asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_GENERATED);
+            log.debug("文件已生成: taskId={}, fileId={}", taskId, fileInfo.getFileId());
+        } catch (Exception e) {
+            log.error("文件生成失败: taskId={}, fileId={}", taskId, fileInfo.getFileId(), e);
+            throw new FileException.FileWriteException("文件生成失败", e);
         }
 
         // 验证生成的文件并返回文件路径
-        validateGeneratedFile(filePath);
-        return filePath;
+        fileManager.validateGeneratedFile(fileInfo.getFileId());
+        return fileInfo;
     }
 
     /**
@@ -183,44 +192,28 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      *
      * @param wrapper 响应对象，用于判断支持的生成器类型
      * @return 支持该响应的生成器实例
-     * @throws IllegalArgumentException 当找不到支持的生成器时抛出异常
+     * @throws FileException.GeneratorNotFoundException 当找不到支持的生成器时抛出异常
      */
     private Generator findSupportedGenerator(FileResponseWrapper<Response> wrapper) {
         // 从生成器列表中查找第一个支持该响应的生成器，如果找不到则抛出异常
         return generators.stream()
                 .filter(generator -> wrapper.isSupport(generator) || generator.supports(wrapper.getResponse()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("不支持的文件类型，无可用的生成器"));
-    }
-
-    /**
-     * 验证生成的文件
-     *
-     * @param filePath 文件路径
-     * @throws IOException 当文件不存在或文件为空时抛出异常
-     */
-    private void validateGeneratedFile(String filePath) throws IOException {
-        // 验证文件是否存在
-        if (!fileManager.exists(filePath)) {
-            throw new IOException("文件生成失败：文件不存在");
-        }
-        // 验证文件是否为空
-        if (fileManager.getFileSize(filePath) <= 0) {
-            throw new IOException("文件生成失败：文件为空");
-        }
+                .orElseThrow(() -> new FileException.GeneratorNotFoundException(
+                        "不支持的文件类型，无可用的生成器: " + wrapper.getGenerator().getName()));
     }
 
     /**
      * 完成任务
      *
      * @param taskId   任务ID
-     * @param filePath 文件路径
+     * @param fileInfo 生成的文件信息
      */
-    private void completeTask(String taskId, String filePath) {
+    private void completeTask(String taskId, FileInfo fileInfo) {
         // 通知任务管理器任务完成并更新任务进度
-        asyncTaskManager.completeTask(taskId, Map.of("filePath", filePath));
+        asyncTaskManager.completeTask(taskId, Map.of("fileInfo", fileInfo));
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_COMPLETED);
-        log.info("异步文件导出完成: taskId={}, filePath={}", taskId, filePath);
+        log.info("异步文件导出完成: taskId={}, fileInfo={}", taskId, fileInfo);
     }
 
     /**
@@ -234,6 +227,9 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
     private void handleAsyncException(String taskId, Throwable e) {
         // 提取异常信息用于任务状态更新
         String errorMessage = e.getMessage();
+        if (errorMessage == null || errorMessage.isEmpty()) {
+            errorMessage = e.getClass().getSimpleName();
+        }
         // 记录详细的错误日志，包含任务ID和异常信息
         log.error("异步文件导出失败: taskId={}, error={}", taskId, errorMessage, e);
         // 更新任务管理器中的任务状态为失败，并保存错误信息

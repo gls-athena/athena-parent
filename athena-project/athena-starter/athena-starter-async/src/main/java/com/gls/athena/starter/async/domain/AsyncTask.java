@@ -20,6 +20,7 @@ public class AsyncTask implements Serializable {
      * 任务ID
      */
     private String taskId;
+
     /**
      * 任务类型
      */
@@ -64,6 +65,11 @@ public class AsyncTask implements Serializable {
      * 任务结果
      */
     private Map<String, Object> result = new HashMap<>();
+
+    /**
+     * 文件ID
+     */
+    private String fileId;
 
     /**
      * 开始时间

@@ -1,7 +1,7 @@
 package com.gls.athena.starter.word.support;
 
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
-import com.gls.athena.starter.file.manager.IFileManager;
+import com.gls.athena.starter.file.manager.FileManager;
 import com.gls.athena.starter.file.support.FileAsyncAspect;
 import com.gls.athena.starter.word.annotation.WordResponse;
 import com.gls.athena.starter.word.generator.WordGenerator;
@@ -33,7 +33,7 @@ public class WordAsyncAspect extends FileAsyncAspect<WordGenerator, WordResponse
      * @param fileManager      文件管理器，用于文件的存储和管理
      * @param executor         线程池执行器，用于执行异步任务
      */
-    public WordAsyncAspect(List<WordGenerator> wordGenerators, IAsyncTaskManager<?> asyncTaskManager, IFileManager fileManager, Executor executor) {
+    public WordAsyncAspect(List<WordGenerator> wordGenerators, IAsyncTaskManager asyncTaskManager, FileManager fileManager, Executor executor) {
         super(wordGenerators, asyncTaskManager, fileManager, executor);
     }
 

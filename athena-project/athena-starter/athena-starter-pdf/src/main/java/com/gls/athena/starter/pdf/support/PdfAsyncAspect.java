@@ -1,7 +1,7 @@
 package com.gls.athena.starter.pdf.support;
 
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
-import com.gls.athena.starter.file.manager.IFileManager;
+import com.gls.athena.starter.file.manager.FileManager;
 import com.gls.athena.starter.file.support.FileAsyncAspect;
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
 import com.gls.athena.starter.pdf.generator.PdfGenerator;
@@ -33,7 +33,7 @@ public class PdfAsyncAspect extends FileAsyncAspect<PdfGenerator, PdfResponse> {
      * @param fileManager      文件管理器，用于处理文件相关的操作
      * @param executor         线程池执行器，用于执行异步任务
      */
-    public PdfAsyncAspect(List<PdfGenerator> pdfGenerators, IAsyncTaskManager<?> asyncTaskManager, IFileManager fileManager, Executor executor) {
+    public PdfAsyncAspect(List<PdfGenerator> pdfGenerators, IAsyncTaskManager asyncTaskManager, FileManager fileManager, Executor executor) {
         super(pdfGenerators, asyncTaskManager, fileManager, executor);
     }
 

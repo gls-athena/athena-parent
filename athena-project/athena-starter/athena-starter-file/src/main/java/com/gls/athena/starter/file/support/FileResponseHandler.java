@@ -1,6 +1,7 @@
 package com.gls.athena.starter.file.support;
 
 import cn.hutool.core.util.TypeUtil;
+import com.gls.athena.starter.file.exception.FileException;
 import com.gls.athena.starter.file.generator.FileGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,11 +40,10 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
      */
     @Override
     public boolean supportsReturnType(MethodParameter parameter) {
-        Response response = parameter.getMethodAnnotation(getResponseClass());
-        if (response == null) {
+        FileResponseWrapper<Response> wrapper = getResponseWrapper(parameter);
+        if (wrapper == null) {
             return false;
         }
-        FileResponseWrapper<Response> wrapper = getResponseWrapper(response);
         return !wrapper.isAsync();
     }
 
@@ -64,37 +64,57 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
         mavContainer.setRequestHandled(true);
 
         // 获取Response注解
-        Response response = returnType.getMethodAnnotation(getResponseClass());
-        FileResponseWrapper<Response> wrapper = getResponseWrapper(response);
+        FileResponseWrapper<Response> wrapper = getResponseWrapper(returnType);
+        if (wrapper == null) {
+            log.error("无法获取文件响应包装器");
+            throw new FileException("文件响应配置错误");
+        }
+
+        // 查找合适的生成器
+        Generator generator = findSupportedGenerator(wrapper);
+
         // 创建文件输出流并生成文件
         try (OutputStream outputStream = wrapper.createOutputStream(webRequest)) {
-            generators.stream()
-                    .filter(generator -> wrapper.isSupport(generator) || generator.supports(response))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("未找到适配的Generator实现"))
-                    .generate(returnValue, response, outputStream);
+            generator.generate(returnValue, wrapper.getResponse(), outputStream);
+            log.debug("文件生成成功: filename={}", wrapper.getFilename());
+        } catch (FileException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("导出文件时发生错误 ：{}", e.getMessage(), e);
+            log.error("导出文件时发生错误: filename={}", wrapper.getFilename(), e);
+            throw new FileException.FileWriteException("文件生成失败: " + e.getMessage(), e);
         }
     }
 
     /**
-     * 获取响应注解的类型Class
+     * 查找支持的文件生成器
      *
-     * @return 响应注解的Class对象
+     * @param wrapper 响应包装器
+     * @return 支持的生成器实例
+     * @throws FileException.GeneratorNotFoundException 当找不到支持的生成器时抛出异常
      */
-    private Class<Response> getResponseClass() {
-        return (Class<Response>) TypeUtil.getTypeArgument(this.getClass(), 1);
+    private Generator findSupportedGenerator(FileResponseWrapper<Response> wrapper) {
+        return generators.stream()
+                .filter(generator -> wrapper.isSupport(generator) || generator.supports(wrapper.getResponse()))
+                .findFirst()
+                .orElseThrow(() -> new FileException.GeneratorNotFoundException(
+                        "未找到适配的Generator实现: " + wrapper.getGenerator().getName()));
     }
 
     /**
-     * 获取响应包装器实例，用于解析响应注解中的配置信息
+     * 获取响应包装器
      *
-     * @param response 响应注解对象
-     * @return 对应的响应包装器实例
+     * @param parameter 方法参数对象，用于获取方法上的注解信息
+     * @return FileResponseWrapper<Response> 响应包装器对象，如果无法获取到响应类或注解则返回null
      */
-    private FileResponseWrapper<Response> getResponseWrapper(Response response) {
-        return new FileResponseWrapper<>(response);
+    @SuppressWarnings("unchecked")
+    private FileResponseWrapper<Response> getResponseWrapper(MethodParameter parameter) {
+        // 获取泛型参数中指定索引位置的类型参数
+        Class<Response> responseClass = (Class<Response>) TypeUtil.getTypeArgument(this.getClass(), 1);
+        if (responseClass == null) {
+            return null;
+        }
+        // 从方法参数中获取指定类型的注解
+        Response response = parameter.getMethodAnnotation(responseClass);
+        return FileResponseWrapper.of(response);
     }
 }
-

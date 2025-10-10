@@ -116,4 +116,8 @@ public interface IConstants {
      */
     String DEFAULT_TENANT_DESC = "超级租户";
 
+    /**
+     * 默认线程池名称，用于标识默认线程池的名称。
+     */
+    String DEFAULT_THREAD_POOL_NAME = "athena-async-executor";
 }
