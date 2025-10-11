@@ -21,62 +21,102 @@ import org.springframework.context.annotation.Configuration;
 public class FileConfig {
 
     /**
-     * 创建基于内存的文件信息管理器Bean
-     * 当容器中不存在IFileInfoManager类型的Bean且文件信息存储类型配置为memory时（默认值），
-     * 创建并注册InMemoryFileInfoManager实例
+     * 本地文件存储配置类
+     * 当配置项 athena.file.storage = local 或未配置时生效
+     * 提供基于本地存储的文件存储管理器实现
      *
-     * @return IFileInfoManager 文件信息管理器实例
+     * @author george
      */
-    @Bean
-    @ConditionalOnMissingBean(IFileInfoManager.class)
-    @ConditionalOnProperty(prefix = "athena.file", name = "info", havingValue = "memory", matchIfMissing = true)
-    public IFileInfoManager inMemoryFileInfoManager() {
-        return new InMemoryFileInfoManager();
-    }
-
-    /**
-     * 创建基于Redis的文件信息管理器Bean
-     * 当容器中不存在IFileInfoManager类型的Bean、RedisUtil类存在于classpath中，
-     * 且文件信息存储类型配置为redis时，创建并注册RedisFileInfoManager实例
-     *
-     * @return IFileInfoManager 文件信息管理器实例
-     */
-    @Bean
-    @ConditionalOnMissingBean(IFileInfoManager.class)
-    @ConditionalOnClass(RedisUtil.class)
-    @ConditionalOnProperty(prefix = "athena.file", name = "info", havingValue = "redis")
-    public IFileInfoManager redisFileInfoManager() {
-        return new RedisFileInfoManager();
-    }
-
-    /**
-     * 创建本地文件存储管理器Bean
-     * 当容器中不存在IFileStorageManager类型的Bean且文件存储类型配置为local时，
-     * 创建并注册默认的文件存储管理器
-     *
-     * @param fileProperties 文件配置属性
-     * @return IFileStorageManager 文件存储管理器实例
-     */
-    @Bean
-    @ConditionalOnMissingBean(IFileStorageManager.class)
+    @Configuration
     @ConditionalOnProperty(prefix = "athena.file", name = "storage", havingValue = "local", matchIfMissing = true)
-    public IFileStorageManager localFileStorageManager(FileProperties fileProperties) {
-        return new DefaultFileStorageManager(fileProperties);
+    public static class DefaultFileStorageConfig {
+
+        /**
+         * 创建本地文件存储管理器 Bean
+         * 当容器中不存在 IFileStorageManager 类型的 Bean 时创建
+         *
+         * @param fileProperties 文件配置属性对象
+         * @return 本地文件存储管理器实例
+         */
+        @Bean
+        @ConditionalOnMissingBean(IFileStorageManager.class)
+        public IFileStorageManager localFileStorageManager(FileProperties fileProperties) {
+            return new DefaultFileStorageManager(fileProperties);
+        }
     }
 
     /**
-     * 创建OSS文件存储管理器Bean
-     * 当容器中不存在IFileStorageManager类型的Bean且文件存储类型配置为oss，
-     * 并且OssFileManager类存在于classpath中时，创建并注册OSS文件存储管理器
+     * 内存文件信息配置类
+     * 当配置项 athena.file.info = memory 或未配置时生效
+     * 提供基于内存的文件信息管理器实现
      *
-     * @param ossFileManager OSS文件管理器
-     * @return IFileStorageManager 文件存储管理器实例
+     * @author george
      */
-    @Bean
-    @ConditionalOnMissingBean(IFileStorageManager.class)
+    @Configuration
+    @ConditionalOnProperty(prefix = "athena.file", name = "info", havingValue = "memory", matchIfMissing = true)
+    public static class InMemoryFileInfoConfig {
+
+        /**
+         * 创建内存文件信息管理器 Bean
+         * 当容器中不存在 IFileInfoManager 类型的 Bean 时创建
+         *
+         * @return 内存文件信息管理器实例
+         */
+        @Bean
+        @ConditionalOnMissingBean(IFileInfoManager.class)
+        public IFileInfoManager inMemoryFileInfoManager() {
+            return new InMemoryFileInfoManager();
+        }
+    }
+
+    /**
+     * 阿里云 OSS 文件存储配置类
+     * 当 OssFileManager 类存在且配置项 athena.file.storage = oss 时生效
+     * 提供基于阿里云 OSS 的文件存储管理器实现
+     *
+     * @author george
+     */
+    @Configuration
     @ConditionalOnClass(OssFileManager.class)
     @ConditionalOnProperty(prefix = "athena.file", name = "storage", havingValue = "oss")
-    public IFileStorageManager ossFileStorageManager(OssFileManager ossFileManager) {
-        return new OssFileStorageManager(ossFileManager);
+    public static class OssFileStorageConfig {
+
+        /**
+         * 创建 OSS 文件存储管理器 Bean
+         * 当容器中不存在 IFileStorageManager 类型的 Bean 时创建
+         *
+         * @param ossFileManager OSS 文件管理器对象
+         * @return OSS 文件存储管理器实例
+         */
+        @Bean
+        @ConditionalOnMissingBean(IFileStorageManager.class)
+        public IFileStorageManager ossFileStorageManager(OssFileManager ossFileManager) {
+            return new OssFileStorageManager(ossFileManager);
+        }
+    }
+
+    /**
+     * Redis 文件信息配置类
+     * 当 RedisUtil 类存在且配置项 athena.file.info = redis 时生效
+     * 提供基于 Redis 的文件信息管理器实现
+     *
+     * @author george
+     */
+    @Configuration
+    @ConditionalOnClass(RedisUtil.class)
+    @ConditionalOnProperty(prefix = "athena.file", name = "info", havingValue = "redis")
+    public static class RedisFileInfoConfig {
+
+        /**
+         * 创建 Redis 文件信息管理器 Bean
+         * 当容器中不存在 IFileInfoManager 类型的 Bean 时创建
+         *
+         * @return Redis 文件信息管理器实例
+         */
+        @Bean
+        @ConditionalOnMissingBean(IFileInfoManager.class)
+        public IFileInfoManager redisFileInfoManager() {
+            return new RedisFileInfoManager();
+        }
     }
 }
