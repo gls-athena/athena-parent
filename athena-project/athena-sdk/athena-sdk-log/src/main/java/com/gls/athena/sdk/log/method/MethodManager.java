@@ -19,6 +19,11 @@ import org.springframework.util.ReflectionUtils;
 @Component
 public class MethodManager {
 
+    /**
+     * 应用上下文刷新完成后触发该方法，用于扫描所有带@MethodLog注解的方法。
+     *
+     * @param event 上下文刷新完成事件对象
+     */
     @EventListener(ContextRefreshedEvent.class)
     public void onApplicationEvent(ContextRefreshedEvent event) {
         log.info("开始扫描@MethodLog注解的方法...");
@@ -29,6 +34,7 @@ public class MethodManager {
 
         int methodCount = 0;
 
+        // 遍历所有Bean定义名称，逐个扫描其方法
         for (String beanName : beanNames) {
             methodCount += scanBeanMethods(applicationContext, beanName, applicationName);
         }
@@ -37,7 +43,12 @@ public class MethodManager {
     }
 
     /**
-     * 扫描指定Bean中的方法
+     * 扫描指定Bean中的方法，并统计其中标记了@MethodLog注解的方法数量。
+     *
+     * @param applicationContext Spring应用上下文
+     * @param beanName           Bean的名称
+     * @param applicationName    当前应用名称
+     * @return 带有@MethodLog注解的方法数量
      */
     private int scanBeanMethods(ApplicationContext applicationContext, String beanName, String applicationName) {
         Class<?> beanClass = applicationContext.getType(beanName);
@@ -48,6 +59,7 @@ public class MethodManager {
         final int[] count = {0};
 
         try {
+            // 使用反射工具遍历类中所有被@MethodLog标注的方法
             ReflectionUtils.doWithMethods(beanClass, method -> {
                 MethodLog methodLog = method.getAnnotation(MethodLog.class);
                 if (methodLog != null) {
@@ -64,7 +76,12 @@ public class MethodManager {
     }
 
     /**
-     * 发布方法信息事件
+     * 构造方法信息DTO并发布为Spring事件，供其他组件监听处理。
+     *
+     * @param methodLog       方法日志注解实例
+     * @param beanClass       包含该方法的类
+     * @param methodName      方法名
+     * @param applicationName 应用名称
      */
     private void publishMethodInfo(MethodLog methodLog, Class<?> beanClass, String methodName, String applicationName) {
         try {
@@ -85,7 +102,10 @@ public class MethodManager {
     }
 
     /**
-     * 判断是否为系统类，避免扫描Spring框架自身的类
+     * 判断一个类是否属于系统类（如Spring、JDK等），以避免无意义地扫描这些类。
+     *
+     * @param clazz 待判断的类
+     * @return true 表示是系统类；false 表示不是系统类
      */
     private boolean isSystemClass(Class<?> clazz) {
         String className = clazz.getName();

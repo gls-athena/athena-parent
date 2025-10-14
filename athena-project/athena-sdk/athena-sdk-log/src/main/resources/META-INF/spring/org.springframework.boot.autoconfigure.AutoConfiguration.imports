@@ -1,3 +1,1 @@
 com.gls.athena.sdk.log.LogAutoConfig
-com.gls.athena.sdk.log.config.LogConfig
-com.gls.athena.sdk.log.config.LogKafkaConfig
