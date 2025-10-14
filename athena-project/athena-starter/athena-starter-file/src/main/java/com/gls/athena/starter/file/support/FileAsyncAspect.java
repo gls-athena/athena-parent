@@ -7,7 +7,6 @@ import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.async.util.AopUtil;
 import com.gls.athena.starter.file.domain.FileInfo;
-import com.gls.athena.starter.file.exception.FileException;
 import com.gls.athena.starter.file.generator.FileGenerator;
 import com.gls.athena.starter.file.manager.FileManager;
 import com.gls.athena.starter.web.util.WebUtil;
@@ -179,7 +178,7 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
             log.debug("文件已生成: taskId={}, fileId={}", taskId, fileInfo.getFileId());
         } catch (Exception e) {
             log.error("文件生成失败: taskId={}, fileId={}", taskId, fileInfo.getFileId(), e);
-            throw new FileException.FileWriteException("文件生成失败", e);
+            asyncTaskManager.failTask(taskId, "文件生成失败: " + e.getMessage());
         }
 
         // 验证生成的文件并返回文件路径
@@ -192,15 +191,13 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      *
      * @param wrapper 响应对象，用于判断支持的生成器类型
      * @return 支持该响应的生成器实例
-     * @throws FileException.GeneratorNotFoundException 当找不到支持的生成器时抛出异常
      */
     private Generator findSupportedGenerator(FileResponseWrapper<Response> wrapper) {
         // 从生成器列表中查找第一个支持该响应的生成器，如果找不到则抛出异常
         return generators.stream()
                 .filter(generator -> wrapper.isSupport(generator) || generator.supports(wrapper.getResponse()))
                 .findFirst()
-                .orElseThrow(() -> new FileException.GeneratorNotFoundException(
-                        "不支持的文件类型，无可用的生成器: " + wrapper.getGenerator().getName()));
+                .orElseThrow(() -> new RuntimeException("不支持的文件类型，无可用的生成器: " + wrapper.getGenerator().getName()));
     }
 
     /**

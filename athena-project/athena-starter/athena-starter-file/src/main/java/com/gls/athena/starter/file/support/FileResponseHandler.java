@@ -1,7 +1,6 @@
 package com.gls.athena.starter.file.support;
 
 import cn.hutool.core.util.TypeUtil;
-import com.gls.athena.starter.file.exception.FileException;
 import com.gls.athena.starter.file.generator.FileGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +66,7 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
         FileResponseWrapper<Response> wrapper = getResponseWrapper(returnType);
         if (wrapper == null) {
             log.error("无法获取文件响应包装器");
-            throw new FileException("文件响应配置错误");
+            throw new Exception("无法获取文件响应包装器");
         }
 
         // 查找合适的生成器
@@ -77,11 +76,9 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
         try (OutputStream outputStream = wrapper.createOutputStream(webRequest)) {
             generator.generate(returnValue, wrapper.getResponse(), outputStream);
             log.debug("文件生成成功: filename={}", wrapper.getFilename());
-        } catch (FileException e) {
-            throw e;
         } catch (Exception e) {
             log.error("导出文件时发生错误: filename={}", wrapper.getFilename(), e);
-            throw new FileException.FileWriteException("文件生成失败: " + e.getMessage(), e);
+            throw e;
         }
     }
 
@@ -90,14 +87,12 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
      *
      * @param wrapper 响应包装器
      * @return 支持的生成器实例
-     * @throws FileException.GeneratorNotFoundException 当找不到支持的生成器时抛出异常
      */
     private Generator findSupportedGenerator(FileResponseWrapper<Response> wrapper) {
         return generators.stream()
                 .filter(generator -> wrapper.isSupport(generator) || generator.supports(wrapper.getResponse()))
                 .findFirst()
-                .orElseThrow(() -> new FileException.GeneratorNotFoundException(
-                        "未找到适配的Generator实现: " + wrapper.getGenerator().getName()));
+                .orElseThrow(() -> new RuntimeException("未找到适配的Generator实现: " + wrapper.getGenerator().getName()));
     }
 
     /**
