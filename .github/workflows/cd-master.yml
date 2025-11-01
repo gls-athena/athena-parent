@@ -298,8 +298,9 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           if [ -n "$MAVEN_USERNAME" ] && [ -n "$MAVEN_PASSWORD" ]; then
+            git checkout v${{ steps.next_version.outputs.next }}
             echo "Deploying to Maven Repository..."
-            mvn deploy -DskipTests -Drevision=${{ steps.next_version.outputs.next }} -Prelease \
+            mvn deploy -DskipTests -Prelease \
               -s .github/settings.xml \
               -Dmaven.repo.username=$MAVEN_USERNAME \
               -Dmaven.repo.password=$MAVEN_PASSWORD \
