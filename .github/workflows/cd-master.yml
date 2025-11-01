@@ -148,10 +148,12 @@ jobs:
           mvn clean test -Drevision=${{ steps.next_version.outputs.next }}
 
       # 步骤8：更新 pom.xml 中的 revision 属性为发布版本
-      - name: Update revision property for release
+      - name: Update revision and project.build.outputTimestamp property for release
         run: |
           # 更新 pom.xml 中的 revision 属性而不是 version
           sed -i "s/<revision>.*<\/revision>/<revision>${{ steps.next_version.outputs.next }}<\/revision>/g" pom.xml
+          sed -i "s/<project.build.outputTimestamp>.*<\/project.build.outputTimestamp>/<project.build.outputTimestamp>$(date -u +%Y-%m-%dT%H:%M:%SZ)<\/project.build.outputTimestamp>/g" pom.xml
+      
 
       # 步骤9：构建并打包项目
       - name: Build and package
