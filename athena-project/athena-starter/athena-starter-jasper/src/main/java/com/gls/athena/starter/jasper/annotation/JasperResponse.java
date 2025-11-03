@@ -1,7 +1,9 @@
 package com.gls.athena.starter.jasper.annotation;
 
 import com.gls.athena.common.core.constant.FileTypeEnums;
+import com.gls.athena.starter.file.annotation.FileResponse;
 import com.gls.athena.starter.jasper.generator.JasperGenerator;
+import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.*;
 
@@ -14,40 +16,47 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@FileResponse(generator = JasperGenerator.class)
 public @interface JasperResponse {
     /**
      * 导出任务的编码标识
      * 默认值为"jasper_export"
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "code")
     String code() default "jasper_export";
 
     /**
      * 导出任务的名称
      * 默认值为"Jasper导出"
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "name")
     String name() default "Jasper导出";
 
     /**
      * 导出任务的描述信息
      * 默认值为"Jasper异步导出任务"
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "description")
     String description() default "Jasper异步导出任务";
 
     /**
      * 指定生成的Jasper文件名(不包含扩展名)
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "filename")
     String filename();
 
     /**
      * 输出文件的类型
      * 默认值为PDF类型
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "fileType")
     FileTypeEnums fileType() default FileTypeEnums.PDF;
 
     /**
      * 是否异步生成Jasper文件
      * 默认值为false，表示同步生成
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "async")
     boolean async() default false;
 
     /**
@@ -60,6 +69,7 @@ public @interface JasperResponse {
      * 生成器
      * 指定用于生成报表的自定义生成器类
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "generator")
     Class<? extends JasperGenerator> generator() default JasperGenerator.class;
 
 }

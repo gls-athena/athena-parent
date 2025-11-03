@@ -1,17 +1,16 @@
 package com.gls.athena.starter.file.support;
 
-import cn.hutool.core.util.TypeUtil;
-import com.gls.athena.starter.file.generator.FileGenerator;
-import lombok.RequiredArgsConstructor;
+import com.gls.athena.starter.file.domain.FileResponseWrapper;
+import com.gls.athena.starter.file.generator.FileGeneratorManager;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.util.List;
 
 /**
  * 文件响应处理器抽象基类
@@ -19,15 +18,14 @@ import java.util.List;
  * 该类实现了Spring MVC的HandlerMethodReturnValueHandler接口，
  * 用于处理带有特定注解的控制器方法返回值，将其转换为文件响应。
  *
- * @param <Response> 响应注解类型，必须继承自Annotation
  * @author george
  */
 @Slf4j
-@RequiredArgsConstructor
-public class FileResponseHandler<Generator extends FileGenerator<Response>, Response extends Annotation>
-        implements HandlerMethodReturnValueHandler {
+@Component
+public class FileResponseHandler implements HandlerMethodReturnValueHandler {
 
-    private final List<Generator> generators;
+    @Resource
+    private FileGeneratorManager fileGeneratorManager;
 
     /**
      * 判断当前处理器是否支持指定的方法参数类型
@@ -39,11 +37,8 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
      */
     @Override
     public boolean supportsReturnType(MethodParameter parameter) {
-        FileResponseWrapper<Response> wrapper = getResponseWrapper(parameter);
-        if (wrapper == null) {
-            return false;
-        }
-        return !wrapper.isAsync();
+        FileResponseWrapper<?> wrapper = FileResponseWrapper.withMethod(parameter.getMethod());
+        return wrapper != null && !wrapper.async();
     }
 
     /**
@@ -63,53 +58,20 @@ public class FileResponseHandler<Generator extends FileGenerator<Response>, Resp
         mavContainer.setRequestHandled(true);
 
         // 获取Response注解
-        FileResponseWrapper<Response> wrapper = getResponseWrapper(returnType);
+        FileResponseWrapper<?> wrapper = FileResponseWrapper.withMethod(returnType.getMethod());
         if (wrapper == null) {
             log.error("无法获取文件响应包装器");
             throw new Exception("无法获取文件响应包装器");
         }
 
-        // 查找合适的生成器
-        Generator generator = findSupportedGenerator(wrapper);
-
         // 创建文件输出流并生成文件
         try (OutputStream outputStream = wrapper.createOutputStream(webRequest)) {
-            generator.generate(returnValue, wrapper.getResponse(), outputStream);
-            log.debug("文件生成成功: filename={}", wrapper.getFilename());
+            fileGeneratorManager.generate(returnValue, wrapper, outputStream);
+            log.debug("文件生成成功: filename={}", wrapper.filename());
         } catch (Exception e) {
-            log.error("导出文件时发生错误: filename={}", wrapper.getFilename(), e);
+            log.error("导出文件时发生错误: filename={}", wrapper.filename(), e);
             throw e;
         }
     }
 
-    /**
-     * 查找支持的文件生成器
-     *
-     * @param wrapper 响应包装器
-     * @return 支持的生成器实例
-     */
-    private Generator findSupportedGenerator(FileResponseWrapper<Response> wrapper) {
-        return generators.stream()
-                .filter(generator -> wrapper.isSupport(generator) || generator.supports(wrapper.getResponse()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("未找到适配的Generator实现: " + wrapper.getGenerator().getName()));
-    }
-
-    /**
-     * 获取响应包装器
-     *
-     * @param parameter 方法参数对象，用于获取方法上的注解信息
-     * @return FileResponseWrapper<Response> 响应包装器对象，如果无法获取到响应类或注解则返回null
-     */
-    @SuppressWarnings("unchecked")
-    private FileResponseWrapper<Response> getResponseWrapper(MethodParameter parameter) {
-        // 获取泛型参数中指定索引位置的类型参数
-        Class<Response> responseClass = (Class<Response>) TypeUtil.getTypeArgument(this.getClass(), 1);
-        if (responseClass == null) {
-            return null;
-        }
-        // 从方法参数中获取指定类型的注解
-        Response response = parameter.getMethodAnnotation(responseClass);
-        return FileResponseWrapper.of(response);
-    }
 }

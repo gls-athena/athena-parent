@@ -3,12 +3,20 @@ package com.gls.athena.starter.file.config;
 import com.gls.athena.starter.aliyun.oss.manager.OssFileManager;
 import com.gls.athena.starter.data.redis.support.RedisUtil;
 import com.gls.athena.starter.file.manager.*;
+import com.gls.athena.starter.file.support.FileResponseHandler;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 文件配置类
@@ -19,6 +27,28 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties(FileProperties.class)
 public class FileConfig {
+
+    @Resource
+    private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
+    @Resource
+    private FileResponseHandler fileResponseHandler;
+
+    @PostConstruct
+    public void init() {
+        initReturnValueHandlers();
+    }
+
+    private void initReturnValueHandlers() {
+        List<HandlerMethodReturnValueHandler> returnValueHandlers = requestMappingHandlerAdapter.getReturnValueHandlers();
+        List<HandlerMethodReturnValueHandler> newHandlers = new ArrayList<>();
+        newHandlers.add(fileResponseHandler);
+        // 如果存在原有的处理器列表，将其全部添加到新的处理器列表中
+        if (returnValueHandlers != null) {
+            newHandlers.addAll(returnValueHandlers);
+        }
+        // 将新的处理器列表设置回请求映射处理器适配器
+        requestMappingHandlerAdapter.setReturnValueHandlers(newHandlers);
+    }
 
     /**
      * 本地文件存储配置类

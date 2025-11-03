@@ -1,15 +1,12 @@
 package com.gls.athena.starter.excel.config;
 
-import com.gls.athena.starter.excel.generator.ExcelGenerator;
 import com.gls.athena.starter.excel.handler.ExcelRequestHandler;
-import com.gls.athena.starter.excel.handler.ExcelResponseHandler;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 
 import java.util.ArrayList;
@@ -31,8 +28,6 @@ public class ExcelConfig {
 
     @Resource
     private RequestMappingHandlerAdapter handlerAdapter;
-    @Resource
-    private List<ExcelGenerator> excelGenerators;
 
     /**
      * 初始化Excel处理器配置
@@ -49,8 +44,6 @@ public class ExcelConfig {
         // 初始化参数解析器，用于处理请求中的Excel相关参数
         initArgumentResolvers();
 
-        // 初始化返回值处理器，用于处理返回的Excel相关数据
-        initReturnValueHandlers();
     }
 
     /**
@@ -72,27 +65,6 @@ public class ExcelConfig {
 
         // 将配置好的解析器列表设置到handlerAdapter中
         handlerAdapter.setArgumentResolvers(resolvers);
-    }
-
-    /**
-     * 初始化返回值处理器。
-     * <p>
-     * 该方法用于配置并设置返回值处理器列表。首先创建一个包含默认处理器（如ExcelResponseHandler）的列表，
-     * 然后如果handlerAdapter中已经存在返回值处理器，则将这些处理器添加到列表中。
-     * 最后，将配置好的处理器列表设置到handlerAdapter中。
-     */
-    private void initReturnValueHandlers() {
-        // 创建一个新的返回值处理器列表，并添加默认的ExcelResponseHandler
-        List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
-        handlers.add(new ExcelResponseHandler(excelGenerators));
-
-        // 如果handlerAdapter中已经存在返回值处理器，则将其添加到列表中
-        if (handlerAdapter.getReturnValueHandlers() != null) {
-            handlers.addAll(handlerAdapter.getReturnValueHandlers());
-        }
-
-        // 将配置好的处理器列表设置到handlerAdapter中
-        handlerAdapter.setReturnValueHandlers(handlers);
     }
 
 }

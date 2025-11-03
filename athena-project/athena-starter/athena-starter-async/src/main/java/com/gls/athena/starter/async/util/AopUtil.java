@@ -151,4 +151,15 @@ public class AopUtil {
             return minutes + "m" + seconds + "s";
         }
     }
+
+    /**
+     * 获取连接点对应的方法对象
+     *
+     * @param joinPoint 连接点对象，包含方法执行时的上下文信息
+     * @return 返回连接点对应的方法对象
+     */
+    public static Method getMethod(ProceedingJoinPoint joinPoint) {
+        return ((MethodSignature) joinPoint.getSignature()).getMethod();
+    }
+
 }

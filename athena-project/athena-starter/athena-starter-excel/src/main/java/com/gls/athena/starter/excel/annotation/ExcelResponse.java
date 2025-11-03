@@ -2,6 +2,8 @@ package com.gls.athena.starter.excel.annotation;
 
 import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.excel.generator.ExcelGenerator;
+import com.gls.athena.starter.file.annotation.FileResponse;
+import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.*;
 
@@ -14,40 +16,47 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@FileResponse(generator = ExcelGenerator.class)
 public @interface ExcelResponse {
     /**
      * 导出任务的编码标识
      * 默认值为"excel_export"
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "code")
     String code() default "excel_export";
 
     /**
      * 导出任务的名称
      * 默认值为"Excel导出"
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "name")
     String name() default "Excel导出";
 
     /**
      * 导出任务的描述信息
      * 默认值为"Excel异步导出任务"
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "description")
     String description() default "Excel异步导出任务";
 
     /**
      * 指定生成的Excel文件名(不包含扩展名)
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "filename")
     String filename();
 
     /**
      * 输出文件的类型
      * 默认值为XLSX类型
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "fileType")
     FileTypeEnums fileType() default FileTypeEnums.XLSX;
 
     /**
      * 是否异步生成Excel文件
      * 默认值为false，表示同步生成
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "async")
     boolean async() default false;
 
     /**
@@ -114,6 +123,7 @@ public @interface ExcelResponse {
      * 指定生成Excel文件的生成器类
      * 默认值为ExcelGenerator.class，表示使用默认的Excel生成器
      */
+    @AliasFor(annotation = FileResponse.class, attribute = "generator")
     Class<? extends ExcelGenerator> generator() default ExcelGenerator.class;
 
 }

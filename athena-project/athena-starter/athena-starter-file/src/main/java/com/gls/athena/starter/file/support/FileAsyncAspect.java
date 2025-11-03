@@ -6,17 +6,20 @@ import com.gls.athena.common.core.constant.FileTypeEnums;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.async.util.AopUtil;
+import com.gls.athena.starter.file.domain.FileAsyncContext;
 import com.gls.athena.starter.file.domain.FileInfo;
-import com.gls.athena.starter.file.generator.FileGenerator;
+import com.gls.athena.starter.file.domain.FileResponseWrapper;
+import com.gls.athena.starter.file.generator.FileGeneratorManager;
 import com.gls.athena.starter.file.manager.FileManager;
 import com.gls.athena.starter.web.util.WebUtil;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -24,12 +27,12 @@ import java.util.concurrent.Executor;
 /**
  * 文件异步处理切面接口，用于拦截带有特定响应注解的方法并实现异步逻辑处理
  *
- * @param <Response> 响应注解类型，必须是 Annotation 的子类型
  * @author george
  */
 @Slf4j
-@RequiredArgsConstructor
-public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response extends Annotation> {
+@Aspect
+@Component
+public class FileAsyncAspect {
 
     /**
      * 进度百分比
@@ -40,36 +43,35 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
     private static final int PROGRESS_FILE_GENERATED = 80;
     private static final int PROGRESS_COMPLETED = 100;
 
-    private final List<Generator> generators;
-    private final IAsyncTaskManager asyncTaskManager;
-    private final FileManager fileManager;
-    private final Executor executor;
+    @Resource
+    private FileGeneratorManager fileGeneratorManager;
+    @Resource
+    private IAsyncTaskManager asyncTaskManager;
+    @Resource
+    private FileManager fileManager;
+    @Resource
+    private Executor executor;
 
     /**
-     * 环绕通知方法，用于处理异步响应逻辑。
-     * 若检测到当前请求为异步处理模式，则启动后台任务进行文件生成，并立即返回任务ID给前端；
-     * 否则按正常流程执行原方法。
+     * 环绕通知方法，用于处理控制器层的异步文件导出请求
+     * 该方法会拦截所有controller包下的方法执行，判断是否需要异步处理文件导出任务
      *
-     * @param joinPoint 连接点对象，包含被拦截方法的信息
-     * @param response  响应对象，用于判断是否需要异步处理
-     * @return 如果是同步处理则返回原方法执行结果；如果是异步处理则返回null（表示响应已由本方法处理）
-     * @throws Throwable 方法执行过程中抛出的异常
+     * @param joinPoint 连接点对象，包含被拦截方法的信息和执行上下文
+     * @return Object 原方法的返回值，对于异步处理的情况返回null
+     * @throws Throwable 方法执行过程中可能抛出的异常
      */
-    public Object around(ProceedingJoinPoint joinPoint, Response response) throws Throwable {
-        // 早期返回：如果响应对象为空，直接执行原方法
-        if (response == null) {
-            return joinPoint.proceed();
-        }
+    @Around("execution(* *..controller..*(..))")
+    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
 
-        FileResponseWrapper<Response> responseWrapper = FileResponseWrapper.of(response);
+        FileResponseWrapper<?> responseWrapper = FileResponseWrapper.withMethod(AopUtil.getMethod(joinPoint));
         // 早期返回：如果不是异步响应，直接执行原方法
-        if (!responseWrapper.isAsync()) {
+        if (responseWrapper == null || !responseWrapper.async()) {
             return joinPoint.proceed();
         }
 
         // 异步处理逻辑
         String taskId = IdUtil.randomUUID();
-        FileAsyncContext<Response> fileAsyncContext = new FileAsyncContext<>(taskId, responseWrapper, joinPoint);
+        FileAsyncContext fileAsyncContext = new FileAsyncContext(taskId, responseWrapper, joinPoint);
 
         // 提交异步任务
         CompletableFuture.runAsync(() -> handleFileAsync(fileAsyncContext), executor)
@@ -92,10 +94,10 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      *
      * @param context 包含任务信息的异步请求对象
      */
-    private void handleFileAsync(FileAsyncContext<Response> context) {
-        String taskId = context.getTaskId();
-        FileResponseWrapper<Response> wrapper = context.getResponseWrapper();
-        ProceedingJoinPoint joinPoint = context.getJoinPoint();
+    private void handleFileAsync(FileAsyncContext context) {
+        String taskId = context.taskId();
+        FileResponseWrapper<?> wrapper = context.responseWrapper();
+        ProceedingJoinPoint joinPoint = context.joinPoint();
 
         try {
             // 1. 初始化任务
@@ -123,17 +125,17 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      * @param wrapper   文件响应包装器
      * @param joinPoint 切入点对象
      */
-    private void initializeTask(String taskId, FileResponseWrapper<Response> wrapper, ProceedingJoinPoint joinPoint) {
+    private void initializeTask(String taskId, FileResponseWrapper<?> wrapper, ProceedingJoinPoint joinPoint) {
         // 获取切入点参数并添加文件名
         Map<String, Object> params = AopUtil.getParams(joinPoint);
-        params.put("filename", wrapper.getFilename());
+        params.put("filename", wrapper.filename());
 
         // 创建异步任务并更新任务状态和进度
-        asyncTaskManager.createTask(taskId, "file_export", wrapper.getCode(), wrapper.getName(), wrapper.getDescription(), params);
+        asyncTaskManager.createTask(taskId, "file_export", wrapper.code(), wrapper.name(), wrapper.description(), params);
         asyncTaskManager.updateTaskStatus(taskId, AsyncTaskStatus.PROCESSING);
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_TASK_CREATED);
 
-        log.debug("异步任务已初始化: taskId={}, filename={}", taskId, wrapper.getFilename());
+        log.debug("异步任务已初始化: taskId={}, filename={}", taskId, wrapper.filename());
     }
 
     /**
@@ -162,18 +164,17 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
      * @return 生成文件的完整路径
      * @throws Exception 文件生成过程中可能抛出的异常
      */
-    private FileInfo generateFile(String taskId, FileResponseWrapper<Response> wrapper, Object data) throws Exception {
+    private FileInfo generateFile(String taskId, FileResponseWrapper<?> wrapper, Object data) throws Exception {
         // 获取文件类型和文件名，生成文件路径
-        FileTypeEnums type = wrapper.getFileType();
-        String filename = wrapper.getFilename();
+        FileTypeEnums type = wrapper.fileType();
+        String filename = wrapper.filename();
         FileInfo fileInfo = fileManager.generateFileInfo(type, filename);
         asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_PATH_PREPARED, fileInfo.getFileId());
 
         // 查找支持的文件生成器并执行文件生成
-        Generator generator = findSupportedGenerator(wrapper);
 
         try (OutputStream outputStream = fileManager.getOutputStream(fileInfo.getFileId())) {
-            generator.generate(data, wrapper.getResponse(), outputStream);
+            fileGeneratorManager.generate(data, wrapper, outputStream);
             asyncTaskManager.updateTaskProgress(taskId, PROGRESS_FILE_GENERATED);
             log.debug("文件已生成: taskId={}, fileId={}", taskId, fileInfo.getFileId());
         } catch (Exception e) {
@@ -184,20 +185,6 @@ public class FileAsyncAspect<Generator extends FileGenerator<Response>, Response
         // 验证生成的文件并返回文件路径
         fileManager.validateGeneratedFile(fileInfo.getFileId());
         return fileInfo;
-    }
-
-    /**
-     * 查找支持的文件生成器
-     *
-     * @param wrapper 响应对象，用于判断支持的生成器类型
-     * @return 支持该响应的生成器实例
-     */
-    private Generator findSupportedGenerator(FileResponseWrapper<Response> wrapper) {
-        // 从生成器列表中查找第一个支持该响应的生成器，如果找不到则抛出异常
-        return generators.stream()
-                .filter(generator -> wrapper.isSupport(generator) || generator.supports(wrapper.getResponse()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("不支持的文件类型，无可用的生成器: " + wrapper.getGenerator().getName()));
     }
 
     /**
