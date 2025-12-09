@@ -1,8 +1,7 @@
 package com.gls.athena.starter.data.mybatis.handler;
 
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
-import com.gls.athena.common.core.constant.IConstants;
-import com.gls.athena.common.core.security.LoginUserHelper;
+import com.gls.athena.common.core.interfaces.CurrentUserTemplate;
 import com.gls.athena.starter.data.mybatis.config.MybatisProperties;
 import jakarta.annotation.Resource;
 import net.sf.jsqlparser.expression.Expression;
@@ -21,6 +20,8 @@ public class DefaultTenantLineHandler implements TenantLineHandler {
      */
     @Resource
     private MybatisProperties mybatisProperties;
+    @Resource
+    private CurrentUserTemplate currentUserTemplate;
 
     /**
      * 获取租户ID
@@ -30,7 +31,7 @@ public class DefaultTenantLineHandler implements TenantLineHandler {
     @Override
     public Expression getTenantId() {
         // 获取当前租户 ID，如果无法获取则使用默认租户 ID
-        Long tenantId = LoginUserHelper.getCurrentUserTenantId().orElse(IConstants.DEFAULT_TENANT_ID);
+        Long tenantId = currentUserTemplate.getTenantId();
         return new LongValue(tenantId);
     }
 

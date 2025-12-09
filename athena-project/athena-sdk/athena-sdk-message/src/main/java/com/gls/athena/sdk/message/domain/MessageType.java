@@ -1,6 +1,6 @@
 package com.gls.athena.sdk.message.domain;
 
-import com.gls.athena.common.core.interfaces.IEnum;
+import com.gls.athena.common.core.interfaces.Enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum MessageType implements IEnum<String> {
+public enum MessageType implements Enums<String> {
     /**
      * 短信
      */

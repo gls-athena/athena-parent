@@ -1,7 +1,7 @@
 package com.gls.athena.sdk.core.config;
 
 import com.gls.athena.common.core.constant.IConstants;
-import com.gls.athena.common.core.enums.ClientTypeEnums;
+import com.gls.athena.common.core.enums.ClientEnums;
 import feign.RequestInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +26,7 @@ public class FeignConfig {
     public RequestInterceptor feignRequestInterceptor() {
         // 返回一个Lambda表达式，该表达式实现了RequestInterceptor接口的apply方法
         // 在apply方法中，为请求模板添加了一个自定义的请求头，请求头的键为IConstants.CLIENT_TYPE，值为ClientTypeEnums.FEIGN.getCode()
-        return template -> template.header(IConstants.CLIENT_TYPE, ClientTypeEnums.FEIGN.getCode());
+        return template -> template.header(IConstants.CLIENT_TYPE, ClientEnums.FEIGN.getCode());
     }
 
 }

@@ -1,6 +1,6 @@
 package com.gls.athena.common.core.util;
 
-import com.gls.athena.common.core.enums.ResultStatus;
+import com.gls.athena.common.core.enums.ResultEnums;
 import com.gls.athena.common.core.result.ResultException;
 import lombok.experimental.UtilityClass;
 
@@ -60,7 +60,7 @@ public class ValidateUtil {
      */
     public <T> T notNull(T object, String message) {
         if (object == null) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
         return object;
     }
@@ -76,7 +76,7 @@ public class ValidateUtil {
      */
     public <T> T notNull(T object, Supplier<String> messageSupplier) {
         if (object == null) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), messageSupplier.get());
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), messageSupplier.get());
         }
         return object;
     }
@@ -102,7 +102,7 @@ public class ValidateUtil {
      */
     public String notBlank(String str, String message) {
         if (str == null || str.trim().isEmpty()) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
         return str;
     }
@@ -130,7 +130,7 @@ public class ValidateUtil {
      */
     public <T extends Collection<?>> T notEmpty(T collection, String message) {
         if (collection == null || collection.isEmpty()) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
         return collection;
     }
@@ -158,7 +158,7 @@ public class ValidateUtil {
      */
     public <T> T[] notEmpty(T[] array, String message) {
         if (array == null || array.length == 0) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
         return array;
     }
@@ -172,7 +172,7 @@ public class ValidateUtil {
      */
     public void isTrue(boolean condition, String message) {
         if (!condition) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
     }
 
@@ -185,7 +185,7 @@ public class ValidateUtil {
      */
     public void isFalse(boolean condition, String message) {
         if (condition) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
     }
 
@@ -199,7 +199,7 @@ public class ValidateUtil {
      */
     public void equals(Object obj1, Object obj2, String message) {
         if (!Objects.equals(obj1, obj2)) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
     }
 
@@ -215,7 +215,7 @@ public class ValidateUtil {
     public void inRange(Number value, Number min, Number max, String message) {
         notNull(value, "数值不能为空");
         if (value.doubleValue() < min.doubleValue() || value.doubleValue() > max.doubleValue()) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
     }
 
@@ -247,7 +247,7 @@ public class ValidateUtil {
         notNull(str, "字符串不能为空");
         int length = str.length();
         if (length < min || length > max) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
         return str;
     }
@@ -274,7 +274,7 @@ public class ValidateUtil {
     public String isEmail(String email, String message) {
         notBlank(email, "邮箱不能为空");
         if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
         return email;
     }
@@ -301,7 +301,7 @@ public class ValidateUtil {
     public String isMobile(String mobile, String message) {
         notBlank(mobile, "手机号不能为空");
         if (!MOBILE_PATTERN.matcher(mobile).matches()) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
         return mobile;
     }
@@ -328,7 +328,7 @@ public class ValidateUtil {
     public String isIdCard(String idCard, String message) {
         notBlank(idCard, "身份证号不能为空");
         if (!ID_CARD_PATTERN.matcher(idCard).matches()) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
         return idCard;
     }
@@ -346,7 +346,7 @@ public class ValidateUtil {
         notBlank(str, "字符串不能为空");
         notNull(pattern, "正则表达式不能为空");
         if (!pattern.matcher(str).matches()) {
-            throw new ResultException(ResultStatus.PARAM_ERROR.getCode(), message);
+            throw new ResultException(ResultEnums.PARAM_ERROR.getCode(), message);
         }
         return str;
     }

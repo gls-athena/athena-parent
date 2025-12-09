@@ -4,8 +4,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.gls.athena.common.core.constant.IConstants;
 import com.gls.athena.common.core.domain.Result;
-import com.gls.athena.common.core.enums.ClientTypeEnums;
-import com.gls.athena.common.core.enums.ResultStatus;
+import com.gls.athena.common.core.enums.ClientEnums;
+import com.gls.athena.common.core.enums.ResultEnums;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.Resource;
@@ -76,13 +76,13 @@ public class ResultHandler implements ResponseBodyAdvice<Object> {
                                   ServerHttpResponse response) {
         log.debug("beforeBodyWrite: {}", body);
         // 判断客户端类型 是否是feign调用
-        if (StrUtil.equals(request.getHeaders().getFirst(IConstants.CLIENT_TYPE), ClientTypeEnums.FEIGN.getCode())) {
+        if (StrUtil.equals(request.getHeaders().getFirst(IConstants.CLIENT_TYPE), ClientEnums.FEIGN.getCode())) {
             return body;
         }
         // 判断返回值是否是字符串
         if (body instanceof String str) {
-            return JSONUtil.toJsonStr(ResultStatus.SUCCESS.toResult(str));
+            return JSONUtil.toJsonStr(ResultEnums.SUCCESS.toResult(str));
         }
-        return ResultStatus.SUCCESS.toResult(body);
+        return ResultEnums.SUCCESS.toResult(body);
     }
 }

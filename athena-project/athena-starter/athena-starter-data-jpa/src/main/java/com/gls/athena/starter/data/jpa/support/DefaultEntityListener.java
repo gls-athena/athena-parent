@@ -1,8 +1,8 @@
 package com.gls.athena.starter.data.jpa.support;
 
-import com.gls.athena.common.core.constant.IConstants;
-import com.gls.athena.common.core.security.LoginUserHelper;
+import com.gls.athena.common.core.interfaces.CurrentUserTemplate;
 import com.gls.athena.starter.data.jpa.base.BaseEntity;
+import jakarta.annotation.Resource;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +22,8 @@ import java.util.Date;
 @Slf4j
 @Component
 public class DefaultEntityListener {
+    @Resource
+    private CurrentUserTemplate currentUserTemplate;
 
     /**
      * 实体持久化前处理
@@ -43,9 +45,9 @@ public class DefaultEntityListener {
         log.debug("Pre-persist processing for entity: {}", entity.getClass().getSimpleName());
 
         // 获取当前用户上下文信息
-        Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
-        String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
-        Long tenantId = LoginUserHelper.getCurrentUserTenantId().orElse(IConstants.DEFAULT_TENANT_ID);
+        Long userId = currentUserTemplate.getId();
+        String userRealName = currentUserTemplate.getRealName();
+        Long tenantId = currentUserTemplate.getTenantId();
         Date now = new Date();
 
         // 设置审计字段
@@ -71,8 +73,8 @@ public class DefaultEntityListener {
         log.debug("Pre-update processing for entity: {}", entity.getClass().getSimpleName());
 
         // 获取当前用户信息并更新修改相关字段
-        Long userId = LoginUserHelper.getCurrentUserId().orElse(IConstants.DEFAULT_USER_ID);
-        String userRealName = LoginUserHelper.getCurrentUserRealName().orElse(IConstants.DEFAULT_USER_USERNAME);
+        Long userId = currentUserTemplate.getId();
+        String userRealName = currentUserTemplate.getRealName();
 
         entity.setUpdateUserId(userId);
         entity.setUpdateUserName(userRealName);

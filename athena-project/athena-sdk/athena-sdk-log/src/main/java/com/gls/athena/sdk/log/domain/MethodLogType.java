@@ -1,6 +1,6 @@
 package com.gls.athena.sdk.log.domain;
 
-import com.gls.athena.common.core.interfaces.IEnum;
+import com.gls.athena.common.core.interfaces.Enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum MethodLogType implements IEnum<Integer> {
+public enum MethodLogType implements Enums<Integer> {
 
     /**
      * 表示方法正常执行时产生的日志记录

@@ -1,6 +1,6 @@
 package com.gls.athena.common.core.enums;
 
-import com.gls.athena.common.core.interfaces.IEnum;
+import com.gls.athena.common.core.interfaces.Enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum ClientTypeEnums implements IEnum<String> {
+public enum ClientEnums implements Enums<String> {
 
     /**
      * WEB端客户端类型

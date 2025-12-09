@@ -10,7 +10,7 @@ package com.gls.athena.common.core.interfaces;
  * @author george
  * @since 1.0.0
  */
-public interface ITreeNode {
+public interface TreeNode {
     /**
      * 获取节点唯一标识
      *

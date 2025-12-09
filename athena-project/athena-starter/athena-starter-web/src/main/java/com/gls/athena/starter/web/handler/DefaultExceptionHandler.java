@@ -2,7 +2,7 @@ package com.gls.athena.starter.web.handler;
 
 import com.gls.athena.common.core.constant.IConstants;
 import com.gls.athena.common.core.domain.Result;
-import com.gls.athena.common.core.enums.ResultStatus;
+import com.gls.athena.common.core.enums.ResultEnums;
 import com.gls.athena.common.core.result.ResultException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -31,7 +31,7 @@ public class DefaultExceptionHandler {
         // 记录异常日志
         log.error(e.getMessage(), e);
         // 返回异常结果
-        return ResultStatus.FAIL.toResult().setCode(e.getCode()).setMessage(e.getMessage());
+        return ResultEnums.FAIL.toResult().setCode(e.getCode()).setMessage(e.getMessage());
     }
 
     /**
@@ -46,7 +46,7 @@ public class DefaultExceptionHandler {
         // 记录异常日志
         log.error(e.getMessage(), e);
         // 返回异常结果
-        return ResultStatus.SERVER_ERROR.toResult().setMessage(e.getMessage());
+        return ResultEnums.SERVER_ERROR.toResult().setMessage(e.getMessage());
     }
 
     /**
@@ -61,6 +61,6 @@ public class DefaultExceptionHandler {
         // 记录异常日志
         log.error(e.getMessage(), e);
         // 返回异常结果
-        return ResultStatus.SERVER_ERROR.toResult().setMessage(e.getMessage());
+        return ResultEnums.SERVER_ERROR.toResult().setMessage(e.getMessage());
     }
 }

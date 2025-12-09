@@ -1,6 +1,6 @@
 package com.gls.athena.starter.aliyun.oss.config;
 
-import com.gls.athena.common.core.interfaces.IEnum;
+import com.gls.athena.common.core.interfaces.Enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum AuthenticationMode implements IEnum<String> {
+public enum AuthenticationMode implements Enums<String> {
 
     /**
      * AccessKey认证模式（使用AccessKey ID和Secret进行身份验证）

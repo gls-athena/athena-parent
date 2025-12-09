@@ -1,6 +1,6 @@
 package com.gls.athena.sdk.amap.support;
 
-import com.gls.athena.common.core.interfaces.IEnum;
+import com.gls.athena.common.core.interfaces.Enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum InfoEnums implements IEnum<String> {
+public enum InfoEnums implements Enums<String> {
     /**
      * 请求正常
      */
@@ -243,7 +243,7 @@ public enum InfoEnums implements IEnum<String> {
      */
     public static InfoEnums getByValue(String info) {
         // 调用IEnum.fromName方法，根据传入的状态值查找对应的枚举实例
-        return IEnum.fromName(InfoEnums.class, info, false);
+        return Enums.fromName(InfoEnums.class, info, false);
     }
 
     /**
@@ -257,7 +257,7 @@ public enum InfoEnums implements IEnum<String> {
      */
     public static InfoEnums getByCode(String code) {
         // 使用IEnum工具类根据状态码获取对应的枚举实例
-        return IEnum.of(InfoEnums.class, code);
+        return Enums.of(InfoEnums.class, code);
     }
 
 }

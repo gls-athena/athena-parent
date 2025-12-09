@@ -1,6 +1,6 @@
 package com.gls.athena.common.core.enums;
 
-import com.gls.athena.common.core.interfaces.IEnum;
+import com.gls.athena.common.core.interfaces.Enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 @Getter
 @RequiredArgsConstructor
-public enum FileTypeEnums implements IEnum<String> {
+public enum FileTypeEnums implements Enums<String> {
     /**
      * PDF文件
      */

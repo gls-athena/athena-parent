@@ -1,6 +1,6 @@
 package com.gls.athena.starter.async.domain;
 
-import com.gls.athena.common.core.interfaces.IEnum;
+import com.gls.athena.common.core.interfaces.Enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum AsyncTaskStatus implements IEnum<Integer> {
+public enum AsyncTaskStatus implements Enums<Integer> {
 
     /**
      * 待处理状态

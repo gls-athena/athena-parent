@@ -1,6 +1,6 @@
 package com.gls.athena.common.core.domain;
 
-import com.gls.athena.common.core.enums.ResultStatus;
+import com.gls.athena.common.core.enums.ResultEnums;
 import com.gls.athena.common.core.result.IResultStatus;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -76,7 +76,7 @@ public class Result<T> {
      * @return 返回封装好的成功响应结果对象
      */
     public static <T> Result<T> success() {
-        return new Result<>(ResultStatus.SUCCESS.getCode(), ResultStatus.SUCCESS.getMessage(), null);
+        return new Result<>(ResultEnums.SUCCESS.getCode(), ResultEnums.SUCCESS.getMessage(), null);
     }
 
     /**
@@ -87,7 +87,7 @@ public class Result<T> {
      * @return 返回封装好的成功响应结果对象
      */
     public static <T> Result<T> success(T data) {
-        return new Result<>(ResultStatus.SUCCESS.getCode(), ResultStatus.SUCCESS.getMessage(), data);
+        return new Result<>(ResultEnums.SUCCESS.getCode(), ResultEnums.SUCCESS.getMessage(), data);
     }
 
     /**
@@ -99,7 +99,7 @@ public class Result<T> {
      * @return 返回封装好的成功响应结果对象
      */
     public static <T> Result<T> success(String message, T data) {
-        return new Result<>(ResultStatus.SUCCESS.getCode(), message, data);
+        return new Result<>(ResultEnums.SUCCESS.getCode(), message, data);
     }
 
     /**
@@ -109,7 +109,7 @@ public class Result<T> {
      * @return 返回封装好的失败响应结果对象
      */
     public static <T> Result<T> error() {
-        return new Result<>(ResultStatus.INTERNAL_SERVER_ERROR.getCode(), ResultStatus.INTERNAL_SERVER_ERROR.getMessage(), null);
+        return new Result<>(ResultEnums.INTERNAL_SERVER_ERROR.getCode(), ResultEnums.INTERNAL_SERVER_ERROR.getMessage(), null);
     }
 
     /**
@@ -120,7 +120,7 @@ public class Result<T> {
      * @return 返回封装好的失败响应结果对象
      */
     public static <T> Result<T> error(String message) {
-        return new Result<>(ResultStatus.INTERNAL_SERVER_ERROR.getCode(), message, null);
+        return new Result<>(ResultEnums.INTERNAL_SERVER_ERROR.getCode(), message, null);
     }
 
     /**
@@ -152,7 +152,7 @@ public class Result<T> {
      * @return 如果状态码为成功状态码则返回 true，否则返回 false
      */
     public boolean isSuccess() {
-        return ResultStatus.SUCCESS.getCode().equals(this.code);
+        return ResultEnums.SUCCESS.getCode().equals(this.code);
     }
 
     /**

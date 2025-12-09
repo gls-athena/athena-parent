@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum ResultStatus implements IResultStatus {
+public enum ResultEnums implements IResultStatus {
 
     // ========== 2xx 成功状态 ==========
     /**
@@ -193,11 +193,11 @@ public enum ResultStatus implements IResultStatus {
      * @param code 状态码
      * @return 对应的状态枚举，如果未找到则返回 null
      */
-    public static ResultStatus valueOf(Integer code) {
+    public static ResultEnums valueOf(Integer code) {
         if (code == null) {
             return null;
         }
-        for (ResultStatus status : values()) {
+        for (ResultEnums status : values()) {
             if (status.getCode().equals(code)) {
                 return status;
             }
