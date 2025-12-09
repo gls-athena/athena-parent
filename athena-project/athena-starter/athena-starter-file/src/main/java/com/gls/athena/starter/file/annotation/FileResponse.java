@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  *
  * @author george
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FileResponse {
 
