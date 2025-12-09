@@ -1,4 +1,4 @@
-package com.gls.athena.common.core.page;
+package com.gls.athena.common.core.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

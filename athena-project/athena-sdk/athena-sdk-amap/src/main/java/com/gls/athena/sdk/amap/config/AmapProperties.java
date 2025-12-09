@@ -1,6 +1,6 @@
 package com.gls.athena.sdk.amap.config;
 
-import com.gls.athena.common.core.constant.BaseProperties;
+import com.gls.athena.common.core.base.BaseProperties;
 import com.gls.athena.common.core.constant.IConstants;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

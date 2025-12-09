@@ -1,8 +1,9 @@
-package com.gls.athena.common.core.base;
+package com.gls.athena.common.core.support;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.parser.NodeParser;
+import com.gls.athena.common.core.interfaces.ITreeNode;
 
 /**
  * 树节点解析器

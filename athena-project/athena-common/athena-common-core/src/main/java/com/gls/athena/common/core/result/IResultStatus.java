@@ -1,5 +1,7 @@
 package com.gls.athena.common.core.result;
 
+import com.gls.athena.common.core.domain.Result;
+
 /**
  * 统一返回状态接口
  *

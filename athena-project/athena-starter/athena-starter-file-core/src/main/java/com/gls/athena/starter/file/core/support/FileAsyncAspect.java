@@ -1,8 +1,8 @@
 package com.gls.athena.starter.file.core.support;
 
 import cn.hutool.core.util.IdUtil;
-import com.gls.athena.common.core.constant.FileTypeEnums;
-import com.gls.athena.common.core.result.Result;
+import com.gls.athena.common.core.domain.Result;
+import com.gls.athena.common.core.enums.FileTypeEnums;
 import com.gls.athena.starter.async.domain.AsyncTaskStatus;
 import com.gls.athena.starter.async.manager.IAsyncTaskManager;
 import com.gls.athena.starter.async.util.AopUtil;

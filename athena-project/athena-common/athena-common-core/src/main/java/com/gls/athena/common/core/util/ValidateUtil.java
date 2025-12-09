@@ -1,7 +1,7 @@
 package com.gls.athena.common.core.util;
 
+import com.gls.athena.common.core.enums.ResultStatus;
 import com.gls.athena.common.core.result.ResultException;
-import com.gls.athena.common.core.result.ResultStatus;
 import lombok.experimental.UtilityClass;
 
 import java.util.Collection;

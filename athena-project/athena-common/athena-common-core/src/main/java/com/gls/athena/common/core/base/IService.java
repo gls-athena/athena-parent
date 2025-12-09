@@ -1,7 +1,7 @@
 package com.gls.athena.common.core.base;
 
-import com.gls.athena.common.core.page.PageRequest;
-import com.gls.athena.common.core.page.PageResponse;
+import com.gls.athena.common.core.domain.PageRequest;
+import com.gls.athena.common.core.domain.PageResponse;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;

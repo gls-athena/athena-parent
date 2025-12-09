@@ -1,6 +1,6 @@
 package com.gls.athena.starter.file.core.domain;
 
-import com.gls.athena.common.core.constant.FileTypeEnums;
+import com.gls.athena.common.core.enums.FileTypeEnums;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

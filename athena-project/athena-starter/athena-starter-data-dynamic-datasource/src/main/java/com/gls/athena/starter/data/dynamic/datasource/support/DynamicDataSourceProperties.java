@@ -1,6 +1,6 @@
 package com.gls.athena.starter.data.dynamic.datasource.support;
 
-import com.gls.athena.common.core.constant.BaseProperties;
+import com.gls.athena.common.core.base.BaseProperties;
 import com.gls.athena.common.core.constant.IConstants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

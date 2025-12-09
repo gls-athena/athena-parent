@@ -3,7 +3,7 @@ package com.gls.athena.common.core.security;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeUtil;
-import com.gls.athena.common.core.base.ITreeNodeParser;
+import com.gls.athena.common.core.support.ITreeNodeParser;
 import lombok.experimental.UtilityClass;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

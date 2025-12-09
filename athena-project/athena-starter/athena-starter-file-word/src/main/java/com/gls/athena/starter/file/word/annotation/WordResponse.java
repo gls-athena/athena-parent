@@ -1,6 +1,6 @@
 package com.gls.athena.starter.file.word.annotation;
 
-import com.gls.athena.common.core.constant.FileTypeEnums;
+import com.gls.athena.common.core.enums.FileTypeEnums;
 import com.gls.athena.starter.file.core.annotation.FileResponse;
 import com.gls.athena.starter.file.word.generator.WordGenerator;
 import org.springframework.core.annotation.AliasFor;

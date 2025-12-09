@@ -2,7 +2,7 @@ package com.gls.athena.starter.file.core.domain;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import com.gls.athena.common.core.constant.FileTypeEnums;
+import com.gls.athena.common.core.enums.FileTypeEnums;
 import com.gls.athena.starter.file.core.annotation.FileResponse;
 import com.gls.athena.starter.file.core.generator.FileGenerator;
 import com.gls.athena.starter.web.util.WebUtil;

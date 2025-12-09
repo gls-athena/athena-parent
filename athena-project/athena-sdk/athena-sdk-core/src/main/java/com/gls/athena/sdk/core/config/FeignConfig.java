@@ -1,7 +1,7 @@
 package com.gls.athena.sdk.core.config;
 
-import com.gls.athena.common.core.constant.ClientTypeEnums;
 import com.gls.athena.common.core.constant.IConstants;
+import com.gls.athena.common.core.enums.ClientTypeEnums;
 import feign.RequestInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

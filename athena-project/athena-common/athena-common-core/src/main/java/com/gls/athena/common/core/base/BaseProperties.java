@@ -1,4 +1,4 @@
-package com.gls.athena.common.core.constant;
+package com.gls.athena.common.core.base;
 
 import lombok.Data;
 

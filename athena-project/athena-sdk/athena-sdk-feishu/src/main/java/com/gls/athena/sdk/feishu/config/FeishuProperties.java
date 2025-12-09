@@ -1,6 +1,6 @@
 package com.gls.athena.sdk.feishu.config;
 
-import com.gls.athena.common.core.constant.BaseProperties;
+import com.gls.athena.common.core.base.BaseProperties;
 import com.gls.athena.common.core.constant.IConstants;
 import com.lark.oapi.core.enums.AppType;
 import lombok.Data;

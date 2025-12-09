@@ -1,6 +1,6 @@
-package com.gls.athena.common.core.constant;
+package com.gls.athena.common.core.enums;
 
-import com.gls.athena.common.core.base.IEnum;
+import com.gls.athena.common.core.interfaces.IEnum;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

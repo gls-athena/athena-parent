@@ -1,7 +1,7 @@
 package com.gls.athena.starter.data.jpa.base;
 
-import com.gls.athena.common.core.page.PageRequest;
-import com.gls.athena.common.core.page.PageResponse;
+import com.gls.athena.common.core.domain.PageRequest;
+import com.gls.athena.common.core.domain.PageResponse;
 import com.gls.athena.starter.data.jpa.support.JpaUtil;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;

@@ -1,7 +1,7 @@
 package com.gls.athena.starter.file.pdf.config;
 
 import cn.hutool.extra.template.TemplateConfig;
-import com.gls.athena.common.core.constant.BaseProperties;
+import com.gls.athena.common.core.base.BaseProperties;
 import com.gls.athena.common.core.constant.IConstants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

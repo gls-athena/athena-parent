@@ -1,6 +1,6 @@
 package com.gls.athena.starter.file.core.annotation;
 
-import com.gls.athena.common.core.constant.FileTypeEnums;
+import com.gls.athena.common.core.enums.FileTypeEnums;
 import com.gls.athena.starter.file.core.generator.FileGenerator;
 
 import java.lang.annotation.ElementType;

@@ -1,4 +1,4 @@
-package com.gls.athena.common.core.base;
+package com.gls.athena.common.core.interfaces;
 
 /**
  * 树节点通用接口

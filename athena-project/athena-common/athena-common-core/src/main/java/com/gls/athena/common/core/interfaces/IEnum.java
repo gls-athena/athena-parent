@@ -1,4 +1,4 @@
-package com.gls.athena.common.core.base;
+package com.gls.athena.common.core.interfaces;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

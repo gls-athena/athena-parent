@@ -3,8 +3,8 @@ package com.gls.athena.starter.data.mybatis.base;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.gls.athena.common.core.page.PageRequest;
-import com.gls.athena.common.core.page.PageResponse;
+import com.gls.athena.common.core.domain.PageRequest;
+import com.gls.athena.common.core.domain.PageResponse;
 import com.gls.athena.starter.data.mybatis.support.MybatisUtil;
 
 /**

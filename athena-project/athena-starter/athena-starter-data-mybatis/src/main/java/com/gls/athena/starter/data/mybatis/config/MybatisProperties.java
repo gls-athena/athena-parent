@@ -1,7 +1,7 @@
 package com.gls.athena.starter.data.mybatis.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
-import com.gls.athena.common.core.constant.BaseProperties;
+import com.gls.athena.common.core.base.BaseProperties;
 import com.gls.athena.common.core.constant.IConstants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

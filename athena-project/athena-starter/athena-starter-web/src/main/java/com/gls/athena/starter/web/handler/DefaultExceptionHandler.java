@@ -1,9 +1,9 @@
 package com.gls.athena.starter.web.handler;
 
 import com.gls.athena.common.core.constant.IConstants;
-import com.gls.athena.common.core.result.Result;
+import com.gls.athena.common.core.domain.Result;
+import com.gls.athena.common.core.enums.ResultStatus;
 import com.gls.athena.common.core.result.ResultException;
-import com.gls.athena.common.core.result.ResultStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;

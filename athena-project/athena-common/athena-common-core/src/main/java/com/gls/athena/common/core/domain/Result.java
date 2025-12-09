@@ -1,5 +1,7 @@
-package com.gls.athena.common.core.result;
+package com.gls.athena.common.core.domain;
 
+import com.gls.athena.common.core.enums.ResultStatus;
+import com.gls.athena.common.core.result.IResultStatus;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

@@ -1,7 +1,7 @@
 package com.gls.athena.common.core.security;
 
 import com.gls.athena.common.core.base.IDomain;
-import com.gls.athena.common.core.base.ITreeNode;
+import com.gls.athena.common.core.interfaces.ITreeNode;
 
 /**
  * 权限接口

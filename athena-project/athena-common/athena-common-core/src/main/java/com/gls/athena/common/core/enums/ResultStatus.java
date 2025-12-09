@@ -1,5 +1,6 @@
-package com.gls.athena.common.core.result;
+package com.gls.athena.common.core.enums;
 
+import com.gls.athena.common.core.result.IResultStatus;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

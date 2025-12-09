@@ -2,7 +2,7 @@ package com.gls.athena.starter.file.core.manager;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
-import com.gls.athena.common.core.constant.FileTypeEnums;
+import com.gls.athena.common.core.enums.FileTypeEnums;
 import com.gls.athena.starter.file.core.config.FileProperties;
 import com.gls.athena.starter.file.core.domain.FileInfo;
 import jakarta.annotation.Resource;
