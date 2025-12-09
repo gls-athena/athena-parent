@@ -1,7 +1,7 @@
 package com.gls.athena.starter.data.jpa.support;
 
-import com.gls.athena.common.bean.page.PageRequest;
-import com.gls.athena.common.bean.page.PageResponse;
+import com.gls.athena.common.core.page.PageRequest;
+import com.gls.athena.common.core.page.PageResponse;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

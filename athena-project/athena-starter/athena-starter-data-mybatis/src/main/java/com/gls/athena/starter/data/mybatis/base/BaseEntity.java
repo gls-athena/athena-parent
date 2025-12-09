@@ -1,7 +1,7 @@
 package com.gls.athena.starter.data.mybatis.base;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.gls.athena.common.bean.base.IDomain;
+import com.gls.athena.common.core.base.IDomain;
 import lombok.Data;
 
 import java.util.Date;

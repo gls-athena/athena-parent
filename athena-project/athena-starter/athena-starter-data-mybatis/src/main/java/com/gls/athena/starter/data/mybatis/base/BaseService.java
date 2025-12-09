@@ -2,11 +2,11 @@ package com.gls.athena.starter.data.mybatis.base;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.gls.athena.common.bean.base.BaseVo;
-import com.gls.athena.common.bean.page.PageRequest;
-import com.gls.athena.common.bean.page.PageResponse;
+import com.gls.athena.common.core.base.BaseVo;
 import com.gls.athena.common.core.base.IConverter;
 import com.gls.athena.common.core.base.IService;
+import com.gls.athena.common.core.page.PageRequest;
+import com.gls.athena.common.core.page.PageResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;

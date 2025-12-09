@@ -1,7 +1,7 @@
 package com.gls.athena.starter.data.jpa.support;
 
-import com.gls.athena.common.bean.security.LoginUserHelper;
 import com.gls.athena.common.core.constant.IConstants;
+import com.gls.athena.common.core.security.LoginUserHelper;
 import com.gls.athena.starter.data.jpa.base.BaseEntity;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;

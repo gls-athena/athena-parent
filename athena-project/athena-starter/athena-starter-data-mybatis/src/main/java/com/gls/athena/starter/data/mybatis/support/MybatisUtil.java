@@ -3,8 +3,8 @@ package com.gls.athena.starter.data.mybatis.support;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.gls.athena.common.bean.page.PageRequest;
-import com.gls.athena.common.bean.page.PageResponse;
+import com.gls.athena.common.core.page.PageRequest;
+import com.gls.athena.common.core.page.PageResponse;
 import lombok.experimental.UtilityClass;
 
 /**

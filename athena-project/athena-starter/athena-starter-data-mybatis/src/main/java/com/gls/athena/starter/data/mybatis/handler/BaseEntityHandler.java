@@ -1,8 +1,8 @@
 package com.gls.athena.starter.data.mybatis.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.gls.athena.common.bean.security.LoginUserHelper;
 import com.gls.athena.common.core.constant.IConstants;
+import com.gls.athena.common.core.security.LoginUserHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;

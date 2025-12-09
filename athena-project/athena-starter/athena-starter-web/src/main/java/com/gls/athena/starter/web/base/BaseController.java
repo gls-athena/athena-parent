@@ -1,10 +1,10 @@
 package com.gls.athena.starter.web.base;
 
-import com.gls.athena.common.bean.base.BaseVo;
-import com.gls.athena.common.bean.page.PageRequest;
-import com.gls.athena.common.bean.page.PageResponse;
+import com.gls.athena.common.core.base.BaseVo;
 import com.gls.athena.common.core.base.IFeign;
 import com.gls.athena.common.core.base.IService;
+import com.gls.athena.common.core.page.PageRequest;
+import com.gls.athena.common.core.page.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

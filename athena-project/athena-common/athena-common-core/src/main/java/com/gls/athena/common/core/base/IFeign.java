@@ -1,8 +1,7 @@
 package com.gls.athena.common.core.base;
 
-import com.gls.athena.common.bean.base.BaseVo;
-import com.gls.athena.common.bean.page.PageRequest;
-import com.gls.athena.common.bean.page.PageResponse;
+import com.gls.athena.common.core.page.PageRequest;
+import com.gls.athena.common.core.page.PageResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

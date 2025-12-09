@@ -1,6 +1,6 @@
 package com.gls.athena.starter.data.jpa.base;
 
-import com.gls.athena.common.bean.base.IDomain;
+import com.gls.athena.common.core.base.IDomain;
 import com.gls.athena.starter.data.jpa.support.DefaultEntityListener;
 import com.gls.athena.starter.data.jpa.support.SnowflakeId;
 import jakarta.persistence.EntityListeners;

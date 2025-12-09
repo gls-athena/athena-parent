@@ -1,8 +1,8 @@
 package com.gls.athena.starter.data.mybatis.handler;
 
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
-import com.gls.athena.common.bean.security.LoginUserHelper;
 import com.gls.athena.common.core.constant.IConstants;
+import com.gls.athena.common.core.security.LoginUserHelper;
 import com.gls.athena.starter.data.mybatis.config.MybatisProperties;
 import jakarta.annotation.Resource;
 import net.sf.jsqlparser.expression.Expression;

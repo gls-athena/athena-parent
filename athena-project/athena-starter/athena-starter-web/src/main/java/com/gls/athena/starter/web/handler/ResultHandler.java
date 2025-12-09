@@ -2,10 +2,10 @@ package com.gls.athena.starter.web.handler;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.gls.athena.common.bean.result.Result;
-import com.gls.athena.common.bean.result.ResultStatus;
 import com.gls.athena.common.core.constant.ClientTypeEnums;
 import com.gls.athena.common.core.constant.IConstants;
+import com.gls.athena.common.core.result.Result;
+import com.gls.athena.common.core.result.ResultStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.Resource;
