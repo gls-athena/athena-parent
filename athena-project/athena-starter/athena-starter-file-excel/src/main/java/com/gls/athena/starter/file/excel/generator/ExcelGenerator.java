@@ -4,8 +4,8 @@
  */
 package com.gls.athena.starter.file.excel.generator;
 
+import com.gls.athena.starter.file.core.generator.FileGenerator;
 import com.gls.athena.starter.file.excel.annotation.ExcelResponse;
-import com.gls.athena.starter.file.generator.FileGenerator;
 
 /**
  * Excel生成器接口

@@ -1,7 +1,7 @@
 package com.gls.athena.starter.pdf.annotation;
 
 import com.gls.athena.common.core.constant.FileTypeEnums;
-import com.gls.athena.starter.file.annotation.FileResponse;
+import com.gls.athena.starter.file.core.annotation.FileResponse;
 import com.gls.athena.starter.pdf.generator.PdfGenerator;
 import org.springframework.core.annotation.AliasFor;
 

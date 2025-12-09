@@ -1,7 +1,7 @@
 package com.gls.athena.starter.file.excel.annotation;
 
 import com.gls.athena.common.core.constant.FileTypeEnums;
-import com.gls.athena.starter.file.annotation.FileResponse;
+import com.gls.athena.starter.file.core.annotation.FileResponse;
 import com.gls.athena.starter.file.excel.generator.ExcelGenerator;
 import org.springframework.core.annotation.AliasFor;
 

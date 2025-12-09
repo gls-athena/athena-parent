@@ -1,6 +1,6 @@
 package com.gls.athena.starter.pdf.generator;
 
-import com.gls.athena.starter.file.generator.FileGenerator;
+import com.gls.athena.starter.file.core.generator.FileGenerator;
 import com.gls.athena.starter.pdf.annotation.PdfResponse;
 
 /**

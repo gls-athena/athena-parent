@@ -1,6 +1,6 @@
 package com.gls.athena.starter.word.generator;
 
-import com.gls.athena.starter.file.generator.FileGenerator;
+import com.gls.athena.starter.file.core.generator.FileGenerator;
 import com.gls.athena.starter.word.annotation.WordResponse;
 
 /**
