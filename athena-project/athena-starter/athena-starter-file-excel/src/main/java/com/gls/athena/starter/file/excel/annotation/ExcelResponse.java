@@ -1,0 +1,129 @@
+package com.gls.athena.starter.file.excel.annotation;
+
+import com.gls.athena.common.core.constant.FileTypeEnums;
+import com.gls.athena.starter.file.annotation.FileResponse;
+import com.gls.athena.starter.file.excel.generator.ExcelGenerator;
+import org.springframework.core.annotation.AliasFor;
+
+import java.lang.annotation.*;
+
+/**
+ * 用于标记方法将响应以Excel形式返回的注解
+ * 提供了一系列配置选项，以定制Excel的生成和响应行为
+ *
+ * @author george
+ */
+@Documented
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@FileResponse(generator = ExcelGenerator.class)
+public @interface ExcelResponse {
+    /**
+     * 导出任务的编码标识
+     * 默认值为"excel_export"
+     */
+    @AliasFor(annotation = FileResponse.class, attribute = "code")
+    String code() default "excel_export";
+
+    /**
+     * 导出任务的名称
+     * 默认值为"Excel导出"
+     */
+    @AliasFor(annotation = FileResponse.class, attribute = "name")
+    String name() default "Excel导出";
+
+    /**
+     * 导出任务的描述信息
+     * 默认值为"Excel异步导出任务"
+     */
+    @AliasFor(annotation = FileResponse.class, attribute = "description")
+    String description() default "Excel异步导出任务";
+
+    /**
+     * 指定生成的Excel文件名(不包含扩展名)
+     */
+    @AliasFor(annotation = FileResponse.class, attribute = "filename")
+    String filename();
+
+    /**
+     * 输出文件的类型
+     * 默认值为XLSX类型
+     */
+    @AliasFor(annotation = FileResponse.class, attribute = "fileType")
+    FileTypeEnums fileType() default FileTypeEnums.XLSX;
+
+    /**
+     * 是否异步生成Excel文件
+     * 默认值为false，表示同步生成
+     */
+    @AliasFor(annotation = FileResponse.class, attribute = "async")
+    boolean async() default false;
+
+    /**
+     * 指定Excel的配置信息
+     * 默认值为空的ExcelConfig注解，表示使用默认配置
+     */
+    ExcelConfig config() default @ExcelConfig;
+
+    /**
+     * 是否在操作完成后自动关闭流
+     * 默认值为true，表示自动关闭
+     */
+    boolean autoCloseStream() default true;
+
+    /**
+     * Excel文件的密码，用于加密文件
+     * 默认值为空字符串，表示不加密
+     */
+    String password() default "";
+
+    /**
+     * 是否在内存中生成Excel文件
+     * 默认值为false，表示不在内存中生成
+     */
+    boolean inMemory() default false;
+
+    /**
+     * 在出现异常时是否写入Excel
+     * 默认值为true，表示即使出现异常也会尝试写入Excel
+     */
+    boolean writeExcelOnException() default true;
+
+    /**
+     * 指定Excel文件的字符集
+     * 默认值为空字符串，表示使用默认字符集
+     */
+    String charset() default "";
+
+    /**
+     * 是否在Excel文件中包含BOM
+     * 默认值为false，表示不包含BOM
+     */
+    boolean withBom() default false;
+
+    /**
+     * 指定Excel模板的路径
+     * 默认值为空字符串，表示不使用模板
+     */
+    String template() default "";
+
+    /**
+     * 指定Excel工作表的配置
+     * 默认值为一个带有默认值的ExcelSheet注解
+     */
+    ExcelSheet[] sheets() default @ExcelSheet(sheetNo = 0);
+
+    /**
+     * 是否强制使用InputStream返回Excel文件
+     * 默认值为false，表示不强制使用InputStream
+     */
+    boolean mandatoryUseInputStream() default false;
+
+    /**
+     * 指定生成Excel文件的生成器类
+     * 默认值为ExcelGenerator.class，表示使用默认的Excel生成器
+     */
+    @AliasFor(annotation = FileResponse.class, attribute = "generator")
+    Class<? extends ExcelGenerator> generator() default ExcelGenerator.class;
+
+}

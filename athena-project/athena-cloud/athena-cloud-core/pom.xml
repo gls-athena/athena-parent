@@ -62,8 +62,8 @@
 
         <!-- Excel Starter：提供 Excel 文件读写支持 -->
         <dependency>
-            <groupId>io.github.gls-athena.starter.excel</groupId>
-            <artifactId>athena-starter-excel</artifactId>
+            <groupId>io.github.gls-athena.starter.file.excel</groupId>
+            <artifactId>athena-starter-file-excel</artifactId>
         </dependency>
 
         <!-- Log SDK：提供日志记录功能 -->
