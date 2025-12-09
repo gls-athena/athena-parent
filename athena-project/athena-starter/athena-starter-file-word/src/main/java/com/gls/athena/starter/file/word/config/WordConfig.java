@@ -1,0 +1,15 @@
+package com.gls.athena.starter.file.word.config;
+
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Word配置类
+ *
+ * @author george
+ */
+@Configuration
+@EnableConfigurationProperties(WordProperties.class)
+public class WordConfig {
+
+}

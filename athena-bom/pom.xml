@@ -154,13 +154,13 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>io.github.gls-athena.starter.mybatis</groupId>
+                <groupId>io.github.gls-athena.starter.data.mybatis</groupId>
                 <artifactId>athena-starter-data-mybatis</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>io.github.gls-athena.starter.pdf</groupId>
-                <artifactId>athena-starter-pdf</artifactId>
+                <groupId>io.github.gls-athena.starter.file.pdf</groupId>
+                <artifactId>athena-starter-file-pdf</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
@@ -174,8 +174,8 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>io.github.gls-athena.starter.word</groupId>
-                <artifactId>athena-starter-word</artifactId>
+                <groupId>io.github.gls-athena.starter.file.word</groupId>
+                <artifactId>athena-starter-file-word</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>

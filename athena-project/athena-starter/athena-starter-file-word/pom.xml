@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.gls-athena.starter</groupId>
+        <artifactId>athena-starter</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <groupId>io.github.gls-athena.starter.file.word</groupId>
+    <artifactId>athena-starter-file-word</artifactId>
+    <name>Athena Starter File Word</name>
+    <description>Athena Word 文档处理启动器</description>
+    <dependencies>
+        <dependency>
+            <groupId>io.github.gls-athena.starter.file.core</groupId>
+            <artifactId>athena-starter-file-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.docx4j</groupId>
+            <artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.docx4j</groupId>
+            <artifactId>docx4j-JAXB-MOXy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.docx4j</groupId>
+            <artifactId>docx4j-ImportXHTML-core</artifactId>
+        </dependency>
+    </dependencies>
+</project>

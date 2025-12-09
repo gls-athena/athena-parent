@@ -42,10 +42,10 @@
         <module>athena-starter-file-jasper</module>
         <module>athena-starter-json</module>
         <module>athena-starter-data-mybatis</module>
-        <module>athena-starter-pdf</module>
+        <module>athena-starter-file-pdf</module>
         <module>athena-starter-swagger</module>
         <module>athena-starter-web</module>
-        <module>athena-starter-word</module>
+        <module>athena-starter-file-word</module>
     </modules>
 
     <!-- 项目公共依赖项，这些依赖将被所有子模块继承 -->

@@ -38,7 +38,7 @@
 
         <!-- MyBatis Starter：集成 MyBatis 持久层框架 -->
         <dependency>
-            <groupId>io.github.gls-athena.starter.mybatis</groupId>
+            <groupId>io.github.gls-athena.starter.data.mybatis</groupId>
             <artifactId>athena-starter-data-mybatis</artifactId>
         </dependency>
 
