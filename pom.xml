@@ -45,14 +45,14 @@
         <url>https://github.com/gls-athena/athena-parent</url>
     </scm>
     <properties>
-        <revision>0.0.18-SNAPSHOT</revision>
+        <revision>0.0.18</revision>
         <flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
         <central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
-        <project.build.outputTimestamp>2025-11-01T15:58:01Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-01-26T02:12:10Z</project.build.outputTimestamp>
     </properties>
 
     <build>
